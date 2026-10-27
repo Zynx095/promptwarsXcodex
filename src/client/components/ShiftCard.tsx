@@ -66,7 +66,7 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
             <>
               {' · '}
               <span className="site-verified">
-                <BadgeCheck className="icon" aria-hidden="true" style={{ width: 14, height: 14 }} />
+                <BadgeCheck className="icon" aria-hidden="true" data-size="sm" />
                 {t('site.verified')}
               </span>
             </>
@@ -106,9 +106,7 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
         <Stat label={t('att.overtime')} value={formatMinutes(s.today.overtimeMinutes)} />
       </div>
       <div className="row">
-        <p className="muted small" style={{ margin: 0 }}>
-          {t('att.scheduled', { hours: formatMinutes(s.scheduledDailyMinutes) })}
-        </p>
+        <p className="muted small m-0">{t('att.scheduled', { hours: formatMinutes(s.scheduledDailyMinutes) })}</p>
         <ReadAloudButton text={spoken} className="btn-link" />
       </div>
     </Card>

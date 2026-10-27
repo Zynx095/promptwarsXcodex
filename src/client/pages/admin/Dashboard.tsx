@@ -8,7 +8,21 @@ import { formatDate, formatDateTime, formatMinutes } from '../../lib/format';
 import type { DashboardDTO } from '../../../shared/types';
 import { Async, BarChart, Button, Card, Empty, Field, Notice, Page, type StatTone } from '../../components/ui';
 
-function StatLink({ to, label, value, hint, icon, tone = 'default' }: { to: string; label: string; value: string | number; hint?: string; icon: ReactNode; tone?: StatTone }) {
+function StatLink({
+  to,
+  label,
+  value,
+  hint,
+  icon,
+  tone = 'default',
+}: {
+  to: string;
+  label: string;
+  value: string | number;
+  hint?: string;
+  icon: ReactNode;
+  tone?: StatTone;
+}) {
   return (
     <Link to={to} className={`stat stat-${tone}`}>
       <span className="stat-icon" aria-hidden="true">
@@ -79,11 +93,24 @@ export function AdminDashboard() {
                   icon={<Timer {...ICON} />}
                   tone={d.overtimeMinutes ? 'warn' : 'default'}
                 />
-                <StatLink to="/admin/alerts?status=open" label="Open hours alerts" value={d.openAlerts} hint="Scheduling warnings" icon={<AlertTriangle {...ICON} />} tone={d.openAlerts ? 'warn' : 'default'} />
+                <StatLink
+                  to="/admin/alerts?status=open"
+                  label="Open hours alerts"
+                  value={d.openAlerts}
+                  hint="Scheduling warnings"
+                  icon={<AlertTriangle {...ICON} />}
+                  tone={d.openAlerts ? 'warn' : 'default'}
+                />
               </div>
               <h2 className="section-title">Safety</h2>
               <div className="stats">
-                <StatLink to="/admin/reports?status=unresolved" label="Unresolved hazard reports" value={d.openReports} icon={<ShieldAlert {...ICON} />} tone={d.openReports ? 'warn' : 'default'} />
+                <StatLink
+                  to="/admin/reports?status=unresolved"
+                  label="Unresolved hazard reports"
+                  value={d.openReports}
+                  icon={<ShieldAlert {...ICON} />}
+                  tone={d.openReports ? 'warn' : 'default'}
+                />
                 <StatLink
                   to="/admin/reports?status=unresolved&severity=critical"
                   label="Critical, unresolved"
@@ -102,7 +129,7 @@ export function AdminDashboard() {
                 </Card>
               </div>
 
-              <div className="grid" style={{ marginTop: 16 }}>
+              <div className="grid mt-4">
                 <Card title="Recent activity">
                   {d.recentActivity.length === 0 ? (
                     <Empty>No recent activity.</Empty>
@@ -147,7 +174,7 @@ export function AdminDashboard() {
                       </tbody>
                     </table>
                   </div>
-                  <p style={{ margin: 0 }}>
+                  <p className="m-0">
                     <Link to="/admin/feedback">Review feedback</Link>
                   </p>
                 </Card>

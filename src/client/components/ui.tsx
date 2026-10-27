@@ -31,7 +31,12 @@ export function Card({ title, subtitle, children, className }: { title?: ReactNo
   );
 }
 
-export function Button({ variant = 'primary', busy, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'link'; busy?: boolean }) {
+export function Button({
+  variant = 'primary',
+  busy,
+  children,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'link'; busy?: boolean }) {
   return (
     <button type="button" className={`btn btn-${variant}`} disabled={busy || rest.disabled} aria-busy={busy || undefined} {...rest}>
       {children}
@@ -40,7 +45,19 @@ export function Button({ variant = 'primary', busy, children, ...rest }: ButtonH
 }
 
 /** Labelled form control with hint and error, wired up with aria attributes. */
-export function Field({ label, hint, error, optional, children }: { label: string; hint?: string; error?: string; optional?: boolean; children: ReactElement<Record<string, unknown>> }) {
+export function Field({
+  label,
+  hint,
+  error,
+  optional,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  optional?: boolean;
+  children: ReactElement<Record<string, unknown>>;
+}) {
   const id = useId();
   const { t } = useI18n();
   const hintId = hint ? `${id}-hint` : undefined;
@@ -115,7 +132,13 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 /** Renders loading / error / content for a useApi result. */
-export function Async<T>({ state, children }: { state: { data: T | null; error: ApiError | null; loading: boolean; reload: () => void }; children: (data: T) => ReactNode }) {
+export function Async<T>({
+  state,
+  children,
+}: {
+  state: { data: T | null; error: ApiError | null; loading: boolean; reload: () => void };
+  children: (data: T) => ReactNode;
+}) {
   if (state.error) return <ErrorBox error={state.error} onRetry={state.reload} />;
   if (state.data === null) return <Loading />;
   return <>{children(state.data)}</>;
@@ -193,11 +216,23 @@ export interface BarDatum {
 }
 
 /** Dependency-free bar chart with a visually hidden data table for screen readers. */
-export function BarChart({ data, caption, valueLabel, extraLabel, format = String }: { data: BarDatum[]; caption: string; valueLabel: string; extraLabel?: string; format?: (n: number) => string }) {
+export function BarChart({
+  data,
+  caption,
+  valueLabel,
+  extraLabel,
+  format = String,
+}: {
+  data: BarDatum[];
+  caption: string;
+  valueLabel: string;
+  extraLabel?: string;
+  format?: (n: number) => string;
+}) {
   const max = Math.max(1, ...data.map((d) => d.value + (d.extra ?? 0))) * 1.1;
   const pct = (n: number) => `${(n / max) * 100}%`;
   return (
-    <figure className="chart" style={{ margin: 0 }}>
+    <figure className="chart">
       <div className="chart-bars" aria-hidden="true">
         {data.map((d) => (
           <div key={d.title} className="chart-col" title={`${d.title}: ${format(d.value)}${extraLabel ? `, ${extraLabel}: ${format(d.extra ?? 0)}` : ''}`}>

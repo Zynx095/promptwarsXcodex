@@ -4,11 +4,7 @@ import { isUnresolved } from './safety';
 import { localDate } from '../shared/time';
 import type { ReportStatus, Severity } from '../shared/types';
 
-export function summarizeAttendance(
-  shifts: (ShiftTimes & { workerId: string })[],
-  timeZone: string,
-  scheduledDailyMinutes: number,
-) {
+export function summarizeAttendance(shifts: (ShiftTimes & { workerId: string })[], timeZone: string, scheduledDailyMinutes: number) {
   const byWorker = new Map<string, ShiftTimes[]>();
   for (const s of shifts) {
     const list = byWorker.get(s.workerId) ?? [];

@@ -103,7 +103,12 @@ function fieldByLabel(label: string): HTMLInputElement | HTMLTextAreaElement | H
 }
 
 async function type(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, value: string) {
-  const proto = el instanceof window.HTMLTextAreaElement ? window.HTMLTextAreaElement : el instanceof window.HTMLSelectElement ? window.HTMLSelectElement : window.HTMLInputElement;
+  const proto =
+    el instanceof window.HTMLTextAreaElement
+      ? window.HTMLTextAreaElement
+      : el instanceof window.HTMLSelectElement
+        ? window.HTMLSelectElement
+        : window.HTMLInputElement;
   await act(async () => {
     Object.getOwnPropertyDescriptor(proto.prototype, 'value')!.set!.call(el, value);
     el.dispatchEvent(new Event(el instanceof window.HTMLSelectElement ? 'change' : 'input', { bubbles: true }));

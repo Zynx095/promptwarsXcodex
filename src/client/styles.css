@@ -548,7 +548,9 @@ textarea {
   border-radius: 8px;
   background: #fff;
   color: var(--c-text);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 input::placeholder,
 textarea::placeholder {
@@ -564,7 +566,9 @@ textarea:focus {
 select {
   appearance: none;
   padding-right: 34px;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
 }
 textarea {
   min-height: 110px;
@@ -652,7 +656,9 @@ legend {
   gap: var(--space-2);
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 .btn:disabled {
   opacity: 0.55;
@@ -1394,4 +1400,53 @@ th.num {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- Utilities (replace one-off inline styles) ---------- */
+.m-0 {
+  margin: 0;
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.my-1 {
+  margin: var(--space-1) 0;
+}
+.min-w-0 {
+  min-width: 0;
+}
+.w-auto {
+  width: auto;
+}
+.pre-wrap {
+  white-space: pre-wrap;
+}
+.row-tight {
+  gap: 6px;
+}
+.form-actions-end {
+  justify-content: flex-end;
+  margin-top: var(--space-1);
+}
+.deduction-row {
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--space-3);
+}
+.rate-input {
+  max-width: 120px;
+}
+svg.icon[data-size='sm'] {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+}
+svg.icon[data-size='lg'] {
+  width: 26px;
+  height: 26px;
+  margin-right: 10px;
+  vertical-align: -2px;
+  color: var(--c-accent);
+}
+.chart {
+  margin: 0;
 }

@@ -47,9 +47,7 @@ describe('input validation', () => {
     };
     expect(orgSettingsSchema.safeParse(settings).success).toBe(true);
     expect(orgSettingsSchema.safeParse({ ...settings, pay: { ...settings.pay, overtimeMultiplierBp: 5000 } }).success).toBe(false);
-    expect(
-      orgSettingsSchema.safeParse({ ...settings, fatigue: { ...settings.fatigue, maxWeeklyMinutes: 300 } }).success,
-    ).toBe(false);
+    expect(orgSettingsSchema.safeParse({ ...settings, fatigue: { ...settings.fatigue, maxWeeklyMinutes: 300 } }).success).toBe(false);
   });
 
   it('rejects expiry before issue on skill records', () => {

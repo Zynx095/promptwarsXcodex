@@ -181,7 +181,7 @@ function AdminShell({ children }: { children: ReactNode }) {
           {links}
         </nav>
         <p className="sidebar-foot">
-          <FileText className="icon" aria-hidden="true" style={{ width: 14, height: 14, verticalAlign: -2 }} /> Rules and records are scoped to your organisation.
+          <FileText className="icon" aria-hidden="true" data-size="sm" /> Rules and records are scoped to your organisation.
         </p>
       </aside>
       <div className="admin-body">

@@ -37,7 +37,7 @@ export function WorkerReports() {
                       <Link to={`/worker/reports/${r.id}`}>{r.title}</Link>
                       <ReportStatusBadge status={r.status} />
                     </div>
-                    <p className="muted small" style={{ margin: 0 }}>
+                    <p className="muted small m-0">
                       <SeverityBadge severity={r.severity} /> {formatDateTime(r.createdAt, me.org.timezone, locale)}{' '}
                       {r.confidential ? <Badge tone="info">Confidential</Badge> : null}
                     </p>
@@ -120,7 +120,7 @@ export function WorkerReportNew() {
               <span className="small muted">{t('rep.confidentialHint')}</span>
             </span>
           </label>
-          <div className="form-actions" style={{ marginTop: 16 }}>
+          <div className="form-actions mt-4">
             <Button type="submit" busy={busy}>
               {t('action.submit')}
             </Button>

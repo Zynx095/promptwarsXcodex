@@ -37,11 +37,10 @@ function recentActivity(ctx: AppContext, orgId: string): ActivityItem[] {
       return { at: a.at, kind: 'correction', text: `${a.actorName ?? 'An administrator'} corrected a shift for ${who}`, link: '/admin/audit' };
     }),
     // Report activity never names the reporter, so confidential reports cannot leak here.
-    ...reports.map(
-      (r): ActivityItem =>
-        r.fromStatus === null
-          ? { at: r.at, kind: 'report_created', text: `New ${r.severity} hazard reported: ${r.title}`, link: `/admin/reports/${r.reportId}` }
-          : { at: r.at, kind: 'report_status', text: `Hazard "${r.title}" moved to ${r.toStatus.replace('_', ' ')}`, link: `/admin/reports/${r.reportId}` },
+    ...reports.map((r): ActivityItem =>
+      r.fromStatus === null
+        ? { at: r.at, kind: 'report_created', text: `New ${r.severity} hazard reported: ${r.title}`, link: `/admin/reports/${r.reportId}` }
+        : { at: r.at, kind: 'report_status', text: `Hazard "${r.title}" moved to ${r.toStatus.replace('_', ' ')}`, link: `/admin/reports/${r.reportId}` },
     ),
   ];
   return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, ACTIVITY_LIMIT);

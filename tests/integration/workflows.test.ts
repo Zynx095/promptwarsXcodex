@@ -200,7 +200,7 @@ describe('confidential reporting and anonymous feedback', () => {
 
     const row = env.ctx.db.get<{ reporter_id: string | null }>('SELECT reporter_id FROM safety_reports WHERE id = @id', { id })!;
     expect(row.reporter_id).toBeNull();
-    const auditActors = env.ctx.db.all<{ actor_id: string | null }>("SELECT actor_id FROM audit_events WHERE entity_id = @id", { id });
+    const auditActors = env.ctx.db.all<{ actor_id: string | null }>('SELECT actor_id FROM audit_events WHERE entity_id = @id', { id });
     expect(auditActors.every((a) => a.actor_id === null)).toBe(true);
 
     const admin = await env.login(PHONES.constructionAdmin);
@@ -234,7 +234,11 @@ describe('confidential reporting and anonymous feedback', () => {
     expect(columns).not.toContain('created_at');
 
     const admin = await env.login(PHONES.constructionAdmin);
-    const summary = (await admin.get('/api/admin/feedback/summary')).body.summaries as { category: string; suppressed: boolean; averageRating: number | null }[];
+    const summary = (await admin.get('/api/admin/feedback/summary')).body.summaries as {
+      category: string;
+      suppressed: boolean;
+      averageRating: number | null;
+    }[];
     expect(summary.find((s) => s.category === 'equipment')).toMatchObject({ suppressed: true, averageRating: null });
     expect(summary.find((s) => s.category === 'pay')).toMatchObject({ suppressed: false });
     const list = (await admin.get('/api/admin/feedback?category=equipment')).body;
@@ -251,9 +255,12 @@ describe('administrator corrections, rules and alerts', () => {
     const newOut = new Date(Date.parse(shift.checkOutAt!) - 30 * 60000).toISOString();
     expect((await admin.patch(`/api/admin/shifts/${shift.id}`).send({ checkInAt: shift.checkInAt, checkOutAt: newOut, reason: '' })).status).toBe(400);
     expect(
-      (await admin.patch(`/api/admin/shifts/${shift.id}`).send({ checkInAt: shift.checkInAt, checkOutAt: shift.checkInAt, reason: 'Wrong time entered' })).status,
+      (await admin.patch(`/api/admin/shifts/${shift.id}`).send({ checkInAt: shift.checkInAt, checkOutAt: shift.checkInAt, reason: 'Wrong time entered' }))
+        .status,
     ).toBe(422);
-    const ok = await admin.patch(`/api/admin/shifts/${shift.id}`).send({ checkInAt: shift.checkInAt, checkOutAt: newOut, reason: 'Left early for clinic visit' });
+    const ok = await admin
+      .patch(`/api/admin/shifts/${shift.id}`)
+      .send({ checkInAt: shift.checkInAt, checkOutAt: newOut, reason: 'Left early for clinic visit' });
     expect(ok.status).toBe(200);
     expect(ok.body).toMatchObject({ corrected: true, durationMinutes: shift.durationMinutes! - 30 });
     const audit = (await admin.get(`/api/admin/audit?entityType=shift&entityId=${shift.id}`)).body.items;
@@ -356,7 +363,16 @@ describe('site check-in code', () => {
   it('includes a daily attendance trend on the dashboard', async () => {
     const admin = await env.login(PHONES.constructionAdmin);
     const d = (await admin.get('/api/admin/dashboard?from=2026-10-20&to=2026-10-27')).body as DashboardDTO;
-    expect(d.trend.map((p) => p.date)).toEqual(['2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27']);
+    expect(d.trend.map((p) => p.date)).toEqual([
+      '2026-10-20',
+      '2026-10-21',
+      '2026-10-22',
+      '2026-10-23',
+      '2026-10-24',
+      '2026-10-25',
+      '2026-10-26',
+      '2026-10-27',
+    ]);
     expect(d.trend.find((p) => p.date === '2026-10-26')!.present).toBeGreaterThan(0);
     expect(d.trend.find((p) => p.date === '2026-10-25')!.present).toBe(0); // Sunday: no seeded shifts
   });

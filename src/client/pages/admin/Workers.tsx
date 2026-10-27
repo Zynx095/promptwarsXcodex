@@ -92,8 +92,8 @@ export function AdminWorkers() {
                               <label className="visually-hidden" htmlFor={`rate-${w.id}`}>
                                 Hourly rate in rupees for {w.name}
                               </label>
-                              <input id={`rate-${w.id}`} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} style={{ maxWidth: 120 }} />
-                              <div className="form-actions" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+                              <input id={`rate-${w.id}`} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} className="rate-input" />
+                              <div className="form-actions form-actions-end">
                                 <Button type="submit">Save</Button>
                                 <Button variant="secondary" onClick={() => setEditing(null)}>
                                   Cancel

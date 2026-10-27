@@ -6,9 +6,7 @@ import { FEEDBACK_STATUSES, REPORT_STATUSES, SEVERITIES } from './types';
 const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
 export const localDateSchema = z.string().refine(isLocalDate, 'Use a valid date in YYYY-MM-DD format');
-export const isoInstantSchema = z
-  .string()
-  .refine((v) => ISO_INSTANT_RE.test(v) && !Number.isNaN(Date.parse(v)), 'Use a valid date and time');
+export const isoInstantSchema = z.string().refine((v) => ISO_INSTANT_RE.test(v) && !Number.isNaN(Date.parse(v)), 'Use a valid date and time');
 
 const text = (min: number, max: number, label: string) =>
   z
@@ -18,8 +16,14 @@ const text = (min: number, max: number, label: string) =>
     .max(max, `${label} must be at most ${max} characters`);
 
 export const loginSchema = z.object({
-  phone: z.string().trim().regex(/^\d{10}$/, 'Enter your 10-digit phone number'),
-  pin: z.string().trim().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, 'Enter your 10-digit phone number'),
+  pin: z
+    .string()
+    .trim()
+    .regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits'),
 });
 
 export const dateRangeSchema = z
@@ -113,15 +117,16 @@ export const orgSettingsSchema = z.object({
       .array(deductionSchema)
       .max(8)
       .refine((ds) => new Set(ds.map((d) => d.code)).size === ds.length, 'Deduction codes must be unique')
-      .refine(
-        (ds) => ds.filter((d) => d.kind !== 'fixed').reduce((s, d) => s + d.value, 0) <= 10000,
-        'Percentage deductions cannot add up to more than 100%',
-      ),
+      .refine((ds) => ds.filter((d) => d.kind !== 'fixed').reduce((s, d) => s + d.value, 0) <= 10000, 'Percentage deductions cannot add up to more than 100%'),
   }),
   fatigue: z
     .object({
       maxDailyMinutes: z.number().int().min(60).max(1440),
-      maxWeeklyMinutes: z.number().int().min(60).max(7 * 1440),
+      maxWeeklyMinutes: z
+        .number()
+        .int()
+        .min(60)
+        .max(7 * 1440),
       minRestMinutes: z.number().int().min(0).max(1440),
       overtimeDaysPerWeek: z.number().int().min(1).max(7),
     })

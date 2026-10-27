@@ -19,8 +19,8 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
     <>
       <Card>
         <div className="row">
-          <h2 style={{ margin: 0 }}>{report.title}</h2>
-          <span className="row" style={{ gap: 8 }}>
+          <h2 className="m-0">{report.title}</h2>
+          <span className="row row-tight">
             <SeverityBadge severity={report.severity} />
             <ReportStatusBadge status={report.status} />
           </span>
@@ -29,10 +29,14 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
           {t('rep.reportedOn', { date: formatDateTime(report.createdAt, tz, locale) })} · {category('hazard', report.category, cat?.label ?? report.category)} ·{' '}
           {report.location}
         </p>
-        <p style={{ whiteSpace: 'pre-wrap' }}>{report.description}</p>
+        <p className="pre-wrap">{report.description}</p>
         <p className="small">
           {report.confidential ? <Badge tone="info">Confidential</Badge> : null}{' '}
-          {report.reporterName ? <span className="muted">Reported by {report.reporterName}</span> : report.confidential ? <span className="muted">Reporter identity protected</span> : null}
+          {report.reporterName ? (
+            <span className="muted">Reported by {report.reporterName}</span>
+          ) : report.confidential ? (
+            <span className="muted">Reporter identity protected</span>
+          ) : null}
         </p>
         {report.assignee ? (
           <p>
@@ -52,7 +56,7 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
                 {' '}
                 · {formatDateTime(h.createdAt, tz, locale)} · {h.actorLabel}
               </span>
-              {h.note ? <p style={{ margin: 0 }}>{h.note}</p> : null}
+              {h.note ? <p className="m-0">{h.note}</p> : null}
             </li>
           ))}
         </ol>

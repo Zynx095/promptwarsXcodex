@@ -127,10 +127,7 @@ export function adminRoutes(ctx: AppContext): Router {
 
   r.get('/audit', (req, res) => {
     const { org } = session(req);
-    const q = parse(
-      paginationSchema.extend({ entityType: z.string().max(40).optional(), entityId: z.string().max(64).optional() }),
-      req.query,
-    );
+    const q = parse(paginationSchema.extend({ entityType: z.string().max(40).optional(), entityId: z.string().max(64).optional() }), req.query);
     res.json(listAudit(ctx.db, org.id, q));
   });
 
@@ -222,10 +219,7 @@ export function adminRoutes(ctx: AppContext): Router {
   // ---- Fatigue-risk alerts ----
   r.get('/alerts', (req, res) => {
     const { org } = session(req);
-    const q = parse(
-      z.object({ status: z.enum(['open', 'acknowledged']).optional(), workerId: z.string().max(64).optional() }),
-      req.query,
-    );
+    const q = parse(z.object({ status: z.enum(['open', 'acknowledged']).optional(), workerId: z.string().max(64).optional() }), req.query);
     res.json({ items: listAlerts(ctx, org.id, { ...q, limit: 200 }) });
   });
 

@@ -36,11 +36,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
+    // Initial session load; state is set from the promise callbacks, not synchronously.
+    let active = true;
+    api<MeResponse>('/auth/me')
+      .then((m) => active && setMe(m))
+      .catch((e: unknown) => {
+        if (active && e instanceof ApiError && e.status !== 401) setError(e);
+      })
+      .finally(() => active && setLoading(false));
     const onUnauth = () => setMe(null);
     window.addEventListener(UNAUTHENTICATED_EVENT, onUnauth);
-    return () => window.removeEventListener(UNAUTHENTICATED_EVENT, onUnauth);
-  }, [refresh]);
+    return () => {
+      active = false;
+      window.removeEventListener(UNAUTHENTICATED_EVENT, onUnauth);
+    };
+  }, []);
 
   return <SessionContext.Provider value={{ me, loading, error, refresh, logout }}>{children}</SessionContext.Provider>;
 }

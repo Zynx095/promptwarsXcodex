@@ -15,13 +15,13 @@ No other external services or credentials are required.
 
 ## Environment variables
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `PORT` | Set by Cloud Run | HTTP port. |
-| `NODE_ENV` | Set in the image (`production`) | Enables `Secure` cookies, CSP/HSTS headers and static file serving. |
-| `SESSION_SECRET` | Yes for real use | At least 32 random characters. Signs session cookies and confidential-report references. Store it in Secret Manager. If missing while `DEMO_MODE=true`, an ephemeral secret is generated and sessions end on restart. If missing with demo mode off, the server refuses to start. |
-| `DATABASE_PATH` | No | SQLite file path. The image default is `/tmp/fairshift/fairshift.db`. |
-| `DEMO_MODE` | No | `true` seeds synthetic data into an empty database and enables the demo-account list on the sign-in page. |
+| Variable         | Required                        | Description                                                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`           | Set by Cloud Run                | HTTP port.                                                                                                                                                                                                                                                                        |
+| `NODE_ENV`       | Set in the image (`production`) | Enables `Secure` cookies, CSP/HSTS headers and static file serving.                                                                                                                                                                                                               |
+| `SESSION_SECRET` | Yes for real use                | At least 32 random characters. Signs session cookies and confidential-report references. Store it in Secret Manager. If missing while `DEMO_MODE=true`, an ephemeral secret is generated and sessions end on restart. If missing with demo mode off, the server refuses to start. |
+| `DATABASE_PATH`  | No                              | SQLite file path. The image default is `/tmp/fairshift/fairshift.db`.                                                                                                                                                                                                             |
+| `DEMO_MODE`      | No                              | `true` seeds synthetic data into an empty database and enables the demo-account list on the sign-in page.                                                                                                                                                                         |
 
 ## Deploy (demo configuration)
 

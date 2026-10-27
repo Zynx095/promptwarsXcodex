@@ -95,7 +95,7 @@ export function PayslipBreakdown({ slip }: { slip: PayslipDTO }) {
       </section>
 
       {b.days.length > 0 ? (
-        <details style={{ marginTop: 16 }}>
+        <details className="mt-4">
           <summary>{t('pay.byDay')}</summary>
           <div className="table-wrap">
             <table>
@@ -128,9 +128,7 @@ export function PayslipBreakdown({ slip }: { slip: PayslipDTO }) {
         </details>
       ) : null}
 
-      <p className="muted small" style={{ marginTop: 16 }}>
-        {slip.synthetic ? t('pay.syntheticNote') : t('pay.realNote')}
-      </p>
+      <p className="muted small mt-4">{slip.synthetic ? t('pay.syntheticNote') : t('pay.realNote')}</p>
     </article>
   );
 }

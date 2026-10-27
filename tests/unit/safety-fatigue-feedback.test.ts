@@ -37,11 +37,13 @@ describe('safety report lifecycle', () => {
   it('treats only resolved reports as resolved', () => {
     expect(isUnresolved('resolved')).toBe(false);
     expect(isUnresolved('reopened')).toBe(true);
-    expect(summarizeReports([
-      { status: 'submitted', severity: 'critical' },
-      { status: 'resolved', severity: 'critical' },
-      { status: 'in_progress', severity: 'low' },
-    ])).toEqual({ openReports: 2, criticalUnresolved: 1 });
+    expect(
+      summarizeReports([
+        { status: 'submitted', severity: 'critical' },
+        { status: 'resolved', severity: 'critical' },
+        { status: 'in_progress', severity: 'low' },
+      ]),
+    ).toEqual({ openReports: 2, criticalUnresolved: 1 });
   });
 });
 

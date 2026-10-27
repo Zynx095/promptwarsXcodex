@@ -39,7 +39,9 @@ const app = await createApp(ctx, async (app) => {
 });
 
 const server = app.listen(config.port, '0.0.0.0', () => {
-  console.log(`[fairshift] Listening on port ${config.port} (${config.production ? 'production' : 'development'}, demo mode ${config.demoMode ? 'on' : 'off'})`);
+  console.log(
+    `[fairshift] Listening on port ${config.port} (${config.production ? 'production' : 'development'}, demo mode ${config.demoMode ? 'on' : 'off'})`,
+  );
 });
 
 function shutdown() {

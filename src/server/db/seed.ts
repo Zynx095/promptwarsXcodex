@@ -53,8 +53,10 @@ interface SeedOrg {
 }
 
 const jitter = (rand: () => number, spread: number) => Math.round((rand() - 0.5) * 2 * spread);
-const dayShift = (start: number, hours: number, spread = 10): Pattern => (wd, _i, rand) =>
-  wd === 0 ? null : [start + jitter(rand, spread), Math.round(hours * 60) + jitter(rand, 15)];
+const dayShift =
+  (start: number, hours: number, spread = 10): Pattern =>
+  (wd, _i, rand) =>
+    wd === 0 ? null : [start + jitter(rand, spread), Math.round(hours * 60) + jitter(rand, 15)];
 
 const ORGS: SeedOrg[] = [
   {
@@ -122,7 +124,15 @@ const ORGS: SeedOrg[] = [
     },
     admin: { id: 'usr_demo_e_admin', name: 'Anita Desai', phone: '9100000100', jobTitle: 'Facilities officer' },
     workers: [
-      { id: 'usr_demo_e_manjula', name: 'Manjula S', phone: '9100000001', jobTitle: 'Housekeeping staff', team: 'Hostel blocks', rate: 7000, pattern: dayShift(7 * 60, 8) },
+      {
+        id: 'usr_demo_e_manjula',
+        name: 'Manjula S',
+        phone: '9100000001',
+        jobTitle: 'Housekeeping staff',
+        team: 'Hostel blocks',
+        rate: 7000,
+        pattern: dayShift(7 * 60, 8),
+      },
       {
         id: 'usr_demo_e_ramesh',
         name: 'Ramesh Gowda',
@@ -133,7 +143,15 @@ const ORGS: SeedOrg[] = [
         // 12-hour night shifts five nights a week.
         pattern: (wd) => (wd === 0 || wd === 6 ? null : [20 * 60, 12 * 60]),
       },
-      { id: 'usr_demo_e_fatima', name: 'Fatima Begum', phone: '9100000003', jobTitle: 'Sanitation worker', team: 'Sanitation', rate: 7200, pattern: dayShift(6 * 60, 8.5) },
+      {
+        id: 'usr_demo_e_fatima',
+        name: 'Fatima Begum',
+        phone: '9100000003',
+        jobTitle: 'Sanitation worker',
+        team: 'Sanitation',
+        rate: 7200,
+        pattern: dayShift(6 * 60, 8.5),
+      },
       {
         id: 'usr_demo_e_venkatesh',
         name: 'Venkatesh R',
@@ -156,7 +174,13 @@ export function seedIfEmpty(ctx: AppContext): boolean {
   return true;
 }
 
-function insertUser(ctx: AppContext, orgId: string, role: Role, u: { id: string; name: string; phone: string; jobTitle: string; team?: string; rate?: number }, at: string) {
+function insertUser(
+  ctx: AppContext,
+  orgId: string,
+  role: Role,
+  u: { id: string; name: string; phone: string; jobTitle: string; team?: string; rate?: number },
+  at: string,
+) {
   ctx.db.run(
     `INSERT INTO users (id, org_id, role, name, phone, pin_hash, job_title, team, hourly_rate_minor, is_synthetic, created_at)
      VALUES (@id, @orgId, @role, @name, @phone, @pinHash, @jobTitle, @team, @rate, 1, @at)`,
@@ -349,7 +373,14 @@ function seedOrg(ctx: AppContext, spec: SeedOrg) {
   const adminActor = { id: spec.admin.id, role: 'admin' as const };
   spec.workers.forEach((w, i) => {
     const self = { id: w.id, role: 'worker' as const };
-    addSkill(ctx, org, self, w.id, { kind: 'skill', name: w.jobTitle, description: `${4 + i * 2} years of ${w.jobTitle.toLowerCase()} work (self-reported).`, issuer: '' }, { synthetic: true });
+    addSkill(
+      ctx,
+      org,
+      self,
+      w.id,
+      { kind: 'skill', name: w.jobTitle, description: `${4 + i * 2} years of ${w.jobTitle.toLowerCase()} work (self-reported).`, issuer: '' },
+      { synthetic: true },
+    );
     addSkill(
       ctx,
       org,

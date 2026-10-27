@@ -28,7 +28,10 @@ export function WorkerPayslips() {
                       </Link>
                     </span>
                     <span>
-                      {t('pay.net')}: <strong><Money minor={p.netPayMinor} /></strong>
+                      {t('pay.net')}:{' '}
+                      <strong>
+                        <Money minor={p.netPayMinor} />
+                      </strong>
                     </span>
                   </li>
                 ))}

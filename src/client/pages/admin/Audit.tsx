@@ -83,7 +83,12 @@ export function AdminAudit() {
                     </tbody>
                   </table>
                 </div>
-                <Pager total={d.total} limit={d.limit} offset={d.offset} onChange={(o) => navigate(`/admin/audit${qs({ entityType, offset: o || undefined })}`)} />
+                <Pager
+                  total={d.total}
+                  limit={d.limit}
+                  offset={d.offset}
+                  onChange={(o) => navigate(`/admin/audit${qs({ entityType, offset: o || undefined })}`)}
+                />
               </>
             )
           }

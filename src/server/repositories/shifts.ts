@@ -42,15 +42,24 @@ export function getOpenShift(db: Db, workerId: string): ShiftRow | undefined {
 }
 
 export function getShift(db: Db, orgId: string, id: string): ShiftRow | undefined {
-  return db.get<ShiftRow>(
-    `SELECT ${COLS}, u.name AS workerName FROM shifts s JOIN users u ON u.id = s.worker_id WHERE s.id = @id AND s.org_id = @orgId`,
-    { id, orgId },
-  );
+  return db.get<ShiftRow>(`SELECT ${COLS}, u.name AS workerName FROM shifts s JOIN users u ON u.id = s.worker_id WHERE s.id = @id AND s.org_id = @orgId`, {
+    id,
+    orgId,
+  });
 }
 
 export function insertShift(
   db: Db,
-  s: { orgId: string; workerId: string; checkInAt: string; checkOutAt?: string | null; source: ShiftSource; method?: CheckInMethod; synthetic?: boolean; at: string },
+  s: {
+    orgId: string;
+    workerId: string;
+    checkInAt: string;
+    checkOutAt?: string | null;
+    source: ShiftSource;
+    method?: CheckInMethod;
+    synthetic?: boolean;
+    at: string;
+  },
 ): string {
   const id = randomUUID();
   db.run(
@@ -67,10 +76,13 @@ export function closeShift(db: Db, id: string, checkOutAt: string, at: string): 
 }
 
 export function updateShiftTimes(db: Db, orgId: string, id: string, checkInAt: string, checkOutAt: string | null, at: string): void {
-  db.run(
-    `UPDATE shifts SET check_in_at = @checkInAt, check_out_at = @checkOutAt, corrected = 1, updated_at = @at WHERE id = @id AND org_id = @orgId`,
-    { id, orgId, checkInAt, checkOutAt, at },
-  );
+  db.run(`UPDATE shifts SET check_in_at = @checkInAt, check_out_at = @checkOutAt, corrected = 1, updated_at = @at WHERE id = @id AND org_id = @orgId`, {
+    id,
+    orgId,
+    checkInAt,
+    checkOutAt,
+    at,
+  });
 }
 
 /** Shifts for one worker whose check-in falls in [start, end). */
@@ -97,9 +109,7 @@ export function countOpenShifts(db: Db, orgId: string): number {
 
 export function openShiftWorkerIds(db: Db, orgId: string): Set<string> {
   return new Set(
-    db.all<{ workerId: string }>(`SELECT worker_id AS workerId FROM shifts WHERE org_id = @orgId AND check_out_at IS NULL`, { orgId }).map(
-      (r) => r.workerId,
-    ),
+    db.all<{ workerId: string }>(`SELECT worker_id AS workerId FROM shifts WHERE org_id = @orgId AND check_out_at IS NULL`, { orgId }).map((r) => r.workerId),
   );
 }
 

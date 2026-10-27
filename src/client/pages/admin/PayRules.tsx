@@ -1,6 +1,6 @@
 // Pay and fatigue-rule configuration. Values are edited in friendly units (hours, ×, %, ₹)
 // and converted to the stored integer units (minutes, basis points, paise).
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useApi } from '../../lib/useApi';
 import { api, ApiError } from '../../lib/api';
 import { parseMajorToMinor, minorToMajorString } from '../../../shared/money';
@@ -85,10 +85,10 @@ export function AdminPayRules() {
   return (
     <Page title="Pay and working-hours rules">
       <Notice kind="info">
-        These rules are set by your organisation. FairShift does not apply any country&apos;s employment law automatically; make sure your rules meet the
-        laws and agreements that apply to you.
+        These rules are set by your organisation. FairShift does not apply any country&apos;s employment law automatically; make sure your rules meet the laws
+        and agreements that apply to you.
       </Notice>
-      <Async state={settings}>{(s) => <RulesForm initial={s} onSaved={settings.reload} />}</Async>
+      <Async state={settings}>{(s) => <RulesForm key={JSON.stringify(s)} initial={s} onSaved={settings.reload} />}</Async>
     </Page>
   );
 }
@@ -99,7 +99,6 @@ function RulesForm({ initial, onSaved }: { initial: OrgSettings; onSaved: () => 
   const [apiError, setApiError] = useState<ApiError | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
-  useEffect(() => setDraft(toDraft(initial)), [initial]);
 
   const setDed = (i: number, patch: Partial<DeductionDraft>) =>
     setDraft({ ...draft, deductions: draft.deductions.map((d, j) => (j === i ? { ...d, ...patch } : d)) });
@@ -141,7 +140,7 @@ function RulesForm({ initial, onSaved }: { initial: OrgSettings; onSaved: () => 
           {err('pay.deductions') ? <p className="field-error">{err('pay.deductions')}</p> : null}
           {draft.deductions.length === 0 ? <p className="muted">No deductions.</p> : null}
           {draft.deductions.map((d, i) => (
-            <div key={i} className="form-row" style={{ borderBottom: '1px solid var(--c-border)', marginBottom: 12 }}>
+            <div key={i} className="form-row deduction-row">
               <Field label="Label" error={err(`pay.deductions.${i}.label`)}>
                 <input value={d.label} onChange={(e) => setDed(i, { label: e.target.value })} />
               </Field>

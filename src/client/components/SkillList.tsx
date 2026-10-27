@@ -17,13 +17,13 @@ export function SkillList({ skills, onVerify }: { skills: SkillDTO[]; onVerify?:
             <span>
               <strong>{s.name}</strong> <span className="muted small">· {t(`sk.kind.${s.kind}`)}</span>
             </span>
-            <span className="row" style={{ gap: 6 }}>
+            <span className="row row-tight">
               {s.verification === 'employer_verified' ? <Badge tone="good">{t('sk.verified')}</Badge> : <Badge tone="neutral">{t('sk.self')}</Badge>}
               {s.expired ? <Badge tone="bad">{t('sk.expired')}</Badge> : null}
             </span>
           </div>
-          {s.description ? <p style={{ margin: 0 }}>{s.description}</p> : null}
-          <p className="muted small" style={{ margin: 0 }}>
+          {s.description ? <p className="m-0">{s.description}</p> : null}
+          <p className="muted small m-0">
             {s.issuer ? `${t('sk.issuer')}: ${s.issuer}. ` : ''}
             {s.issuedOn ? `${t('sk.issuedOn')}: ${formatDate(s.issuedOn, locale)}. ` : ''}
             {s.expiresOn ? `${t('sk.expiresOn')}: ${formatDate(s.expiresOn, locale)}. ` : ''}

@@ -18,12 +18,8 @@ export function AlertList({ alerts }: { alerts: AlertDTO[] }) {
             <strong>{t(`rule.${a.rule}`)}</strong>
             <Badge tone={a.status === 'open' ? 'warn' : 'neutral'}>{a.status === 'open' ? 'Open' : 'Acknowledged'}</Badge>
           </div>
-          <p className="small" style={{ margin: 0 }}>
-            {a.details}
-          </p>
-          <p className="muted small" style={{ margin: 0 }}>
-            {formatDateTime(a.createdAt, me.org.timezone, locale)}
-          </p>
+          <p className="small m-0">{a.details}</p>
+          <p className="muted small m-0">{formatDateTime(a.createdAt, me.org.timezone, locale)}</p>
         </li>
       ))}
     </ul>

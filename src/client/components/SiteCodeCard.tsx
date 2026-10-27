@@ -24,12 +24,10 @@ export function SiteCodeCard() {
           <div className="row">
             <div>
               <p className="site-code" aria-label={`Site code ${c.code.split('').join(' ')}`}>
-                <KeyRound className="icon" aria-hidden="true" style={{ width: 26, height: 26, marginRight: 10, verticalAlign: -2, color: 'var(--c-accent)' }} />
+                <KeyRound className="icon" aria-hidden="true" data-size="lg" />
                 {c.code}
               </p>
-              <p className="muted small" style={{ margin: 0 }}>
-                Accepted until {formatTime(c.validUntil, me.org.timezone)}. A new code appears every 5 minutes.
-              </p>
+              <p className="muted small m-0">Accepted until {formatTime(c.validUntil, me.org.timezone)}. A new code appears every 5 minutes.</p>
             </div>
             <Badge tone={c.requireSiteCode ? 'info' : 'neutral'}>{c.requireSiteCode ? 'Required for check-in' : 'Optional'}</Badge>
           </div>

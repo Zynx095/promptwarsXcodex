@@ -30,10 +30,7 @@ export function findSessionUser(db: Db, id: string): SessionUserRow | undefined 
 }
 
 export function findLoginByPhone(db: Db, phone: string) {
-  return db.get<{ id: string; pinHash: string; active: number }>(
-    `SELECT id, pin_hash AS pinHash, active FROM users WHERE phone = @phone`,
-    { phone },
-  );
+  return db.get<{ id: string; pinHash: string; active: number }>(`SELECT id, pin_hash AS pinHash, active FROM users WHERE phone = @phone`, { phone });
 }
 
 export function listWorkers(db: Db, orgId: string): WorkerRow[] {
@@ -44,9 +41,7 @@ export function listWorkers(db: Db, orgId: string): WorkerRow[] {
 
 /** Fetches a worker only if they belong to the given organisation. */
 export function getWorker(db: Db, orgId: string, id: string): WorkerRow | undefined {
-  return toBool(
-    db.get<WorkerRow>(`SELECT ${WORKER_COLUMNS} FROM users WHERE id = @id AND org_id = @orgId AND role = 'worker'`, { id, orgId }),
-  );
+  return toBool(db.get<WorkerRow>(`SELECT ${WORKER_COLUMNS} FROM users WHERE id = @id AND org_id = @orgId AND role = 'worker'`, { id, orgId }));
 }
 
 export function countActiveWorkers(db: Db, orgId: string): number {

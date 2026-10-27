@@ -29,8 +29,8 @@ export function AdminAlerts() {
   return (
     <Page title="Excessive-hours alerts">
       <p className="muted">
-        Scheduling warnings generated from recorded shifts using your organisation&apos;s thresholds (see Pay &amp; hours rules). They indicate possible
-        fatigue risk; they are not medical assessments. Workers can see alerts about their own hours.
+        Scheduling warnings generated from recorded shifts using your organisation&apos;s thresholds (see Pay &amp; hours rules). They indicate possible fatigue
+        risk; they are not medical assessments. Workers can see alerts about their own hours.
       </p>
       <div className="card form-row">
         <Field label="Status">

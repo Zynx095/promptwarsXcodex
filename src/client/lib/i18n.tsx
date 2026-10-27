@@ -157,7 +157,8 @@ const en = {
   'fb.privacyTitle': 'How your privacy is protected',
   'fb.privacy1': 'Your name and account are not saved with your feedback. Only the date is stored, not the time.',
   'fb.privacy2': 'Your employer sees average ratings only when at least 3 people answered a topic.',
-  'fb.privacy3': 'This is not perfect anonymity: if you mention details only you would know, you could be recognised. Server logs may briefly record that your device used the app.',
+  'fb.privacy3':
+    'This is not perfect anonymity: if you mention details only you would know, you could be recognised. Server logs may briefly record that your device used the app.',
   'fb.topic': 'Topic',
   'fb.rating': 'Rating',
   'fb.ratingNone': 'No rating',
@@ -352,7 +353,8 @@ const kn: Dictionary = {
   'fb.privacyTitle': 'ನಿಮ್ಮ ಗೌಪ್ಯತೆಯನ್ನು ಹೇಗೆ ರಕ್ಷಿಸಲಾಗುತ್ತದೆ',
   'fb.privacy1': 'ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಖಾತೆಯನ್ನು ಅಭಿಪ್ರಾಯದೊಂದಿಗೆ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ. ದಿನಾಂಕ ಮಾತ್ರ ಉಳಿಯುತ್ತದೆ, ಸಮಯವಲ್ಲ.',
   'fb.privacy2': 'ಕನಿಷ್ಠ 3 ಜನರು ಉತ್ತರಿಸಿದಾಗ ಮಾತ್ರ ಉದ್ಯೋಗದಾತರಿಗೆ ಸರಾಸರಿ ರೇಟಿಂಗ್ ಕಾಣುತ್ತದೆ.',
-  'fb.privacy3': 'ಇದು ಸಂಪೂರ್ಣ ಅನಾಮಧೇಯತೆ ಅಲ್ಲ: ನಿಮಗೆ ಮಾತ್ರ ಗೊತ್ತಿರುವ ವಿವರಗಳನ್ನು ಬರೆದರೆ ನಿಮ್ಮನ್ನು ಗುರುತಿಸಬಹುದು. ಸರ್ವರ್ ಲಾಗ್‌ಗಳು ನಿಮ್ಮ ಸಾಧನ ಆ್ಯಪ್ ಬಳಸಿದ್ದನ್ನು ಸ್ವಲ್ಪ ಕಾಲ ದಾಖಲಿಸಬಹುದು.',
+  'fb.privacy3':
+    'ಇದು ಸಂಪೂರ್ಣ ಅನಾಮಧೇಯತೆ ಅಲ್ಲ: ನಿಮಗೆ ಮಾತ್ರ ಗೊತ್ತಿರುವ ವಿವರಗಳನ್ನು ಬರೆದರೆ ನಿಮ್ಮನ್ನು ಗುರುತಿಸಬಹುದು. ಸರ್ವರ್ ಲಾಗ್‌ಗಳು ನಿಮ್ಮ ಸಾಧನ ಆ್ಯಪ್ ಬಳಸಿದ್ದನ್ನು ಸ್ವಲ್ಪ ಕಾಲ ದಾಖಲಿಸಬಹುದು.',
   'fb.topic': 'ವಿಷಯ',
   'fb.rating': 'ರೇಟಿಂಗ್',
   'fb.ratingNone': 'ರೇಟಿಂಗ್ ಇಲ್ಲ',
@@ -380,7 +382,8 @@ const kn: Dictionary = {
   'sk.verified': 'ಉದ್ಯೋಗದಾತರು ಪರಿಶೀಲಿಸಿದ್ದಾರೆ',
   'sk.verifiedBy': '{name} ಪರಿಶೀಲಿಸಿದ್ದಾರೆ',
   'sk.expired': 'ಅವಧಿ ಮುಗಿದಿದೆ',
-  'sk.verifyNote': '"ಉದ್ಯೋಗದಾತರು ಪರಿಶೀಲಿಸಿದ್ದಾರೆ" ಎಂದರೆ ನಿಮ್ಮ ಉದ್ಯೋಗದಾತರು ಇದನ್ನು ದೃಢಪಡಿಸಿದ್ದಾರೆ. FairShift ಹೊರಗಿನ ಸಂಸ್ಥೆಗಳೊಂದಿಗೆ ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸುವುದಿಲ್ಲ.',
+  'sk.verifyNote':
+    '"ಉದ್ಯೋಗದಾತರು ಪರಿಶೀಲಿಸಿದ್ದಾರೆ" ಎಂದರೆ ನಿಮ್ಮ ಉದ್ಯೋಗದಾತರು ಇದನ್ನು ದೃಢಪಡಿಸಿದ್ದಾರೆ. FairShift ಹೊರಗಿನ ಸಂಸ್ಥೆಗಳೊಂದಿಗೆ ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ಪರಿಶೀಲಿಸುವುದಿಲ್ಲ.',
   'sk.added': 'ಸ್ವಯಂ ಘೋಷಿತವಾಗಿ ಸೇರಿಸಲಾಗಿದೆ.',
   'rule.daily_hours': 'ದೀರ್ಘ ಕೆಲಸದ ದಿನ',
   'rule.weekly_hours': 'ದೀರ್ಘ ಕೆಲಸದ ವಾರ',

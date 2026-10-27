@@ -57,8 +57,8 @@ export function AdminPayslips() {
     <Page title="Payslips">
       <Card title="Calculate and issue a payslip">
         <p className="muted small">
-          Pay is calculated from recorded shifts, the worker&apos;s hourly rate and your pay rules. Issued payslips are fixed snapshots; later corrections do not
-          change them. FairShift is not connected to a payroll or banking system.
+          Pay is calculated from recorded shifts, the worker&apos;s hourly rate and your pay rules. Issued payslips are fixed snapshots; later corrections do
+          not change them. FairShift is not connected to a payroll or banking system.
         </p>
         <form onSubmit={doPreview} noValidate className="form-row">
           <Field label="Worker" error={f['workerId']}>
@@ -158,7 +158,12 @@ export function AdminPayslips() {
                     </tbody>
                   </table>
                 </div>
-                <Pager total={d.total} limit={d.limit} offset={d.offset} onChange={(o) => navigate(`/admin/payslips${qs({ workerId, offset: o || undefined })}`)} />
+                <Pager
+                  total={d.total}
+                  limit={d.limit}
+                  offset={d.offset}
+                  onChange={(o) => navigate(`/admin/payslips${qs({ workerId, offset: o || undefined })}`)}
+                />
               </>
             )
           }

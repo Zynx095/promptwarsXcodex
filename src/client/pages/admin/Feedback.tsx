@@ -36,9 +36,7 @@ export function AdminFeedback() {
 
   return (
     <Page title="Worker feedback">
-      <p className="muted">
-        Feedback is stored without names or accounts and with the date only. Averages are hidden when fewer than 3 people rated a topic.
-      </p>
+      <p className="muted">Feedback is stored without names or accounts and with the date only. Averages are hidden when fewer than 3 people rated a topic.</p>
       <Card title="Summary (all time, excluding hidden)">
         <Async state={summary}>
           {(s) => (
@@ -109,7 +107,7 @@ export function AdminFeedback() {
                         </span>
                         <Badge tone={f.status === 'new' ? 'warn' : f.status === 'hidden' ? 'neutral' : 'good'}>{STATUS_LABEL[f.status]}</Badge>
                       </div>
-                      {f.comment ? <p style={{ margin: '4px 0', whiteSpace: 'pre-wrap' }}>{f.comment}</p> : <p className="muted small">No comment.</p>}
+                      {f.comment ? <p className="pre-wrap my-1">{f.comment}</p> : <p className="muted small">No comment.</p>}
                       <div className="row">
                         <span className="muted small">
                           {formatDate(f.submittedOn)}
@@ -117,7 +115,7 @@ export function AdminFeedback() {
                         </span>
                         <label className="small">
                           <span className="visually-hidden">Moderation status</span>
-                          <select value={f.status} onChange={(e) => moderate(f, e.target.value as FeedbackStatus)} style={{ width: 'auto' }}>
+                          <select value={f.status} onChange={(e) => moderate(f, e.target.value as FeedbackStatus)} className="w-auto">
                             {FEEDBACK_STATUSES.map((s) => (
                               <option key={s} value={s}>
                                 {STATUS_LABEL[s]}

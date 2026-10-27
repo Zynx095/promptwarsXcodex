@@ -52,8 +52,7 @@ export function calculatePay(input: PayInput): Omit<PayBreakdown, 'days' | 'open
 
   let remaining = grossPayMinor;
   const deductions: DeductionLine[] = rules.deductions.map((d) => {
-    const computed =
-      d.kind === 'fixed' ? d.value : percentOf(d.kind === 'percent_of_base' ? basePayMinor : grossPayMinor, d.value);
+    const computed = d.kind === 'fixed' ? d.value : percentOf(d.kind === 'percent_of_base' ? basePayMinor : grossPayMinor, d.value);
     const amountMinor = Math.min(computed, remaining);
     remaining -= amountMinor;
     return { code: d.code, label: d.label, kind: d.kind, value: d.value, amountMinor, capped: amountMinor < computed };
@@ -82,12 +81,7 @@ export function calculatePay(input: PayInput): Omit<PayBreakdown, 'days' | 'open
 }
 
 /** Builds a full payslip breakdown from recorded shifts already filtered to the pay period. */
-export function buildPayBreakdown(
-  shifts: ShiftTimes[],
-  hourlyRateMinor: number,
-  rules: PayRules,
-  timeZone: string,
-): PayBreakdown {
+export function buildPayBreakdown(shifts: ShiftTimes[], hourlyRateMinor: number, rules: PayRules, timeZone: string): PayBreakdown {
   const days = dailyBreakdown(shifts, timeZone, rules.scheduledDailyMinutes);
   const t = totals(days);
   return {

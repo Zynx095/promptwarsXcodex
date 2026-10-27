@@ -4,13 +4,13 @@
 
 It addresses four problems:
 
-| Problem | What FairShift does |
-| --- | --- |
-| Workers cannot verify attendance, overtime or wages | Server-recorded check-in/check-out, overtime derived from timestamps, payslips with a line-by-line plain-language explanation |
-| Hazards are ignored or risky to report | Hazard reports with severity, confidential mode, a controlled status lifecycle and a visible history |
-| Workers fear retaliation for honest feedback | Feedback stored without any user reference, date-only, with small-group suppression of averages |
-| Employers lack visibility | Dashboard computed from stored records with daily attendance and overtime trends, excessive-hours (fatigue-risk) warnings, audit log |
-| Low literacy, regional languages, basic phones | English and Kannada worker screens, optional voice dictation and read-aloud, large touch targets, a 6-digit site check-in code instead of QR scanning |
+| Problem                                             | What FairShift does                                                                                                                                   |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workers cannot verify attendance, overtime or wages | Server-recorded check-in/check-out, overtime derived from timestamps, payslips with a line-by-line plain-language explanation                         |
+| Hazards are ignored or risky to report              | Hazard reports with severity, confidential mode, a controlled status lifecycle and a visible history                                                  |
+| Workers fear retaliation for honest feedback        | Feedback stored without any user reference, date-only, with small-group suppression of averages                                                       |
+| Employers lack visibility                           | Dashboard computed from stored records with daily attendance and overtime trends, excessive-hours (fatigue-risk) warnings, audit log                  |
+| Low literacy, regional languages, basic phones      | English and Kannada worker screens, optional voice dictation and read-aloud, large touch targets, a 6-digit site check-in code instead of QR scanning |
 
 ### Features
 
@@ -41,27 +41,27 @@ npm run dev                 # http://localhost:8080 (API + Vite dev server in on
 
 With `DEMO_MODE=true` (the default in `.env.example`), an empty database is seeded with synthetic data and the sign-in page lists the demo accounts. Every demo account uses PIN `1234`.
 
-| Role | Organisation | Phone |
-| --- | --- | --- |
-| Employer admin (site manager) | Sunrise Infra Builders, Site 14 (construction) | 9000000100 |
-| Worker (mason, currently on shift) | construction | 9000000001 |
-| Worker (helper) | construction | 9000000002 |
-| Worker (electrician, long days → alerts) | construction | 9000000003 |
-| Employer admin (facilities officer) | Greenfield Institute of Technology, Campus Services (education) | 9100000100 |
-| Worker (housekeeping) | education | 9100000001 |
-| Worker (security guard, night shifts → alerts) | education | 9100000002 |
+| Role                                           | Organisation                                                    | Phone      |
+| ---------------------------------------------- | --------------------------------------------------------------- | ---------- |
+| Employer admin (site manager)                  | Sunrise Infra Builders, Site 14 (construction)                  | 9000000100 |
+| Worker (mason, currently on shift)             | construction                                                    | 9000000001 |
+| Worker (helper)                                | construction                                                    | 9000000002 |
+| Worker (electrician, long days → alerts)       | construction                                                    | 9000000003 |
+| Employer admin (facilities officer)            | Greenfield Institute of Technology, Campus Services (education) | 9100000100 |
+| Worker (housekeeping)                          | education                                                       | 9100000001 |
+| Worker (security guard, night shifts → alerts) | education                                                       | 9100000002 |
 
 `npm run seed` deletes the local database and re-seeds it.
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Development server with Vite middleware |
-| `npm test` | Unit, API integration and UI tests (Vitest) |
-| `npm run build` | Type-check, build client (`dist/client`) and server bundle (`dist/server/main.js`) |
-| `npm start` | Run the production build (`NODE_ENV=production` sets `Secure` cookies, so use HTTPS) |
-| `npm run seed` | Reset and re-seed the local demo database |
+| Command         | What it does                                                                         |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `npm run dev`   | Development server with Vite middleware                                              |
+| `npm test`      | Unit, API integration and UI tests (Vitest)                                          |
+| `npm run build` | Type-check, build client (`dist/client`) and server bundle (`dist/server/main.js`)   |
+| `npm start`     | Run the production build (`NODE_ENV=production` sets `Secure` cookies, so use HTTPS) |
+| `npm run seed`  | Reset and re-seed the local demo database                                            |
 
 ## Architecture
 
@@ -105,6 +105,7 @@ Business rules live in `src/domain` and are shared by server and client. UI comp
 ## Routes
 
 **Worker UI:**
+
 - `/worker` (home: today's state, check in/out, alerts)
 - `/worker/attendance`
 - `/worker/payslips` and `/worker/payslips/:id`
@@ -113,6 +114,7 @@ Business rules live in `src/domain` and are shared by server and client. UI comp
 - `/worker/skills`
 
 **Admin UI:**
+
 - `/admin` (dashboard with a date filter and drill-down links)
 - `/admin/workers` and `/admin/workers/:id/skills`
 - `/admin/shifts` (filters and corrections)
@@ -125,12 +127,12 @@ Business rules live in `src/domain` and are shared by server and client. UI comp
 
 **API (JSON; state-changing requests must be `application/json`):**
 
-| Area | Endpoints |
-| --- | --- |
-| Auth | `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `GET /api/demo/accounts` (demo mode only) |
-| Worker | `GET /api/attendance/status`, `POST /api/attendance/check-in`, `POST /api/attendance/check-out`, `GET /api/attendance/shifts`, `GET /api/payslips`, `GET /api/payslips/preview`, `GET /api/payslips/:id`, `POST /api/reports`, `GET /api/reports/mine`, `GET /api/reports/:id`, `POST /api/feedback`, `GET /api/alerts/mine`, `GET /api/skills/mine`, `POST /api/skills` |
-| Admin | `GET /api/admin/dashboard`, `GET /api/admin/site-code`, `GET/PATCH /api/admin/workers[/:id]`, `GET /api/admin/shifts`, `PATCH /api/admin/shifts/:id`, `GET /api/admin/audit`, `GET/PUT /api/admin/settings`, `GET/POST /api/admin/payslips`, `GET /api/admin/payslips/preview`, `GET /api/admin/payslips/:id`, `GET /api/admin/reports[/:id]`, `POST /api/admin/reports/:id/transition`, `GET /api/admin/feedback[/summary]`, `PATCH /api/admin/feedback/:id`, `GET /api/admin/alerts`, `POST /api/admin/alerts/:id/acknowledge`, `GET/POST /api/admin/workers/:id/skills`, `PATCH /api/admin/skills/:id` |
-| Ops | `GET /healthz` |
+| Area   | Endpoints                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth   | `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `GET /api/demo/accounts` (demo mode only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Worker | `GET /api/attendance/status`, `POST /api/attendance/check-in`, `POST /api/attendance/check-out`, `GET /api/attendance/shifts`, `GET /api/payslips`, `GET /api/payslips/preview`, `GET /api/payslips/:id`, `POST /api/reports`, `GET /api/reports/mine`, `GET /api/reports/:id`, `POST /api/feedback`, `GET /api/alerts/mine`, `GET /api/skills/mine`, `POST /api/skills`                                                                                                                                                                                                                                  |
+| Admin  | `GET /api/admin/dashboard`, `GET /api/admin/site-code`, `GET/PATCH /api/admin/workers[/:id]`, `GET /api/admin/shifts`, `PATCH /api/admin/shifts/:id`, `GET /api/admin/audit`, `GET/PUT /api/admin/settings`, `GET/POST /api/admin/payslips`, `GET /api/admin/payslips/preview`, `GET /api/admin/payslips/:id`, `GET /api/admin/reports[/:id]`, `POST /api/admin/reports/:id/transition`, `GET /api/admin/feedback[/summary]`, `PATCH /api/admin/feedback/:id`, `GET /api/admin/alerts`, `POST /api/admin/alerts/:id/acknowledge`, `GET/POST /api/admin/workers/:id/skills`, `PATCH /api/admin/skills/:id` |
+| Ops    | `GET /healthz`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## Accessibility and language
 
@@ -155,14 +157,14 @@ Business rules live in `src/domain` and are shared by server and client. UI comp
 
 ## How FairShift addresses the evaluation criteria
 
-| Criterion | Evidence in this repository |
-| --- | --- |
-| Code quality | Layered TypeScript: pure domain rules in `src/domain`, data access in `src/server/repositories`, orchestration in `src/server/services`, thin routes, shared zod schemas and DTOs. Strict compiler settings, no `any`. |
-| Security | Server-side authorisation on every route, organisation scoping, signed HttpOnly cookies, scrypt PINs, CSRF guard, CSP and security headers, parameterised SQL, no secrets in the repository (`.env.example` only). See `docs/SECURITY.md`. |
-| Efficiency | Two runtime dependencies on the server (Express, zod), the built-in `node:sqlite` driver, bounded and paginated queries, a single container, and about 100 KB gzipped of client JavaScript. |
-| Testing | 83 automated tests: domain unit tests (time, money, overtime, pay, transitions, fatigue boundaries, site codes, trends), API integration tests (workflows, IDOR, cross-organisation isolation, CSRF, confidentiality) and a UI test that renders the real client against the real API. |
-| Accessibility | WCAG AA colour contrast, keyboard navigation, visible focus, labelled fields with linked errors, skip link, text plus colour for status, 44 px targets, screen-reader tables for charts, Kannada, voice options. |
-| Problem alignment | Covers every example feature in the problem statement across two industries (construction and campus support staff), with separate worker and employer interfaces. |
+| Criterion         | Evidence in this repository                                                                                                                                                                                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code quality      | Layered TypeScript: pure domain rules in `src/domain`, data access in `src/server/repositories`, orchestration in `src/server/services`, thin routes, shared zod schemas and DTOs. Strict compiler settings, no `any`.                                                                 |
+| Security          | Server-side authorisation on every route, organisation scoping, signed HttpOnly cookies, scrypt PINs, CSRF guard, CSP and security headers, parameterised SQL, no secrets in the repository (`.env.example` only). See `docs/SECURITY.md`.                                             |
+| Efficiency        | Two runtime dependencies on the server (Express, zod), the built-in `node:sqlite` driver, bounded and paginated queries, a single container, and about 100 KB gzipped of client JavaScript.                                                                                            |
+| Testing           | 83 automated tests: domain unit tests (time, money, overtime, pay, transitions, fatigue boundaries, site codes, trends), API integration tests (workflows, IDOR, cross-organisation isolation, CSRF, confidentiality) and a UI test that renders the real client against the real API. |
+| Accessibility     | WCAG AA colour contrast, keyboard navigation, visible focus, labelled fields with linked errors, skip link, text plus colour for status, 44 px targets, screen-reader tables for charts, Kannada, voice options.                                                                       |
+| Problem alignment | Covers every example feature in the problem statement across two industries (construction and campus support staff), with separate worker and employer interfaces.                                                                                                                     |
 
 ## Further documentation
 

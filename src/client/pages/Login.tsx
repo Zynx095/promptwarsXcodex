@@ -73,7 +73,14 @@ export function LoginPage() {
                 <input type="tel" inputMode="numeric" autoComplete="username" value={phone} onChange={(e) => setPhone(e.target.value.trim())} maxLength={10} />
               </Field>
               <Field label={t('login.pin')} hint={t('login.pinHint')} error={f['pin']}>
-                <input type="password" inputMode="numeric" autoComplete="current-password" value={pin} onChange={(e) => setPin(e.target.value.trim())} maxLength={6} />
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="current-password"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.trim())}
+                  maxLength={6}
+                />
               </Field>
               <Button type="submit" busy={busy} className="btn btn-primary btn-big">
                 {t('action.signIn')}
@@ -88,7 +95,7 @@ export function LoginPage() {
               <ul className="demo-accounts">
                 {demo.data.accounts.map((a) => (
                   <li key={a.phone} className="demo-account">
-                    <span style={{ minWidth: 0 }}>
+                    <span className="min-w-0">
                       <strong>{a.name}</strong>
                       <span className="muted">{a.role === 'admin' ? t('role.admin') : a.jobTitle}</span>
                       <br />
@@ -111,7 +118,9 @@ export function LoginPage() {
               </ul>
             </Card>
           ) : null}
-          <p className="muted small">Sign-in uses a phone number and PIN issued by your employer. Demo accounts are fictional and exist only for demonstration.</p>
+          <p className="muted small">
+            Sign-in uses a phone number and PIN issued by your employer. Demo accounts are fictional and exist only for demonstration.
+          </p>
         </div>
       </main>
     </>

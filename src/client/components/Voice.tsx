@@ -79,9 +79,12 @@ export function ReadAloudButton({ text, className }: { text: string; className?:
   const [speaking, setSpeaking] = useState(false);
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
 
-  useEffect(() => () => {
-    if (supported) window.speechSynthesis.cancel();
-  }, [supported]);
+  useEffect(
+    () => () => {
+      if (supported) window.speechSynthesis.cancel();
+    },
+    [supported],
+  );
   if (!supported) return null;
 
   const toggle = () => {

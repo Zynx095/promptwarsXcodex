@@ -46,10 +46,11 @@ export function issuePayslip(
     if (preview.breakdown.openShiftsExcluded > 0) {
       throw new DomainError('CONFLICT', 'This worker has an open shift in this period. Close or correct it before issuing a payslip.');
     }
-    const exists = ctx.db.get<{ id: string }>(
-      `SELECT id FROM payslips WHERE worker_id = @workerId AND period_start = @from AND period_end = @to`,
-      { workerId, from, to },
-    );
+    const exists = ctx.db.get<{ id: string }>(`SELECT id FROM payslips WHERE worker_id = @workerId AND period_start = @from AND period_end = @to`, {
+      workerId,
+      from,
+      to,
+    });
     if (exists) throw new DomainError('CONFLICT', 'A payslip has already been issued for this worker and period.');
     const id = randomUUID();
     const at = nowIso(ctx);
