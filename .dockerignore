@@ -1,0 +1,14 @@
+node_modules
+dist
+data
+coverage
+tests
+docs
+.git
+.env
+.env.*
+*.db
+*.db-*
+*.log
+Dockerfile
+.dockerignore

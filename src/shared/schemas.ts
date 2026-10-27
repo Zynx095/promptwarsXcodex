@@ -1,0 +1,170 @@
+// Input validation schemas, enforced at the API boundary and reused by client forms.
+import { z } from 'zod';
+import { isLocalDate } from './time';
+import { FEEDBACK_STATUSES, REPORT_STATUSES, SEVERITIES } from './types';
+
+const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
+
+export const localDateSchema = z.string().refine(isLocalDate, 'Use a valid date in YYYY-MM-DD format');
+export const isoInstantSchema = z
+  .string()
+  .refine((v) => ISO_INSTANT_RE.test(v) && !Number.isNaN(Date.parse(v)), 'Use a valid date and time');
+
+const text = (min: number, max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .min(min, min === 1 ? `${label} is required` : `${label} must be at least ${min} characters`)
+    .max(max, `${label} must be at most ${max} characters`);
+
+export const loginSchema = z.object({
+  phone: z.string().trim().regex(/^\d{10}$/, 'Enter your 10-digit phone number'),
+  pin: z.string().trim().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits'),
+});
+
+export const dateRangeSchema = z
+  .object({ from: localDateSchema.optional(), to: localDateSchema.optional() })
+  .refine((r) => !r.from || !r.to || r.from <= r.to, { message: '"From" must be on or before "To"', path: ['to'] });
+
+export const paginationSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  offset: z.coerce.number().int().min(0).max(100000).default(0),
+});
+
+export const shiftQuerySchema = paginationSchema.extend({
+  from: localDateSchema.optional(),
+  to: localDateSchema.optional(),
+  workerId: z.string().max(64).optional(),
+  status: z.enum(['open', 'completed']).optional(),
+});
+
+export const shiftCorrectionSchema = z.object({
+  checkInAt: isoInstantSchema,
+  checkOutAt: isoInstantSchema.nullable(),
+  reason: text(5, 500, 'Reason'),
+});
+
+export const reportCreateSchema = z.object({
+  category: z.string().trim().min(1, 'Choose a category').max(40),
+  severity: z.enum(SEVERITIES, { error: 'Choose how serious the hazard is' }),
+  title: text(3, 120, 'Short title'),
+  description: text(10, 2000, 'Description'),
+  location: text(2, 120, 'Location'),
+  confidential: z.boolean().default(false),
+});
+
+export const reportQuerySchema = paginationSchema.extend({
+  status: z.enum([...REPORT_STATUSES, 'unresolved']).optional(),
+  severity: z.enum(SEVERITIES).optional(),
+  category: z.string().max(40).optional(),
+  from: localDateSchema.optional(),
+  to: localDateSchema.optional(),
+});
+
+export const reportTransitionSchema = z.object({
+  to: z.enum(REPORT_STATUSES),
+  note: z.string().trim().max(1000, 'Note must be at most 1000 characters').default(''),
+  assignee: z.string().trim().max(80, 'Assignee must be at most 80 characters').nullable().optional(),
+});
+
+export const feedbackCreateSchema = z
+  .object({
+    category: z.string().trim().min(1, 'Choose a topic').max(40),
+    rating: z.number().int().min(1).max(5).nullable().optional(),
+    comment: z.string().trim().max(1000, 'Comment must be at most 1000 characters').optional(),
+  })
+  .refine((f) => f.rating != null || (f.comment && f.comment.length > 0), {
+    message: 'Give a rating or write a comment',
+    path: ['comment'],
+  });
+
+export const feedbackQuerySchema = paginationSchema.extend({
+  status: z.enum(FEEDBACK_STATUSES).optional(),
+  category: z.string().max(40).optional(),
+});
+
+export const feedbackStatusSchema = z.object({ status: z.enum(FEEDBACK_STATUSES) });
+
+const deductionSchema = z
+  .object({
+    code: z.string().regex(/^[a-z][a-z0-9_]{1,19}$/, 'Code must be 2-20 lowercase letters, digits or _'),
+    label: text(2, 60, 'Label'),
+    kind: z.enum(['percent_of_gross', 'percent_of_base', 'fixed']),
+    value: z.number().int().min(0),
+  })
+  .refine((d) => (d.kind === 'fixed' ? d.value <= 10_000_000 : d.value <= 10000), {
+    message: 'Percentage cannot exceed 100% and fixed amounts cannot exceed 1,00,000',
+    path: ['value'],
+  });
+
+export const checkInSchema = z.object({
+  siteCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit site code')
+    .optional(),
+});
+
+export const orgSettingsSchema = z.object({
+  pay: z.object({
+    scheduledDailyMinutes: z.number().int().min(60).max(960),
+    overtimeMultiplierBp: z.number().int().min(10000, 'Overtime multiplier must be at least 1×').max(30000),
+    deductions: z
+      .array(deductionSchema)
+      .max(8)
+      .refine((ds) => new Set(ds.map((d) => d.code)).size === ds.length, 'Deduction codes must be unique')
+      .refine(
+        (ds) => ds.filter((d) => d.kind !== 'fixed').reduce((s, d) => s + d.value, 0) <= 10000,
+        'Percentage deductions cannot add up to more than 100%',
+      ),
+  }),
+  fatigue: z
+    .object({
+      maxDailyMinutes: z.number().int().min(60).max(1440),
+      maxWeeklyMinutes: z.number().int().min(60).max(7 * 1440),
+      minRestMinutes: z.number().int().min(0).max(1440),
+      overtimeDaysPerWeek: z.number().int().min(1).max(7),
+    })
+    .refine((f) => f.maxWeeklyMinutes >= f.maxDailyMinutes, {
+      message: 'Weekly limit must be at least the daily limit',
+      path: ['maxWeeklyMinutes'],
+    }),
+  attendance: z.object({ requireSiteCode: z.boolean() }).default({ requireSiteCode: false }),
+});
+
+export const workerUpdateSchema = z.object({
+  hourlyRateMinor: z.number().int().min(1, 'Rate must be positive').max(1_000_000).optional(),
+  active: z.boolean().optional(),
+});
+
+export const payslipIssueSchema = z
+  .object({ workerId: z.string().min(1).max(64), from: localDateSchema, to: localDateSchema })
+  .refine((p) => p.from <= p.to, { message: '"From" must be on or before "To"', path: ['to'] })
+  .refine((p) => (Date.parse(p.to) - Date.parse(p.from)) / 86400000 <= 31, {
+    message: 'A pay period can be at most 31 days',
+    path: ['to'],
+  });
+
+export const skillCreateSchema = z
+  .object({
+    kind: z.enum(['skill', 'training', 'certification']),
+    name: text(2, 100, 'Name'),
+    description: z.string().trim().max(500).default(''),
+    issuer: z.string().trim().max(100).default(''),
+    issuedOn: localDateSchema.nullable().optional(),
+    expiresOn: localDateSchema.nullable().optional(),
+  })
+  .refine((s) => !s.issuedOn || !s.expiresOn || s.expiresOn >= s.issuedOn, {
+    message: 'Expiry date must be after the issue date',
+    path: ['expiresOn'],
+  });
+
+export const skillVerifySchema = z.object({ verified: z.boolean() });
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ShiftCorrectionInput = z.infer<typeof shiftCorrectionSchema>;
+export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
+export type ReportTransitionInput = z.infer<typeof reportTransitionSchema>;
+export type FeedbackCreateInput = z.infer<typeof feedbackCreateSchema>;
+export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
+export type SkillCreateInput = z.infer<typeof skillCreateSchema>;
