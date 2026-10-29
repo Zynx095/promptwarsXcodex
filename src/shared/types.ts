@@ -336,3 +336,31 @@ export interface Paged<T> {
 export interface ApiErrorBody {
   error: { code: string; message: string; fields?: Record<string, string> };
 }
+
+// ---- Authentication Configuration & Identities ----
+
+export type AuthProviderKey = 'google' | 'phone_otp' | 'github' | 'demo_pin';
+
+export interface ProviderConfigInfo {
+  configured: boolean;
+  name: string;
+}
+
+export interface AuthConfigResponse {
+  demoMode: boolean;
+  providers: {
+    google: ProviderConfigInfo;
+    phoneOtp: ProviderConfigInfo;
+    github: ProviderConfigInfo;
+  };
+}
+
+export interface AuthIdentityDTO {
+  id: string;
+  userId: string;
+  provider: AuthProviderKey;
+  providerUserId: string;
+  email: string | null;
+  createdAt: string;
+  lastSignInAt: string | null;
+}

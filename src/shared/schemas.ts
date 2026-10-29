@@ -166,7 +166,27 @@ export const skillCreateSchema = z
 
 export const skillVerifySchema = z.object({ verified: z.boolean() });
 
+export const phoneOtpRequestSchema = z.object({
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, 'Enter your 10-digit phone number'),
+});
+
+export const phoneOtpVerifySchema = z.object({
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, 'Enter your 10-digit phone number'),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit verification code'),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
+export type PhoneOtpRequestInput = z.infer<typeof phoneOtpRequestSchema>;
+export type PhoneOtpVerifyInput = z.infer<typeof phoneOtpVerifySchema>;
 export type ShiftCorrectionInput = z.infer<typeof shiftCorrectionSchema>;
 export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
 export type ReportTransitionInput = z.infer<typeof reportTransitionSchema>;

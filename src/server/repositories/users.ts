@@ -60,3 +60,63 @@ export function userName(db: Db, orgId: string, id: string | null): string | nul
   if (!id) return null;
   return db.get<{ name: string }>(`SELECT name FROM users WHERE id = @id AND org_id = @orgId`, { id, orgId })?.name ?? null;
 }
+
+export function findUserByIdentity(db: Db, provider: string, providerUserId: string): SessionUserRow | undefined {
+  const row = db.get<SessionUserRow>(
+    `SELECT u.id, u.org_id AS orgId, u.role, u.name, u.job_title AS jobTitle, u.team, u.active
+     FROM users u
+     JOIN auth_identities i ON i.user_id = u.id
+     WHERE i.provider = @provider AND i.provider_user_id = @providerUserId`,
+    { provider, providerUserId },
+  );
+  return toBool(row);
+}
+
+export function findUserByIdentityEmail(db: Db, email: string): SessionUserRow | undefined {
+  const row = db.get<SessionUserRow>(
+    `SELECT u.id, u.org_id AS orgId, u.role, u.name, u.job_title AS jobTitle, u.team, u.active
+     FROM users u
+     JOIN auth_identities i ON i.user_id = u.id
+     WHERE LOWER(i.email) = LOWER(@email)`,
+    { email },
+  );
+  return toBool(row);
+}
+
+export function linkIdentity(
+  db: Db,
+  item: {
+    id: string;
+    userId: string;
+    provider: string;
+    providerUserId: string;
+    email?: string | null;
+    createdAt: string;
+    lastSignInAt?: string | null;
+  },
+): void {
+  db.run(
+    `INSERT INTO auth_identities (id, user_id, provider, provider_user_id, email, created_at, last_sign_in_at)
+     VALUES (@id, @userId, @provider, @providerUserId, @email, @createdAt, @lastSignInAt)
+     ON CONFLICT(provider, provider_user_id) DO UPDATE SET
+       last_sign_in_at = excluded.last_sign_in_at,
+       email = COALESCE(excluded.email, auth_identities.email)`,
+    {
+      id: item.id,
+      userId: item.userId,
+      provider: item.provider,
+      providerUserId: item.providerUserId,
+      email: item.email ?? null,
+      createdAt: item.createdAt,
+      lastSignInAt: item.lastSignInAt ?? item.createdAt,
+    },
+  );
+}
+
+export function updateIdentityLastSignIn(db: Db, provider: string, providerUserId: string, now: string): void {
+  db.run(
+    `UPDATE auth_identities SET last_sign_in_at = @now
+     WHERE provider = @provider AND provider_user_id = @providerUserId`,
+    { provider, providerUserId, now },
+  );
+}

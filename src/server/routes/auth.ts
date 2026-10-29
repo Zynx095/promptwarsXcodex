@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { loginSchema } from '../../shared/schemas';
-import type { DemoAccount, MeResponse } from '../../shared/types';
+import { loginSchema, phoneOtpRequestSchema, phoneOtpVerifySchema } from '../../shared/schemas';
+import type { AuthConfigResponse, DemoAccount, MeResponse } from '../../shared/types';
 import type { IndustryKey } from '../../shared/industries';
 import type { AppContext } from '../context';
 import { HttpError, parse } from '../http';
@@ -8,6 +8,9 @@ import { clearSessionCookie, requireUser, setSessionCookie } from '../auth/sessi
 import { verifyPin } from '../auth/crypto';
 import { findLoginByPhone } from '../repositories/users';
 import { requireOrg, toSummary } from '../repositories/orgs';
+import { handleGoogleCallback, isGoogleConfigured, startGoogleAuth } from '../auth/google';
+import { getSmsProvider, requestPhoneOtp, verifyPhoneOtp } from '../auth/sms';
+import { handleGithubCallback, isGithubConfigured, startGithubAuth } from '../auth/github';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 10;
@@ -36,6 +39,29 @@ export function authRoutes(ctx: AppContext): Router {
   const r = Router();
   const throttle = new LoginThrottle();
 
+  /** Reports genuinely configured authentication providers. */
+  r.get('/auth/config', (_req, res) => {
+    const body: AuthConfigResponse = {
+      demoMode: ctx.config.demoMode,
+      providers: {
+        google: {
+          configured: isGoogleConfigured(ctx),
+          name: 'Google',
+        },
+        phoneOtp: {
+          configured: getSmsProvider(ctx).isConfigured(),
+          name: 'Phone OTP',
+        },
+        github: {
+          configured: isGithubConfigured(ctx),
+          name: 'GitHub',
+        },
+      },
+    };
+    res.json(body);
+  });
+
+  // ---- Traditional Phone + PIN Login (Active in Demo Mode & Legacy Accounts) ----
   r.post('/auth/login', (req, res) => {
     const input = parse(loginSchema, req.body);
     const key = `${req.ip}|${input.phone}`;
@@ -53,6 +79,38 @@ export function authRoutes(ctx: AppContext): Router {
     res.json({ ok: true });
   });
 
+  // ---- Phone OTP Authentication ----
+  r.post('/auth/phone/otp/request', async (req, res) => {
+    const input = parse(phoneOtpRequestSchema, req.body);
+    const result = await requestPhoneOtp(ctx, input.phone);
+    res.json(result);
+  });
+
+  r.post('/auth/phone/otp/verify', async (req, res) => {
+    const input = parse(phoneOtpVerifySchema, req.body);
+    const result = await verifyPhoneOtp(ctx, res, input.phone, input.code);
+    res.json(result);
+  });
+
+  // ---- Google OAuth / OIDC Flow ----
+  r.get('/auth/google/start', (req, res) => {
+    startGoogleAuth(ctx, req, res);
+  });
+
+  r.get('/auth/google/callback', async (req, res) => {
+    await handleGoogleCallback(ctx, req, res);
+  });
+
+  // ---- GitHub OAuth Flow ----
+  r.get('/auth/github/start', (req, res) => {
+    startGithubAuth(ctx, req, res);
+  });
+
+  r.get('/auth/github/callback', async (req, res) => {
+    await handleGithubCallback(ctx, req, res);
+  });
+
+  // ---- Session Management & Current Identity ----
   r.post('/auth/logout', (_req, res) => {
     clearSessionCookie(ctx, res);
     res.json({ ok: true });
@@ -69,6 +127,7 @@ export function authRoutes(ctx: AppContext): Router {
     res.json(body);
   });
 
+  // ---- Synthetic Demo Accounts Listing (Guarded by DEMO_MODE) ----
   r.get('/demo/accounts', (_req, res) => {
     if (!ctx.config.demoMode) throw new HttpError(404, 'NOT_FOUND', 'Not found.');
     const accounts = ctx.db.all<DemoAccount & { industry: IndustryKey }>(

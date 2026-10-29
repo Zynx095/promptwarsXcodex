@@ -165,4 +165,29 @@ CREATE TABLE IF NOT EXISTS audit_events (
 );
 CREATE INDEX IF NOT EXISTS idx_audit_org ON audit_events(org_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_events(entity_type, entity_id);
+
+CREATE TABLE IF NOT EXISTS auth_identities (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL CHECK (provider IN ('google', 'github', 'phone_otp', 'phone_pin')),
+  provider_user_id TEXT NOT NULL,
+  email TEXT,
+  created_at TEXT NOT NULL,
+  last_sign_in_at TEXT,
+  UNIQUE (provider, provider_user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_identities_user ON auth_identities(user_id);
+CREATE INDEX IF NOT EXISTS idx_identities_email ON auth_identities(email);
+
+CREATE TABLE IF NOT EXISTS phone_verifications (
+  id TEXT PRIMARY KEY,
+  phone TEXT NOT NULL,
+  otp_hash TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 5,
+  expires_at TEXT NOT NULL,
+  consumed_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_phone_verifications ON phone_verifications(phone, expires_at);
 `;

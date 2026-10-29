@@ -186,6 +186,17 @@ function insertUser(
      VALUES (@id, @orgId, @role, @name, @phone, @pinHash, @jobTitle, @team, @rate, 1, @at)`,
     { id: u.id, orgId, role, name: u.name, phone: u.phone, pinHash: hashPin(DEMO_PIN), jobTitle: u.jobTitle, team: u.team ?? '', rate: u.rate ?? 0, at },
   );
+  ctx.db.run(
+    `INSERT OR IGNORE INTO auth_identities (id, user_id, provider, provider_user_id, email, created_at, last_sign_in_at)
+     VALUES (@identId, @userId, 'phone_pin', @phone, @email, @at, @at)`,
+    {
+      identId: `ident_${u.id}`,
+      userId: u.id,
+      phone: u.phone,
+      email: `${u.id.replace('usr_demo_', '')}@fairshift.demo`,
+      at,
+    },
+  );
 }
 
 function seedOrg(ctx: AppContext, spec: SeedOrg) {

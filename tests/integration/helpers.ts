@@ -27,7 +27,14 @@ export async function setup(start = '2026-10-27T03:30:00.000Z'): Promise<TestEnv
   const clock = { now: new Date(start) };
   const ctx: AppContext = {
     db: openDb(':memory:'),
-    config: { port: 0, production: false, sessionSecret: 'test-secret-'.padEnd(48, 'x'), databasePath: ':memory:', demoMode: true },
+    config: {
+      port: 0,
+      production: false,
+      sessionSecret: 'test-secret-'.padEnd(48, 'x'),
+      databasePath: ':memory:',
+      demoMode: true,
+      smsProvider: 'mock',
+    },
     now: () => clock.now,
   };
   seedIfEmpty(ctx);
