@@ -1,5 +1,5 @@
 // Reusable presentational building blocks. Styling lives in styles.css.
-import { useId, type ButtonHTMLAttributes, type ReactElement, type ReactNode, cloneElement } from 'react';
+import { useId, useEffect, type ButtonHTMLAttributes, type ReactElement, type ReactNode, cloneElement } from 'react';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { formatMoney } from '../../shared/money';
@@ -87,12 +87,85 @@ export function Field({
   );
 }
 
+export function Skeleton({ className = '', height, width }: { className?: string; height?: string | number; width?: string | number }) {
+  return <div className={`skeleton-shimmer ${className}`} style={{ height, width }} aria-hidden="true" />;
+}
+
+export function ConfirmDialog({
+  isOpen,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  variant = 'primary',
+  busy = false,
+  onConfirm,
+  onCancel,
+}: {
+  isOpen: boolean;
+  title: string;
+  message: ReactNode;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'primary' | 'danger';
+  busy?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onCancel]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="dialog-backdrop"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !busy) onCancel();
+      }}
+    >
+      <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <h3 id="dialog-title" className="dialog-title">
+          {title}
+        </h3>
+        <div className="dialog-message">{message}</div>
+        <div className="dialog-actions">
+          <Button variant="secondary" onClick={onCancel} disabled={busy}>
+            {cancelLabel}
+          </Button>
+          <Button variant={variant} onClick={onConfirm} busy={busy}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Loading() {
   const { t } = useI18n();
   return (
-    <p className="state state-loading" role="status">
-      {t('common.loading')}
-    </p>
+    <div className="state state-loading" role="status" aria-live="polite">
+      <div className="skeleton-grid" aria-hidden="true">
+        <Skeleton height={28} width="50%" className="mb-3" />
+        <Skeleton height={18} width="80%" className="mb-2" />
+        <Skeleton height={18} width="65%" className="mb-4" />
+        <div className="stats mb-3">
+          <Skeleton height={74} width="100%" />
+          <Skeleton height={74} width="100%" />
+        </div>
+      </div>
+      <span className="visually-hidden">{t('common.loading')}</span>
+    </div>
   );
 }
 
