@@ -60,6 +60,9 @@ All design tokens are defined in [`src/client/styles.css`](file:///D:/College/SO
 9. **`ReportDetail`** ([`src/client/components/ReportDetail.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ReportDetail.tsx)): Hazard detail card with timeline of administrator status changes and transition form.
 10. **`SiteCodeCard`** ([`src/client/components/SiteCodeCard.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/SiteCodeCard.tsx)): Large tabular 6-digit rotating site code with validity countdown and status badge.
 11. **`SkillList`** ([`src/client/components/SkillList.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/SkillList.tsx)): Skills, training, and certifications with employer-checked vs self-reported indicators, expiration tracking, and verification toggles.
+12. **`ConfirmDialog`** ([`src/client/components/ui.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ui.tsx)): Accessible modal dialog with glass backdrop blur (`backdrop-filter: blur(8px)`), elevated surface card, Escape key dismissal, and primary/danger action buttons.
+13. **`Skeleton` & Enhanced `Loading`** ([`src/client/components/ui.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ui.tsx)): Smooth Glassmorphism V2 shimmer animation (`.skeleton-shimmer`) preventing layout jumps while preserving screen-reader status announcements.
+14. **Upgraded `LoginPage`** ([`src/client/pages/Login.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/Login.tsx)): Multi-provider segmented interface supporting Phone & PIN, SMS OTP, and Google / GitHub OAuth, with clear guidance for unprovisioned accounts and preserved Synthetic Demo Accounts.
 
 ---
 

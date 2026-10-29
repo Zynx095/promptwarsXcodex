@@ -6,6 +6,12 @@ This document describes the controls FairShift implements and the gaps that rema
 
 **Authentication and sessions**
 
+- **Multi-provider authentication:** Google OAuth 2.0 / OpenID Connect (OIDC), Phone OTP via SMS, GitHub OAuth, and employer-issued PIN.
+- **PKCE & State Validation (OAuth):** Proof Key for Code Exchange (RFC 7636) with SHA-256 challenges. State cookies are HMAC-SHA256 signed with 10-minute expiry and constant-time validation to defeat login CSRF.
+- **Token verification:** ID tokens are verified directly against Google's tokeninfo endpoint for audience matching (`aud === GOOGLE_CLIENT_ID`), issuer validation, and verified email status.
+- **Phone OTP verification:** OTP codes are 6-digit cryptographically generated numbers (`crypto.randomInt`). Raw codes are never stored; only `HMAC_SHA256(SESSION_SECRET, phone:code)` is persisted.
+- **OTP Brute-Force & Replay Protection:** Maximum 5 verification attempts per code; challenges are marked consumed upon verification or exhaustion to prevent replay attacks. Consecutive dispatch is rate-limited to 60-second cooldowns and 4 requests per 15 minutes.
+- **Identity isolation & provisioning:** Unprovisioned Google or phone identities are rejected with a clear message and cannot self-register as administrators.
 - **Credentials:** phone number + PIN. PINs are hashed with scrypt and a per-user salt. Unknown accounts are checked against a dummy hash so response timing is similar.
 - **Session cookie:** HttpOnly, `SameSite=Lax`, `Secure` in production. It contains only a user ID and expiry, signed with HMAC-SHA256 (`SESSION_SECRET`) and checked in constant time, with a 12-hour lifetime.
 - **Per-request reload:** role, organisation and active status are re-read from the database on every request; nothing in the cookie or request body is trusted for authorisation.
