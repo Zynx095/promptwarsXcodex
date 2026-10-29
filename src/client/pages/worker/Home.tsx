@@ -52,6 +52,9 @@ export function WorkerHome() {
             <li>
               <Link to="/worker/feedback">{t('home.giveFeedback')}</Link>
             </li>
+            <li>
+              <Link to="/worker/skills">{t('nav.skills')}</Link>
+            </li>
           </ul>
         </Card>
       </div>
