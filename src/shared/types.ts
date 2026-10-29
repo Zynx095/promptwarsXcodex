@@ -178,7 +178,7 @@ export interface PayslipListItem {
 
 // ---- Safety ----
 
-export const REPORT_STATUSES = ['submitted', 'acknowledged', 'in_progress', 'resolved', 'reopened'] as const;
+export const REPORT_STATUSES = ['submitted', 'acknowledged', 'in_progress', 'resolved', 'follow_up_pending', 'outcome_verified', 'reopened'] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 export const SEVERITIES = ['low', 'medium', 'high', 'critical'] as const;
 export type Severity = (typeof SEVERITIES)[number];
@@ -208,6 +208,11 @@ export interface SafetyReportDTO {
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
+  actionTaken?: string | null;
+  followUpDate?: string | null;
+  verifiedAt?: string | null;
+  verifiedBy?: string | null;
+  verificationNote?: string | null;
   synthetic: boolean;
   history?: ReportEventDTO[];
 }
@@ -457,4 +462,21 @@ export interface SafeSignalResponse {
   cohortThreshold: number;
   analyzedReportCount: number;
 }
+
+// ---- FairShift Accountability Loop ----
+
+export interface AccountabilityMetricsDTO {
+  totalReports: number;
+  openReports: number;
+  resolvedCount: number;
+  followUpPendingCount: number;
+  verifiedCount: number;
+  reopenedCount: number;
+  meanTimeToAcknowledgeMinutes: number | null;
+  meanTimeToResolveMinutes: number | null;
+  verificationRatePercent: number;
+  reopenRatePercent: number;
+  overdueFollowUps: number;
+}
+
 
