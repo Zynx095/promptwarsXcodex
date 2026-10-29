@@ -36,6 +36,7 @@ import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/fe
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
 import { getShiftReceipts, verifyReceipt } from '../services/receipts';
+import { getSafeSignals } from '../services/signal';
 
 export function adminRoutes(ctx: AppContext): Router {
   const r = Router();
@@ -276,6 +277,12 @@ export function adminRoutes(ctx: AppContext): Router {
       canonicalDigest: result.receipt.canonicalDigest,
       verified: result.verified,
     });
+  });
+
+  // ---- Safe Signal (Recurring Hazard Detection) ----
+  r.get('/signals', (req, res) => {
+    const { org } = session(req);
+    res.json(getSafeSignals(ctx, org));
   });
 
   return r;

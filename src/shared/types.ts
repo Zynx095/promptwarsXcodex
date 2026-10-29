@@ -428,3 +428,33 @@ export interface WorkReceiptDTO {
   createdBy: string | null;
   verified?: boolean;
 }
+
+// ---- Safe Signal (Recurring Hazard Detection) ----
+
+export type SignalRuleType = 'category_cluster' | 'persistent_unresolved' | 'severity_escalation' | 'reopened_cluster';
+
+export interface SafeSignalDTO {
+  id: string;
+  rule: SignalRuleType;
+  title: string;
+  category: string;
+  categoryLabel: string;
+  severityLevel: Severity;
+  reportCount: number;
+  timeWindow: string;
+  severityDistribution: Record<Severity, number>;
+  statusSummary: {
+    unresolvedCount: number;
+    resolvedCount: number;
+    reopenedCount: number;
+  };
+  confidence: 'possible_pattern' | 'recurrent_hazard';
+  recommendedActions: string[];
+}
+
+export interface SafeSignalResponse {
+  signals: SafeSignalDTO[];
+  cohortThreshold: number;
+  analyzedReportCount: number;
+}
+
