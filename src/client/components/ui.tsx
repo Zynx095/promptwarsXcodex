@@ -230,6 +230,8 @@ const STATUS_TONE: Record<ReportStatus, 'neutral' | 'good' | 'warn' | 'bad' | 'i
   acknowledged: 'info',
   in_progress: 'info',
   resolved: 'good',
+  follow_up_pending: 'warn',
+  outcome_verified: 'good',
   reopened: 'bad',
 };
 

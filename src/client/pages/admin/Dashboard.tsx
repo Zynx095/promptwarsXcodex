@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { AlertTriangle, CalendarCheck, Clock, ShieldAlert, Timer, UserCheck, Users } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CheckCircle2, Clock, ShieldAlert, ShieldCheck, Timer, UserCheck, Users } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { qs } from '../../lib/api';
 import { Link } from '../../lib/router';
 import { useMe } from '../../lib/session';
 import { formatDate, formatDateTime, formatMinutes } from '../../lib/format';
-import type { DashboardDTO } from '../../../shared/types';
+import type { AccountabilityMetricsDTO, DashboardDTO } from '../../../shared/types';
 import { Async, BarChart, Button, Card, Empty, Field, Notice, Page, type StatTone } from '../../components/ui';
 
 function StatLink({
@@ -42,6 +42,7 @@ export function AdminDashboard() {
   const [range, setRange] = useState<{ from?: string; to?: string }>({});
   const [draft, setDraft] = useState({ from: '', to: '' });
   const dash = useApi<DashboardDTO>(`/admin/dashboard${qs(range)}`);
+  const accountability = useApi<AccountabilityMetricsDTO>('/admin/reports/accountability');
 
   return (
     <Page title="Workforce dashboard" description="Every figure is calculated from recorded shifts, hazard reports and alerts for the selected dates.">
@@ -102,7 +103,7 @@ export function AdminDashboard() {
                   tone={d.openAlerts ? 'warn' : 'default'}
                 />
               </div>
-              <h2 className="section-title">Safety</h2>
+              <h2 className="section-title">Safety & Accountability Loop</h2>
               <div className="stats">
                 <StatLink
                   to="/admin/reports?status=unresolved"
@@ -117,6 +118,47 @@ export function AdminDashboard() {
                   value={d.criticalUnresolved}
                   icon={<ShieldAlert {...ICON} />}
                   tone={d.criticalUnresolved ? 'bad' : 'default'}
+                />
+                <StatLink
+                  to="/admin/reports?status=outcome_verified"
+                  label="Verified outcomes"
+                  value={accountability.data?.verifiedCount ?? '—'}
+                  hint={accountability.data ? `${accountability.data.verificationRatePercent}% verification rate` : undefined}
+                  icon={<ShieldCheck {...ICON} />}
+                />
+                <StatLink
+                  to="/admin/reports?status=follow_up_pending"
+                  label="Follow-ups pending"
+                  value={accountability.data?.followUpPendingCount ?? '—'}
+                  hint={accountability.data?.overdueFollowUps ? `${accountability.data.overdueFollowUps} overdue` : undefined}
+                  icon={<CalendarCheck {...ICON} />}
+                  tone={accountability.data?.overdueFollowUps ? 'warn' : 'default'}
+                />
+                <StatLink
+                  to="/admin/reports"
+                  label="Mean Time to Acknowledge"
+                  value={
+                    accountability.data?.meanTimeToAcknowledgeMinutes != null
+                      ? accountability.data.meanTimeToAcknowledgeMinutes < 60
+                        ? `${accountability.data.meanTimeToAcknowledgeMinutes}m`
+                        : `${Math.round((accountability.data.meanTimeToAcknowledgeMinutes / 60) * 10) / 10}h`
+                      : '—'
+                  }
+                  hint="Initial review speed"
+                  icon={<Clock {...ICON} />}
+                />
+                <StatLink
+                  to="/admin/reports"
+                  label="Mean Time to Resolve"
+                  value={
+                    accountability.data?.meanTimeToResolveMinutes != null
+                      ? accountability.data.meanTimeToResolveMinutes < 60
+                        ? `${accountability.data.meanTimeToResolveMinutes}m`
+                        : `${Math.round((accountability.data.meanTimeToResolveMinutes / 60) * 10) / 10}h`
+                      : '—'
+                  }
+                  hint={accountability.data ? `${accountability.data.reopenRatePercent}% reopen rate` : undefined}
+                  icon={<CheckCircle2 {...ICON} />}
                 />
               </div>
 

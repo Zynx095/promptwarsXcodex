@@ -17,6 +17,8 @@ const STATUS_LABEL: Record<string, string> = {
   acknowledged: 'Acknowledged',
   in_progress: 'In progress',
   resolved: 'Resolved',
+  follow_up_pending: 'Follow-up pending',
+  outcome_verified: 'Outcome verified',
   reopened: 'Reopened',
 };
 
