@@ -69,6 +69,10 @@ export const reportTransitionSchema = z.object({
   to: z.enum(REPORT_STATUSES),
   note: z.string().trim().max(1000, 'Note must be at most 1000 characters').default(''),
   assignee: z.string().trim().max(80, 'Assignee must be at most 80 characters').nullable().optional(),
+  actionTaken: z.string().trim().max(500, 'Action taken must be at most 500 characters').nullable().optional(),
+  followUpDate: localDateSchema.nullable().optional(),
+  verifiedBy: z.string().trim().max(80, 'Verifier name must be at most 80 characters').nullable().optional(),
+  verificationNote: z.string().trim().max(1000, 'Verification note must be at most 1000 characters').nullable().optional(),
 });
 
 export const feedbackCreateSchema = z

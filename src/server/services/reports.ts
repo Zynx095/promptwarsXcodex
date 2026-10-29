@@ -2,12 +2,13 @@
 // lets only the reporter find their own report again.
 import { randomUUID } from 'node:crypto';
 import { assertTransition } from '../../domain/safety';
+import { calculateAccountabilityMetrics, type AccountabilityEventInput, type AccountabilityReportInput } from '../../domain/accountability';
 import { canSeeReporter, type Actor } from '../../domain/access';
 import { DomainError } from '../../domain/errors';
 import { isHazardCategory } from '../../shared/industries';
-import { localRangeToUtc } from '../../shared/time';
+import { localDate, localRangeToUtc } from '../../shared/time';
 import type { ReportCreateInput, ReportTransitionInput } from '../../shared/schemas';
-import type { ReportEventDTO, ReportStatus, SafetyReportDTO, Severity } from '../../shared/types';
+import type { AccountabilityMetricsDTO, ReportEventDTO, ReportStatus, SafetyReportDTO, Severity } from '../../shared/types';
 import { nowIso, type AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';
 import { reporterRef } from '../auth/crypto';
@@ -31,12 +32,20 @@ interface ReportRow {
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
+  actionTaken: string | null;
+  followUpDate: string | null;
+  verifiedAt: string | null;
+  verifiedBy: string | null;
+  verificationNote: string | null;
   synthetic: number;
 }
 
 const SELECT = `SELECT r.id, r.org_id AS orgId, r.reporter_id AS reporterId, r.reporter_ref AS reporterRef, u.name AS reporterName,
   r.confidential, r.category, r.severity, r.title, r.description, r.location, r.status, r.assignee,
-  r.created_at AS createdAt, r.updated_at AS updatedAt, r.resolved_at AS resolvedAt, r.is_synthetic AS synthetic
+  r.created_at AS createdAt, r.updated_at AS updatedAt, r.resolved_at AS resolvedAt,
+  r.action_taken AS actionTaken, r.follow_up_date AS followUpDate, r.verified_at AS verifiedAt,
+  r.verified_by AS verifiedBy, r.verification_note AS verificationNote,
+  r.is_synthetic AS synthetic
   FROM safety_reports r LEFT JOIN users u ON u.id = r.reporter_id`;
 
 function isMine(ctx: AppContext, actor: Actor, row: ReportRow): boolean {
@@ -61,6 +70,11 @@ function toDTO(ctx: AppContext, actor: Actor, row: ReportRow): SafetyReportDTO {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     resolvedAt: row.resolvedAt,
+    actionTaken: row.actionTaken ?? null,
+    followUpDate: row.followUpDate ?? null,
+    verifiedAt: row.verifiedAt ?? null,
+    verifiedBy: row.verifiedBy ?? null,
+    verificationNote: row.verificationNote ?? null,
     synthetic: Boolean(row.synthetic),
   };
 }
@@ -159,7 +173,7 @@ export interface ReportFilters {
 export function listOrgReports(ctx: AppContext, org: OrgRow, actor: Actor, f: ReportFilters) {
   const range = f.from || f.to ? localRangeToUtc(f.from ?? '2000-01-01', f.to ?? '2999-12-31', org.timezone) : null;
   const where = `r.org_id = @orgId
-    AND (@status IS NULL OR (@status = 'unresolved' AND r.status <> 'resolved') OR r.status = @status)
+    AND (@status IS NULL OR (@status = 'unresolved' AND r.status NOT IN ('resolved', 'follow_up_pending', 'outcome_verified')) OR r.status = @status)
     AND (@severity IS NULL OR r.severity = @severity)
     AND (@category IS NULL OR r.category = @category)
     AND (@start IS NULL OR r.created_at >= @start)
@@ -175,7 +189,7 @@ export function listOrgReports(ctx: AppContext, org: OrgRow, actor: Actor, f: Re
   const items = ctx.db
     .all<ReportRow>(
       `${SELECT} WHERE ${where}
-       ORDER BY CASE WHEN r.status = 'resolved' THEN 1 ELSE 0 END,
+       ORDER BY CASE WHEN r.status IN ('resolved', 'outcome_verified') THEN 1 ELSE 0 END,
          CASE r.severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, r.created_at DESC
        LIMIT @limit OFFSET @offset`,
       { ...params, limit: f.limit, offset: f.offset },
@@ -195,11 +209,40 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
     if (!row) throw notFound('Report');
     assertTransition(row.status, input.to, input.note);
     const assignee = input.assignee === undefined ? row.assignee : input.assignee || null;
+    const actionTaken = input.actionTaken !== undefined ? input.actionTaken : null;
+    const followUpDate = input.followUpDate !== undefined ? input.followUpDate : null;
+    const verifiedBy = input.to === 'outcome_verified' ? (input.verifiedBy || (actor.id ? 'Safety Officer' : null)) : null;
+    const verificationNote = input.to === 'outcome_verified' ? (input.verificationNote || input.note) : null;
+
     const changed = ctx.db.run(
-      `UPDATE safety_reports SET status = @to, assignee = @assignee, updated_at = @at,
-         resolved_at = CASE WHEN @to = 'resolved' THEN @at ELSE NULL END
+      `UPDATE safety_reports SET
+         status = @to,
+         assignee = @assignee,
+         updated_at = @at,
+         resolved_at = CASE
+           WHEN @to = 'resolved' THEN @at
+           WHEN @to IN ('follow_up_pending', 'outcome_verified') AND resolved_at IS NOT NULL THEN resolved_at
+           WHEN @to = 'reopened' THEN NULL
+           ELSE resolved_at
+         END,
+         action_taken = CASE WHEN @actionTaken IS NOT NULL THEN @actionTaken ELSE action_taken END,
+         follow_up_date = CASE WHEN @followUpDate IS NOT NULL THEN @followUpDate ELSE follow_up_date END,
+         verified_at = CASE WHEN @to = 'outcome_verified' THEN @at WHEN @to = 'reopened' THEN NULL ELSE verified_at END,
+         verified_by = CASE WHEN @to = 'outcome_verified' THEN @verifiedBy WHEN @to = 'reopened' THEN NULL ELSE verified_by END,
+         verification_note = CASE WHEN @to = 'outcome_verified' THEN @verificationNote WHEN @to = 'reopened' THEN NULL ELSE verification_note END
        WHERE id = @id AND org_id = @orgId AND status = @from`,
-      { id, orgId: actor.orgId, to: input.to, from: row.status, assignee, at },
+      {
+        id,
+        orgId: actor.orgId,
+        to: input.to,
+        from: row.status,
+        assignee,
+        at,
+        actionTaken,
+        followUpDate,
+        verifiedBy,
+        verificationNote,
+      },
     );
     if (changed !== 1) throw new DomainError('CONFLICT', 'This report was changed by someone else. Reload and try again.');
     ctx.db.run(
@@ -214,7 +257,7 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
       entityId: id,
       action: 'status_change',
       before: { status: row.status, assignee: row.assignee },
-      after: { status: input.to, assignee },
+      after: { status: input.to, assignee, actionTaken, followUpDate },
       reason: input.note || null,
       at,
     });
@@ -224,7 +267,30 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
 
 export function reportCounts(ctx: AppContext, orgId: string) {
   return ctx.db.all<{ status: ReportStatus; severity: Severity }>(
-    `SELECT status, severity FROM safety_reports WHERE org_id = @orgId AND status <> 'resolved' LIMIT 10000`,
+    `SELECT status, severity FROM safety_reports WHERE org_id = @orgId AND status NOT IN ('resolved', 'follow_up_pending', 'outcome_verified') LIMIT 10000`,
     { orgId },
   );
+}
+
+export function getAccountabilityMetrics(ctx: AppContext, org: OrgRow): AccountabilityMetricsDTO {
+  const reports = ctx.db.all<AccountabilityReportInput>(
+    `SELECT id, category, severity, status, created_at AS createdAt, resolved_at AS resolvedAt,
+            follow_up_date AS followUpDate, action_taken AS actionTaken, verified_at AS verifiedAt, verified_by AS verifiedBy
+     FROM safety_reports
+     WHERE org_id = @orgId
+     ORDER BY created_at DESC
+     LIMIT 5000`,
+    { orgId: org.id },
+  );
+
+  const events = ctx.db.all<AccountabilityEventInput>(
+    `SELECT report_id AS reportId, from_status AS fromStatus, to_status AS toStatus, created_at AS createdAt
+     FROM report_events
+     WHERE org_id = @orgId
+     ORDER BY created_at ASC`,
+    { orgId: org.id },
+  );
+
+  const todayIso = localDate(ctx.now(), org.timezone);
+  return calculateAccountabilityMetrics(reports, events, todayIso);
 }

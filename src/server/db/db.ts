@@ -80,4 +80,20 @@ function migrate(raw: DatabaseSync): void {
   if (!cols.some((c) => c.name === 'check_in_method')) {
     raw.exec(`ALTER TABLE shifts ADD COLUMN check_in_method TEXT NOT NULL DEFAULT 'app' CHECK (check_in_method IN ('app', 'site_code'))`);
   }
+  const reportCols = raw.prepare(`SELECT name FROM pragma_table_info('safety_reports')`).all() as { name: string }[];
+  if (!reportCols.some((c) => c.name === 'action_taken')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN action_taken TEXT`);
+  }
+  if (!reportCols.some((c) => c.name === 'follow_up_date')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN follow_up_date TEXT`);
+  }
+  if (!reportCols.some((c) => c.name === 'verified_at')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN verified_at TEXT`);
+  }
+  if (!reportCols.some((c) => c.name === 'verified_by')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN verified_by TEXT`);
+  }
+  if (!reportCols.some((c) => c.name === 'verification_note')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN verification_note TEXT`);
+  }
 }

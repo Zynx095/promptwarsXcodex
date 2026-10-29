@@ -77,11 +77,16 @@ CREATE TABLE IF NOT EXISTS safety_reports (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   location TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('submitted', 'acknowledged', 'in_progress', 'resolved', 'reopened')),
+  status TEXT NOT NULL CHECK (status IN ('submitted', 'acknowledged', 'in_progress', 'resolved', 'follow_up_pending', 'outcome_verified', 'reopened')),
   assignee TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   resolved_at TEXT,
+  action_taken TEXT,
+  follow_up_date TEXT,
+  verified_at TEXT,
+  verified_by TEXT,
+  verification_note TEXT,
   is_synthetic INTEGER NOT NULL DEFAULT 0,
   CHECK ((confidential = 1 AND reporter_id IS NULL AND reporter_ref IS NOT NULL) OR (confidential = 0 AND reporter_id IS NOT NULL))
 );

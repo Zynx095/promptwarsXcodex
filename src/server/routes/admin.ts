@@ -31,7 +31,7 @@ import { listAudit, recordAudit } from '../repositories/audit';
 import { correctShift, defaultRange } from '../services/attendance';
 import { buildDashboard } from '../services/dashboard';
 import { getPayslip, issuePayslip, listPayslips, previewPayslip } from '../services/payslips';
-import { getReport, listOrgReports, transitionReport } from '../services/reports';
+import { getAccountabilityMetrics, getReport, listOrgReports, transitionReport } from '../services/reports';
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
@@ -188,6 +188,11 @@ export function adminRoutes(ctx: AppContext): Router {
   r.get('/reports', (req, res) => {
     const { user, org } = session(req);
     res.json(listOrgReports(ctx, org, user, parse(reportQuerySchema, req.query)));
+  });
+
+  r.get('/reports/accountability', (req, res) => {
+    const { org } = session(req);
+    res.json(getAccountabilityMetrics(ctx, org));
   });
 
   r.post('/reports/:id/transition', (req, res) => {
