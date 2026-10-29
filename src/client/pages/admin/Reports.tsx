@@ -8,6 +8,7 @@ import { getIndustry } from '../../../shared/industries';
 import { REPORT_STATUSES, SEVERITIES, type Paged, type SafetyReportDTO } from '../../../shared/types';
 import { Async, Badge, Button, Card, Empty, Field, Page, Pager, ReportStatusBadge, SeverityBadge } from '../../components/ui';
 import { ReportDetail } from '../../components/ReportDetail';
+import { SafeSignalView } from '../../components/SafeSignalView';
 
 const LIMIT = 25;
 const STATUS_LABEL: Record<string, string> = {
@@ -41,6 +42,12 @@ export function AdminReports() {
         Industry: {industry.label}. Reports are hazards raised by workers; they are not verified incidents. A report is resolved only when an administrator
         records the fix.
       </p>
+      <SafeSignalView
+        onSelectCategory={(cat) => {
+          setDraft((prev) => ({ ...prev, category: cat, offset: 0 }));
+          go({ ...draft, category: cat, offset: 0 });
+        }}
+      />
       <form
         className="card form-row"
         aria-label="Filter reports"
