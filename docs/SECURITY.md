@@ -39,6 +39,26 @@ This document describes the controls FairShift implements and the gaps that rema
   - in production, a strict Content-Security-Policy (`script-src 'self'`) and HSTS
   - API responses are `Cache-Control: no-store`
 
+**Cryptographic work receipts (FairShift Proof)**
+
+- **Canonical JSON serialization:** deterministic key sorting (RFC 8785 subset), uniform integer/float encoding, and whitespace normalization ensure byte-for-byte reproducibility across runtime platforms.
+- **HMAC-SHA256 cryptographic digests:** receipts are sealed with `HMAC-SHA256(SESSION_SECRET, canonicalJson)` upon shift check-out. Any direct database tampering with hours, overtime, or pay rates causes immediate verification failure.
+- **Constant-time verification:** digest verification uses `crypto.timingSafeEqual` to eliminate timing side-channel attacks.
+- **Append-only version chaining:** administrator shift corrections do not overwrite historical receipts; they insert an incremented receipt version referencing `previous_version_id` with mandatory reason audit trails.
+- **Lifecycle status transition:** receipts transition from `estimated` to `finalized` when the employer issues the period payslip, cementing immutable payroll records.
+
+**Privacy and hazard aggregation (Safe Signal)**
+
+- **Minimum cohort suppression ($k \ge 3$):** hazard patterns are surfaced only when at least 3 distinct reports exist in a category. Smaller sample sizes are suppressed to defeat singling-out and re-identification attacks.
+- **Identifier exclusion:** database queries explicitly omit `reporter_id`, `reporter_ref`, worker names, phone numbers, and sub-day timestamps.
+- **Multi-tenant partitioning:** all hazard aggregation queries strictly filter on `org_id`, ensuring zero cross-tenant signal leakage.
+
+**Safety accountability and audit (Accountability Loop)**
+
+- **Audited status lifecycle:** all transitions (`submitted -> acknowledged -> in_progress -> resolved -> follow_up_pending -> outcome_verified`) enforce mandatory explanatory notes and audit event records.
+- **Verification integrity:** outcome verification requires explicit recorded sign-off (`verified_by`, `verification_note`, `verified_at`).
+- **Worker outcome transparency:** workers can view exact corrective actions and verification results without exposing administrator identity or internal notes.
+
 **Privacy**
 
 - **Confidential safety reports:** stored with no reporter ID. A keyed hash (`HMAC(SESSION_SECRET, userId)`) lets only the reporter list and open their report. Admin views, the dashboard, report history ("Reporter (confidential)") and the audit log never contain the reporter's identity.

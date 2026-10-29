@@ -179,31 +179,33 @@ All design tokens are defined in [`src/client/styles.css`](file:///D:/College/SO
 
 All test suites, static analysis, and builds were executed cleanly with zero errors:
 
-| Check                        | Tool / Command                                | Result           | Details                                                                                                                                |
-| :--------------------------- | :-------------------------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
-| **Code Formatting**          | `prettier --check .`                          | **PASS**         | All matched files use Prettier style. Untracked pitch assets ignored.                                                                  |
-| **Linting**                  | `eslint .`                                    | **PASS**         | Strict TypeScript, React Hooks, JSX A11y rules pass with 0 errors.                                                                     |
-| **Type Check**               | `tsc --noEmit`                                | **PASS**         | 0 TypeScript compiler errors.                                                                                                          |
-| **Unit & Integration Tests** | `vitest run`                                  | **PASS (88/88)** | 9 test files passed: payroll, attendance, time/money, site-code, safety, schemas, design-tokens, integration workflows, and client UI. |
-| **Design Tokens Test**       | `vitest run tests/unit/design-tokens.test.ts` | **PASS (5/5)**   | Validates palette hex codes, glass tokens, contrast guarantees, accessibility rules, and badge indicators.                             |
-| **Client UI Integration**    | `vitest run tests/client/ui.test.tsx`         | **PASS (3/3)**   | Tests complete worker journey (English & Kannada), admin journey (all 8 admin pages), and unauthorized route guards in Happy-DOM.      |
-| **Production Build**         | `npm run build`                               | **PASS**         | Vite client built in 341ms (`dist/client`); Esbuild server built in 16ms (`dist/server/main.js`).                                      |
-| **Live Server Verification** | `node dist/server/main.js`                    | **PASS**         | Verified on port 8088: `/healthz` returned 200 OK, `/api/demo/accounts` returned 10 synthetic accounts, `/` served valid HTML.         |
+| Check                        | Tool / Command                                | Result             | Details                                                                                                                                                                             |
+| :--------------------------- | :-------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Code Formatting**          | `prettier --check .`                          | **PASS**           | All matched files use Prettier style. Untracked pitch assets ignored.                                                                                                               |
+| **Linting**                  | `eslint .`                                    | **PASS**           | Strict TypeScript, React Hooks, JSX A11y rules pass with 0 errors.                                                                                                                  |
+| **Type Check**               | `tsc --noEmit`                                | **PASS**           | 0 TypeScript compiler errors.                                                                                                                                                       |
+| **Unit & Integration Tests** | `vitest run`                                  | **PASS (135/135)** | 17 test files passed: payroll, attendance, time/money, site-code, safety, schemas, design-tokens, proof receipts, safe signals, accountability loop, integration workflows, and UI. |
+| **Design Tokens Test**       | `vitest run tests/unit/design-tokens.test.ts` | **PASS (5/5)**     | Validates palette hex codes, glass tokens, contrast guarantees, accessibility rules, and badge indicators.                                                                          |
+| **Client UI Integration**    | `vitest run tests/client/ui.test.tsx`         | **PASS (3/3)**     | Tests complete worker journey (English & Kannada), admin journey (all admin pages), and unauthorized route guards in Happy-DOM.                                                     |
+| **Production Build**         | `npm run build`                               | **PASS**           | Vite client built in ~348ms (`dist/client`); Esbuild server built in ~76ms (`dist/server/main.js`).                                                                                 |
+| **Live Server Verification** | `node dist/server/main.js`                    | **PASS**           | Verified: `/healthz` returns 200 OK, `/api/demo/accounts` returns synthetic accounts, `/` serves valid HTML.                                                                        |
 
 ---
 
-## 7. Important Files for Claude's Final Visual-Polish Phase
+## 7. Important Files for Final Visual-Polish Phase
 
-Claude should inspect the following key files during the visual-polish phase:
+Inspect the following key files during any visual-polish phase:
 
 1. **[`src/client/styles.css`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/styles.css)**: The single source of truth for all Glassmorphism V2 tokens, component styling, glass filters, shadows, and responsive media queries.
 2. **[`src/client/components/Layout.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/Layout.tsx)**: Shell layouts, BrandMark, top navigation bar, bottom worker dock, and admin console sidebar.
 3. **[`src/client/components/ui.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ui.tsx)**: Fundamental design system primitives: `Card`, `Button`, `Field`, `Stat`, `Badge`, `Notice`, `BarChart`, `Empty`, `Loading`, `Pager`.
-4. **[`src/client/components/ShiftCard.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ShiftCard.tsx)**: Primary worker interaction widget (shift status, punch action, site code drawer, hours counter).
-5. **[`src/client/components/PayslipBreakdown.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/PayslipBreakdown.tsx)**: Earnings hero card, deduction breakdown, and plain-language explanation steps.
-6. **[`src/client/components/ReportDetail.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ReportDetail.tsx)**: Hazard timeline and administrator lifecycle transition form.
-7. **[`src/client/pages/Login.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/Login.tsx)**: Two-column login page with SDG 8 features and interactive demo account selectors.
-8. **[`src/client/pages/admin/Dashboard.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/admin/Dashboard.tsx)**: Admin workforce KPI card grid and attendance/overtime trend charts.
+4. **[`src/client/components/ReceiptView.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ReceiptView.tsx)**: FairShift Proof work receipt modal with version comparison tabs, cryptographic digest verification, and calculation breakdowns.
+5. **[`src/client/components/SafeSignalView.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/SafeSignalView.tsx)**: Safe Signal hazard pattern card banner with k-anonymity privacy indicators and actionable mitigation steps.
+6. **[`src/client/components/ShiftCard.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ShiftCard.tsx)**: Primary worker interaction widget (shift status, punch action, site code drawer, hours counter).
+7. **[`src/client/components/PayslipBreakdown.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/PayslipBreakdown.tsx)**: Earnings hero card, deduction breakdown, and plain-language explanation steps.
+8. **[`src/client/components/ReportDetail.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/ReportDetail.tsx)**: Hazard timeline, corrective action display, outcome verification seal, and admin lifecycle transition form.
+9. **[`src/client/pages/Login.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/Login.tsx)**: Two-column login page with SDG 8 features, Phone OTP, Google/GitHub SSO, and demo account selectors.
+10. **[`src/client/pages/admin/Dashboard.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/admin/Dashboard.tsx)**: Admin workforce KPI card grid, trend charts, and real-time Safety & Accountability Loop metrics.
 
 ---
 
