@@ -10,6 +10,7 @@ import type { OrgRow } from '../repositories/orgs';
 import { getWorker } from '../repositories/users';
 import { listWorkerShifts } from '../repositories/shifts';
 import { recordAudit } from '../repositories/audit';
+import { markReceiptsFinalizedForPeriod } from '../repositories/receipts';
 import { notFound } from '../http';
 
 export function previewPayslip(ctx: AppContext, org: OrgRow, workerId: string, from: string, to: string): PayslipDTO {
@@ -74,6 +75,8 @@ export function issuePayslip(
     );
     // Audit records the issue event only; pay amounts are not duplicated into the audit log.
     recordAudit(ctx.db, { orgId: org.id, actorId, entityType: 'payslip', entityId: id, action: 'issue', after: { workerId, from, to }, at });
+    const { start: startUtc, end: endUtc } = localRangeToUtc(from, to, org.timezone);
+    markReceiptsFinalizedForPeriod(ctx.db, org.id, workerId, startUtc, endUtc);
     return { ...preview, id, status: 'issued' as const, issuedAt: at, synthetic: opts.synthetic ?? org.synthetic };
   });
 }

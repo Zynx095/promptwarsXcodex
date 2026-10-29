@@ -364,3 +364,68 @@ export interface AuthIdentityDTO {
   createdAt: string;
   lastSignInAt: string | null;
 }
+
+// ---- FairShift Proof (Work Receipts) ----
+
+export interface ReceiptCalculationRule {
+  scheduledDailyMinutes: number;
+  hourlyRateMinor: number;
+  overtimeMultiplierBp: number;
+  currency: string;
+}
+
+export interface ReceiptEarningsBreakdown {
+  durationMinutes: number;
+  regularMinutes: number;
+  overtimeMinutes: number;
+  basePayMinor: number;
+  overtimePayMinor: number;
+  grossPayMinor: number;
+  estimatedNetPayMinor: number;
+}
+
+export interface ReceiptCorrectionDiff {
+  previousVersion: number;
+  correctedAt: string;
+  correctedBy: string;
+  reason: string;
+  changes: {
+    checkInAt?: { before: string; after: string };
+    checkOutAt?: { before: string | null; after: string | null };
+    durationMinutes?: { before: number; after: number };
+    overtimeMinutes?: { before: number; after: number };
+    grossPayMinor?: { before: number; after: number; deltaMinor: number };
+  };
+}
+
+export interface CanonicalReceiptData {
+  shiftId: string;
+  workerId: string;
+  orgId: string;
+  version: number;
+  status: 'estimated' | 'finalized';
+  checkInAt: string;
+  checkOutAt: string;
+  durationMinutes: number;
+  rules: ReceiptCalculationRule;
+  earnings: ReceiptEarningsBreakdown;
+  issuedAt: string;
+  correction?: ReceiptCorrectionDiff;
+}
+
+export interface WorkReceiptDTO {
+  id: string;
+  shiftId: string;
+  workerId: string;
+  orgId: string;
+  version: number;
+  previousVersionId: string | null;
+  canonicalDigest: string;
+  status: 'estimated' | 'finalized';
+  data: CanonicalReceiptData;
+  correctionReason: string | null;
+  createdAt: string;
+  createdBy: string | null;
+  verified?: boolean;
+}
+

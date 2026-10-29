@@ -190,4 +190,23 @@ CREATE TABLE IF NOT EXISTS phone_verifications (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_phone_verifications ON phone_verifications(phone, expires_at);
+
+CREATE TABLE IF NOT EXISTS work_receipts (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  shift_id TEXT NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+  worker_id TEXT NOT NULL REFERENCES users(id),
+  version INTEGER NOT NULL DEFAULT 1,
+  previous_version_id TEXT REFERENCES work_receipts(id),
+  canonical_digest TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('estimated', 'finalized')),
+  receipt_json TEXT NOT NULL,
+  correction_reason TEXT,
+  created_at TEXT NOT NULL,
+  created_by TEXT REFERENCES users(id),
+  UNIQUE (shift_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_receipts_shift ON work_receipts(shift_id, version);
+CREATE INDEX IF NOT EXISTS idx_receipts_worker ON work_receipts(worker_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_receipts_org ON work_receipts(org_id, created_at);
 `;

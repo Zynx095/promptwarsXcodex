@@ -10,6 +10,8 @@ import type { OrgRow } from '../repositories/orgs';
 import { recordAudit } from '../repositories/audit';
 import * as shifts from '../repositories/shifts';
 import { evaluateWorkerFatigue } from './fatigue';
+import { generateCorrectedReceiptForShift, generateReceiptForShift } from './receipts';
+import { findSessionUser } from '../repositories/users';
 import { notFound } from '../http';
 
 function isUniqueViolation(err: unknown): boolean {
@@ -87,6 +89,7 @@ export function checkOut(ctx: AppContext, org: OrgRow, workerId: string): ShiftD
       at,
     });
     evaluateWorkerFatigue(ctx, org, workerId);
+    generateReceiptForShift(ctx, org, open.id!);
     return shifts.getShift(ctx.db, org.id, open.id!)!;
   });
   return shifts.toShiftDTO(shift, org.timezone);
@@ -124,6 +127,16 @@ export function correctShift(ctx: AppContext, org: OrgRow, actorId: string, shif
       at,
     });
     evaluateWorkerFatigue(ctx, org, existing.workerId);
+    if (checkOutAt) {
+      const actor = findSessionUser(ctx.db, actorId);
+      generateCorrectedReceiptForShift(
+        ctx,
+        org,
+        shiftId,
+        { id: actorId, name: actor?.name ?? 'Admin' },
+        input.reason,
+      );
+    }
     return shifts.getShift(ctx.db, org.id, shiftId)!;
   });
   return shifts.toShiftDTO(updated, org.timezone);

@@ -35,6 +35,7 @@ import { getReport, listOrgReports, transitionReport } from '../services/reports
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
+import { getShiftReceipts, verifyReceipt } from '../services/receipts';
 
 export function adminRoutes(ctx: AppContext): Router {
   const r = Router();
@@ -250,6 +251,31 @@ export function adminRoutes(ctx: AppContext): Router {
     if (!skillWorkerId(ctx, org.id, id)) throw notFound('Skill record');
     setSkillVerification(ctx, org, user.id, id, parse(skillVerifySchema, req.body).verified);
     res.json({ ok: true });
+  });
+
+  // ---- FairShift Proof (Work Receipts) ----
+  r.get('/receipts/shift/:shiftId', (req, res) => {
+    const { org } = session(req);
+    const shiftId = param(req, 'shiftId');
+    res.json(getShiftReceipts(ctx, org.id, shiftId));
+  });
+
+  r.get('/receipts/:id', (req, res) => {
+    const { org } = session(req);
+    const receiptId = param(req, 'id');
+    res.json(verifyReceipt(ctx, org.id, receiptId));
+  });
+
+  r.get('/receipts/:id/verify', (req, res) => {
+    const { org } = session(req);
+    const receiptId = param(req, 'id');
+    const result = verifyReceipt(ctx, org.id, receiptId);
+    res.json({
+      receiptId,
+      version: result.receipt.version,
+      canonicalDigest: result.receipt.canonicalDigest,
+      verified: result.verified,
+    });
   });
 
   return r;

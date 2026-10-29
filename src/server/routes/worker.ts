@@ -13,6 +13,8 @@ import { createReport, getReport, listMyReports } from '../services/reports';
 import { submitFeedback } from '../services/feedback';
 import { listAlerts } from '../services/fatigue';
 import { addSkill, listSkills } from '../services/skills';
+import { getShiftReceipts, verifyReceipt } from '../services/receipts';
+import { getShift } from '../repositories/shifts';
 import { canViewWorkerRecord } from '../../domain/access';
 
 export function workerRoutes(ctx: AppContext): Router {
@@ -118,6 +120,42 @@ export function workerRoutes(ctx: AppContext): Router {
     const { user, org } = session(req);
     const id = addSkill(ctx, org, user, user.id, parse(skillCreateSchema, req.body));
     res.status(201).json({ id });
+  });
+
+  // ---- FairShift Proof (Work Receipts) ----
+  r.get('/receipts/shift/:shiftId', worker, (req, res) => {
+    const { user, org } = session(req);
+    const shiftId = param(req, 'shiftId');
+    const shift = getShift(ctx.db, org.id, shiftId);
+    if (!shift || !canViewWorkerRecord(user, { orgId: org.id, workerId: shift.workerId })) {
+      throw notFound('Shift receipt');
+    }
+    res.json(getShiftReceipts(ctx, org.id, shiftId));
+  });
+
+  r.get('/receipts/:id', worker, (req, res) => {
+    const { user, org } = session(req);
+    const receiptId = param(req, 'id');
+    const result = verifyReceipt(ctx, org.id, receiptId);
+    if (!canViewWorkerRecord(user, { orgId: org.id, workerId: result.receipt.workerId })) {
+      throw notFound('Work receipt');
+    }
+    res.json(result);
+  });
+
+  r.get('/receipts/:id/verify', worker, (req, res) => {
+    const { user, org } = session(req);
+    const receiptId = param(req, 'id');
+    const result = verifyReceipt(ctx, org.id, receiptId);
+    if (!canViewWorkerRecord(user, { orgId: org.id, workerId: result.receipt.workerId })) {
+      throw notFound('Work receipt');
+    }
+    res.json({
+      receiptId,
+      version: result.receipt.version,
+      canonicalDigest: result.receipt.canonicalDigest,
+      verified: result.verified,
+    });
   });
 
   return r;

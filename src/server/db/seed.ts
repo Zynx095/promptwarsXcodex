@@ -8,10 +8,11 @@ import type { OrgSettings, Role, Severity } from '../../shared/types';
 import type { IndustryKey } from '../../shared/industries';
 import { addDays, localDate, startOfLocalDay } from '../../shared/time';
 import { hashPin } from '../auth/crypto';
-import { requireOrg } from '../repositories/orgs';
+import { requireOrg, type OrgRow } from '../repositories/orgs';
 import { recordAudit } from '../repositories/audit';
 import { evaluateWorkerFatigue } from '../services/fatigue';
 import { issuePayslip } from '../services/payslips';
+import { generateReceiptForShift } from '../services/receipts';
 import { createReport, transitionReport } from '../services/reports';
 import { submitFeedback } from '../services/feedback';
 import { addSkill } from '../services/skills';
@@ -227,11 +228,11 @@ function seedOrg(ctx: AppContext, spec: SeedOrg) {
       const open = end > now;
       if (open && hasOpen) continue;
       hasOpen ||= open;
-      insertSeedShift(ctx, org.id, w.id, start.toISOString(), open ? null : end.toISOString());
+      insertSeedShift(ctx, org, w.id, start.toISOString(), open ? null : end.toISOString());
     }
     // The first construction worker is on shift right now.
     if (wi === 0 && spec.industry === 'construction' && !hasOpen) {
-      insertSeedShift(ctx, org.id, w.id, new Date(now.getTime() - 135 * 60000).toISOString(), null);
+      insertSeedShift(ctx, org, w.id, new Date(now.getTime() - 135 * 60000).toISOString(), null);
     }
     evaluateWorkerFatigue(ctx, org, w.id);
   });
@@ -428,15 +429,16 @@ function seedOrg(ctx: AppContext, spec: SeedOrg) {
   });
 }
 
-function insertSeedShift(ctx: AppContext, orgId: string, workerId: string, checkInAt: string, checkOutAt: string | null) {
+function insertSeedShift(ctx: AppContext, org: OrgRow, workerId: string, checkInAt: string, checkOutAt: string | null) {
   const id = randomUUID();
   ctx.db.run(
     `INSERT INTO shifts (id, org_id, worker_id, check_in_at, check_out_at, source, is_synthetic, created_at, updated_at)
      VALUES (@id, @orgId, @workerId, @checkInAt, @checkOutAt, 'seed', 1, @checkInAt, @updatedAt)`,
-    { id, orgId, workerId, checkInAt, checkOutAt, updatedAt: checkOutAt ?? checkInAt },
+    { id, orgId: org.id, workerId, checkInAt, checkOutAt, updatedAt: checkOutAt ?? checkInAt },
   );
-  recordAudit(ctx.db, { orgId, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_in', after: { checkInAt }, at: checkInAt });
+  recordAudit(ctx.db, { orgId: org.id, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_in', after: { checkInAt }, at: checkInAt });
   if (checkOutAt) {
-    recordAudit(ctx.db, { orgId, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_out', after: { checkOutAt }, at: checkOutAt });
+    recordAudit(ctx.db, { orgId: org.id, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_out', after: { checkOutAt }, at: checkOutAt });
+    generateReceiptForShift(ctx, org, id);
   }
 }

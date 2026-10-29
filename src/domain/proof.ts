@@ -4,52 +4,14 @@ import { safeEqual } from '../server/auth/crypto';
 import { payForMinutes } from '../shared/money';
 import { minutesBetween } from '../shared/time';
 import { DomainError } from './errors';
+import type {
+  CanonicalReceiptData,
+  ReceiptCalculationRule,
+  ReceiptCorrectionDiff,
+  ReceiptEarningsBreakdown,
+} from '../shared/types';
 
-export interface ReceiptCalculationRule {
-  scheduledDailyMinutes: number;
-  hourlyRateMinor: number;
-  overtimeMultiplierBp: number;
-  currency: string;
-}
-
-export interface ReceiptEarningsBreakdown {
-  durationMinutes: number;
-  regularMinutes: number;
-  overtimeMinutes: number;
-  basePayMinor: number;
-  overtimePayMinor: number;
-  grossPayMinor: number;
-  estimatedNetPayMinor: number;
-}
-
-export interface ReceiptCorrectionDiff {
-  previousVersion: number;
-  correctedAt: string;
-  correctedBy: string;
-  reason: string;
-  changes: {
-    checkInAt?: { before: string; after: string };
-    checkOutAt?: { before: string | null; after: string | null };
-    durationMinutes?: { before: number; after: number };
-    overtimeMinutes?: { before: number; after: number };
-    grossPayMinor?: { before: number; after: number; deltaMinor: number };
-  };
-}
-
-export interface CanonicalReceiptData {
-  shiftId: string;
-  workerId: string;
-  orgId: string;
-  version: number;
-  status: 'estimated' | 'finalized';
-  checkInAt: string;
-  checkOutAt: string;
-  durationMinutes: number;
-  rules: ReceiptCalculationRule;
-  earnings: ReceiptEarningsBreakdown;
-  issuedAt: string;
-  correction?: ReceiptCorrectionDiff;
-}
+export type { CanonicalReceiptData, ReceiptCalculationRule, ReceiptCorrectionDiff, ReceiptEarningsBreakdown };
 
 /**
  * Deterministically serializes any JavaScript object or primitive into canonical JSON.
