@@ -113,18 +113,14 @@ export function calculateAccountabilityMetrics(
 
   // Outcome verification rate: verified / (resolved + followUpPending + verified)
   const totalCompletedAction = resolvedCount + followUpPendingCount + verifiedCount;
-  const verificationRatePercent =
-    totalCompletedAction > 0 ? Math.round((verifiedCount / totalCompletedAction) * 100) : 0;
+  const verificationRatePercent = totalCompletedAction > 0 ? Math.round((verifiedCount / totalCompletedAction) * 100) : 0;
 
   // Reopen rate: reopened / (totalCompletedAction + reopened)
   const totalResolutionCycles = totalCompletedAction + reopenedCount;
-  const reopenRatePercent =
-    totalResolutionCycles > 0 ? Math.round((reopenedCount / totalResolutionCycles) * 100) : 0;
+  const reopenRatePercent = totalResolutionCycles > 0 ? Math.round((reopenedCount / totalResolutionCycles) * 100) : 0;
 
   // Overdue follow ups: follow_up_pending with followUpDate < today
-  const overdueFollowUps = reports.filter(
-    (r) => r.status === 'follow_up_pending' && r.followUpDate && r.followUpDate < todayIso,
-  ).length;
+  const overdueFollowUps = reports.filter((r) => r.status === 'follow_up_pending' && r.followUpDate && r.followUpDate < todayIso).length;
 
   return {
     totalReports,

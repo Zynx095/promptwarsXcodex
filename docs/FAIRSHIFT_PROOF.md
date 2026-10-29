@@ -79,18 +79,19 @@ export function computeReceiptDigest(secret: string, data: CanonicalReceiptData)
 
 ## 4. API Endpoints
 
-| Method | Endpoint | Authorization | Description |
-|---|---|---|---|
-| `GET` | `/api/receipts/shift/:shiftId` | Worker (own) / Admin (org) | Returns current latest receipt and complete historical version list. |
-| `GET` | `/api/receipts/:id` | Worker (own) / Admin (org) | Retrieves specific receipt version with computed verification flag. |
-| `GET` | `/api/receipts/:id/verify` | Worker (own) / Admin (org) | Verifies cryptographic integrity of the receipt against its digest. |
+| Method | Endpoint                       | Authorization              | Description                                                          |
+| ------ | ------------------------------ | -------------------------- | -------------------------------------------------------------------- |
+| `GET`  | `/api/receipts/shift/:shiftId` | Worker (own) / Admin (org) | Returns current latest receipt and complete historical version list. |
+| `GET`  | `/api/receipts/:id`            | Worker (own) / Admin (org) | Retrieves specific receipt version with computed verification flag.  |
+| `GET`  | `/api/receipts/:id/verify`     | Worker (own) / Admin (org) | Verifies cryptographic integrity of the receipt against its digest.  |
 
 ---
 
 ## 5. Automated Test Coverage
 
 The feature is comprehensively verified by automated tests:
-* [`tests/unit/proof.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/unit/proof.test.ts):
+
+- [`tests/unit/proof.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/unit/proof.test.ts):
   - Deterministic key canonicalization.
   - Cryptographic HMAC-SHA256 digest calculation.
   - Tamper detection on modified gross pay, durations, and timestamps.
@@ -98,7 +99,7 @@ The feature is comprehensively verified by automated tests:
   - Overtime calculations exceeding daily scheduled quotas.
   - Accumulation of prior shifts on the same calendar day.
   - Structured version diff generation.
-* [`tests/integration/proof.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/integration/proof.test.ts):
+- [`tests/integration/proof.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/integration/proof.test.ts):
   - End-to-end receipt generation on worker check-out.
   - Version increment (`v1 -> v2`) and diff recording on administrative shift correction.
   - Historical version preservation.

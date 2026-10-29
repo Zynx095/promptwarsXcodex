@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, AlertTriangle, ChevronDown, ChevronUp, Filter, ShieldCheck } from 'lucide-react';
+import { Activity, ChevronDown, ChevronUp, Filter, ShieldCheck } from 'lucide-react';
 import { useApi } from '../lib/useApi';
 import type { SafeSignalResponse, SafeSignalDTO, Severity } from '../../shared/types';
 import { Badge, Button, Card, Loading, SeverityBadge } from './ui';
@@ -23,7 +23,9 @@ export function SafeSignalView({ onSelectCategory }: { onSelectCategory?: (categ
       <div className="flex justify-between items-center flex-wrap gap-2 mb-3">
         <div className="flex items-center gap-2">
           <Activity className="icon text-aubergine" aria-hidden="true" style={{ color: 'var(--c-aubergine)' }} />
-          <h2 className="card-title text-base m-0" style={{ margin: 0 }}>Safe Signal — Hazard Pattern Detection</h2>
+          <h2 className="card-title text-base m-0" style={{ margin: 0 }}>
+            Safe Signal — Hazard Pattern Detection
+          </h2>
           <span className="badge badge-info" title="Zero reporter identifiers queried or exposed">
             <ShieldCheck className="icon mr-1" aria-hidden="true" style={{ width: 14, height: 14, verticalAlign: 'middle', display: 'inline' }} />
             Privacy Protected (Cohort ≥ {cohortThreshold})
@@ -48,12 +50,15 @@ export function SafeSignalView({ onSelectCategory }: { onSelectCategory?: (categ
       {!collapsed && (
         <>
           <p className="text-xs text-muted mb-3">
-            Safe Signal automatically analyzes recurring hazard clusters while protecting worker confidentiality.
-            Clusters are only surfaced when at least {cohortThreshold} distinct reports exist, preventing individual re-identification.
+            Safe Signal automatically analyzes recurring hazard clusters while protecting worker confidentiality. Clusters are only surfaced when at least{' '}
+            {cohortThreshold} distinct reports exist, preventing individual re-identification.
           </p>
 
           {signals.length === 0 ? (
-            <div className="p-3 rounded border text-xs text-muted flex items-center gap-2" style={{ background: 'rgba(58, 15, 52, 0.02)', borderColor: 'rgba(58, 15, 52, 0.08)' }}>
+            <div
+              className="p-3 rounded border text-xs text-muted flex items-center gap-2"
+              style={{ background: 'rgba(58, 15, 52, 0.02)', borderColor: 'rgba(58, 15, 52, 0.08)' }}
+            >
               <ShieldCheck className="icon text-good" aria-hidden="true" style={{ color: 'var(--c-good)' }} />
               <span>No recurring hazard patterns detected. Reports are currently distributed within expected variance or below cohort threshold.</span>
             </div>
@@ -88,22 +93,17 @@ function SignalCard({ signal, onSelectCategory }: { signal: SafeSignalDTO; onSel
               {signal.title}
             </span>
             <SeverityBadge severity={signal.severityLevel} />
-            <Badge tone={isRecurrent ? 'bad' : 'warn'}>
-              {isRecurrent ? 'Recurrent Hazard' : 'Possible Pattern'}
-            </Badge>
+            <Badge tone={isRecurrent ? 'bad' : 'warn'}>{isRecurrent ? 'Recurrent Hazard' : 'Possible Pattern'}</Badge>
             <Badge tone="neutral">{signal.timeWindow}</Badge>
           </div>
           <span className="text-xs text-muted block mt-1">
-            Category: <strong>{signal.categoryLabel}</strong> · {signal.reportCount} reports ({signal.statusSummary.unresolvedCount} unresolved, {signal.statusSummary.resolvedCount} resolved)
+            Category: <strong>{signal.categoryLabel}</strong> · {signal.reportCount} reports ({signal.statusSummary.unresolvedCount} unresolved,{' '}
+            {signal.statusSummary.resolvedCount} resolved)
           </span>
         </div>
 
         {onSelectCategory && (
-          <Button
-            variant="secondary"
-            className="btn-sm text-xs flex items-center gap-1"
-            onClick={() => onSelectCategory(signal.category)}
-          >
+          <Button variant="secondary" className="btn-sm text-xs flex items-center gap-1" onClick={() => onSelectCategory(signal.category)}>
             <Filter className="icon" style={{ width: 12, height: 12 }} aria-hidden="true" />
             Filter Queue
           </Button>
@@ -117,7 +117,7 @@ function SignalCard({ signal, onSelectCategory }: { signal: SafeSignalDTO; onSel
             <span key={sev} className="text-xs font-semibold px-1 rounded" style={{ background: 'rgba(58, 15, 52, 0.06)' }}>
               {sev}: {count}
             </span>
-          ) : null
+          ) : null,
         )}
       </div>
 

@@ -478,5 +478,3 @@ export interface AccountabilityMetricsDTO {
   reopenRatePercent: number;
   overdueFollowUps: number;
 }
-
-

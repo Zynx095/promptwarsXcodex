@@ -189,9 +189,7 @@ export function detectSeverityEscalations(
   minCohort = SAFE_SIGNAL_MIN_COHORT,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
-  const inWindow = reports
-    .filter((r) => Date.parse(r.createdAt) >= windowStartMs)
-    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  const inWindow = reports.filter((r) => Date.parse(r.createdAt) >= windowStartMs).sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
 
   const byCategory = new Map<string, SignalReportInput[]>();
   for (const r of inWindow) {
@@ -249,11 +247,7 @@ export function detectSeverityEscalations(
 /**
  * Runs the comprehensive Safe Signal rule evaluation suite.
  */
-export function analyzeSafeSignals(
-  reports: SignalReportInput[],
-  categories: { key: string; label: string }[],
-  now: Date,
-): SafeSignalCandidate[] {
+export function analyzeSafeSignals(reports: SignalReportInput[], categories: { key: string; label: string }[], now: Date): SafeSignalCandidate[] {
   const categoryMap = new Map(categories.map((c) => [c.key, c.label]));
 
   const clusters = detectCategoryClusters(reports, categoryMap, now);

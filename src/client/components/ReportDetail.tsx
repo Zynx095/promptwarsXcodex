@@ -1,6 +1,6 @@
 // Safety report details and timestamped status history. Admins also get the transition form.
 import { useState } from 'react';
-import { ShieldCheck, CalendarCheck, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, CalendarCheck } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { useMe } from '../lib/session';
@@ -59,7 +59,9 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
         {report.followUpDate ? (
           <p className="small text-muted mb-2 flex items-center gap-1">
             <CalendarCheck className="icon" style={{ width: 14, height: 14 }} aria-hidden="true" />
-            <span><strong>Scheduled Follow-Up Inspection:</strong> {report.followUpDate}</span>
+            <span>
+              <strong>Scheduled Follow-Up Inspection:</strong> {report.followUpDate}
+            </span>
           </p>
         ) : null}
 
@@ -68,7 +70,9 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
           <div className="p-3 my-3 rounded border" style={{ background: 'rgba(46, 125, 50, 0.05)', borderColor: 'rgba(46, 125, 50, 0.3)' }}>
             <div className="flex items-center gap-2 mb-1">
               <ShieldCheck className="icon text-good" style={{ color: 'var(--c-good)' }} aria-hidden="true" />
-              <strong className="text-sm" style={{ color: 'var(--c-good)' }}>Outcome Verified</strong>
+              <strong className="text-sm" style={{ color: 'var(--c-good)' }}>
+                Outcome Verified
+              </strong>
               <span className="text-xs text-muted">· {formatDateTime(report.verifiedAt, tz, locale)}</span>
             </div>
             {report.verifiedBy ? <p className="text-xs m-0">Verified by: {report.verifiedBy}</p> : null}
@@ -138,10 +142,10 @@ function TransitionForm({ report, onUpdated }: { report: SafetyReportDTO; onUpda
           to,
           note,
           assignee: assignee.trim() || null,
-          actionTaken: to === 'resolved' ? (actionTaken.trim() || null) : undefined,
-          followUpDate: to === 'follow_up_pending' ? (followUpDate || null) : undefined,
-          verifiedBy: to === 'outcome_verified' ? (verifiedBy.trim() || null) : undefined,
-          verificationNote: to === 'outcome_verified' ? (verificationNote.trim() || null) : undefined,
+          actionTaken: to === 'resolved' ? actionTaken.trim() || null : undefined,
+          followUpDate: to === 'follow_up_pending' ? followUpDate || null : undefined,
+          verifiedBy: to === 'outcome_verified' ? verifiedBy.trim() || null : undefined,
+          verificationNote: to === 'outcome_verified' ? verificationNote.trim() || null : undefined,
         },
       });
       setNote('');
@@ -173,13 +177,28 @@ function TransitionForm({ report, onUpdated }: { report: SafetyReportDTO; onUpda
         </Field>
 
         {to === 'resolved' ? (
-          <Field label="Corrective Action Taken" hint="Describe the physical fix, engineering control, or policy change." optional error={error?.fields['actionTaken']}>
-            <input value={actionTaken} onChange={(e) => setActionTaken(e.target.value)} placeholder="e.g. Guardrail installed with toe boards" maxLength={500} />
+          <Field
+            label="Corrective Action Taken"
+            hint="Describe the physical fix, engineering control, or policy change."
+            optional
+            error={error?.fields['actionTaken']}
+          >
+            <input
+              value={actionTaken}
+              onChange={(e) => setActionTaken(e.target.value)}
+              placeholder="e.g. Guardrail installed with toe boards"
+              maxLength={500}
+            />
           </Field>
         ) : null}
 
         {to === 'follow_up_pending' ? (
-          <Field label="Follow-Up Inspection Date" hint="Date by which effectiveness must be physically inspected." optional error={error?.fields['followUpDate']}>
+          <Field
+            label="Follow-Up Inspection Date"
+            hint="Date by which effectiveness must be physically inspected."
+            optional
+            error={error?.fields['followUpDate']}
+          >
             <input type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
           </Field>
         ) : null}
@@ -189,8 +208,18 @@ function TransitionForm({ report, onUpdated }: { report: SafetyReportDTO; onUpda
             <Field label="Verified By" hint="Name of auditor, safety inspector, or confirming supervisor." optional error={error?.fields['verifiedBy']}>
               <input value={verifiedBy} onChange={(e) => setVerifiedBy(e.target.value)} placeholder="e.g. Suresh Rao (Site Auditor)" maxLength={80} />
             </Field>
-            <Field label="Verification Note" hint="Details of inspection check or verification test results." optional error={error?.fields['verificationNote']}>
-              <textarea value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} placeholder="e.g. Physical test passed at 50 Nm. Zero deflection." maxLength={1000} />
+            <Field
+              label="Verification Note"
+              hint="Details of inspection check or verification test results."
+              optional
+              error={error?.fields['verificationNote']}
+            >
+              <textarea
+                value={verificationNote}
+                onChange={(e) => setVerificationNote(e.target.value)}
+                placeholder="e.g. Physical test passed at 50 Nm. Zero deflection."
+                maxLength={1000}
+              />
             </Field>
           </>
         ) : null}

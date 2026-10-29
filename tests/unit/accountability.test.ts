@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { allowedTransitions, assertTransition, isUnresolved } from '../../src/domain/safety';
+import { assertTransition, isUnresolved } from '../../src/domain/safety';
 import { calculateAccountabilityMetrics, type AccountabilityEventInput, type AccountabilityReportInput } from '../../src/domain/accountability';
 import { DomainError } from '../../src/domain/errors';
-import { REPORT_STATUSES } from '../../src/shared/types';
 
 describe('FairShift Accountability Loop — Safety Lifecycle State Machine', () => {
   it('allows full accountability path from submission to outcome verification', () => {

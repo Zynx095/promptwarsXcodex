@@ -22,11 +22,13 @@ Safe Signal resolves this tension by providing **cohort-level pattern visibility
 ## 3. Privacy Architecture & Guarantees
 
 ### 3.1 Minimum Cohort Suppression ($k \ge 3$)
+
 - Safe Signal enforces a strict cohort threshold: `SAFE_SIGNAL_MIN_COHORT = 3`.
 - Any category, cluster, or potential pattern with fewer than 3 distinct reports is automatically suppressed from the signals view.
 - This prevents "singling-out" attacks where a supervisor deduces who reported an issue based on team shifts or narrow timing.
 
 ### 3.2 Identifier Isolation
+
 - Database queries executed by the Safe Signal aggregation service (`src/server/services/signal.ts`) explicitly exclude:
   - `reporter_id` (foreign key to users table)
   - `reporter_ref` (pseudonymous session reference)
@@ -35,6 +37,7 @@ Safe Signal resolves this tension by providing **cohort-level pattern visibility
 - The resulting `SafeSignalDTO` objects contain only aggregated counts, severity distributions, and macro status summaries.
 
 ### 3.3 Strict Multi-Tenant Partitioning
+
 - All pattern aggregation queries enforce an unconditional `org_id = @orgId` clause.
 - Integration tests verify that hazard clusters in one organization (e.g., Construction Site Alpha) are completely invisible to other tenant organizations (e.g., Campus Support Beta).
 
@@ -45,6 +48,7 @@ Safe Signal resolves this tension by providing **cohort-level pattern visibility
 Safe Signal uses pure deterministic evaluation functions (`src/domain/signal.ts`) rather than opaque heuristic models. This ensures transparency, reproducibility, and auditability.
 
 ### 4.1 Rule 1: Category Cluster (`category_cluster`)
+
 - **Trigger**: $\ge 3$ reports in the same hazard category within a rolling 30-day window.
 - **Severity Level**: Assigned as the maximum severity observed across the cluster.
 - **Confidence**:
@@ -56,6 +60,7 @@ Safe Signal uses pure deterministic evaluation functions (`src/domain/signal.ts`
   - Review preventative maintenance and inspection logs.
 
 ### 4.2 Rule 2: Persistent Unresolved Hazards (`persistent_unresolved`)
+
 - **Trigger**: $\ge 3$ reports in a category that remain in `submitted`, `acknowledged`, or `in_progress` status for more than 14 days without reaching resolution.
 - **Severity Level**: High or Critical.
 - **Confidence**: `recurrent_hazard`.
@@ -65,6 +70,7 @@ Safe Signal uses pure deterministic evaluation functions (`src/domain/signal.ts`
   - Establish temporary safety barriers or exclusion zones until permanently addressed.
 
 ### 4.3 Rule 3: Severity Escalation (`severity_escalation`)
+
 - **Trigger**: A hazard category where early reports (within 30 days) were low or medium severity, but the most recent reports (within the last 7 days) escalated to high or critical severity.
 - **Severity Level**: Critical.
 - **Confidence**: `recurrent_hazard`.
@@ -91,12 +97,12 @@ Safe Signal is integrated directly into the employer's operational workflow:
 
 ## 6. Threat Model & Operational Limitations
 
-| Threat / Risk | Safe Signal Mitigation | Honest Limitation |
-|---|---|---|
-| **Re-identification via timing** | Cohort threshold $\ge 3$; only rolling day windows are analyzed. | If an entire department consists of only 3 workers, all 3 workers must have reported for the pattern to appear. In tiny teams ($< 5$ people), additional administrative caution is advised. |
-| **Spam / Report flooding** | Signals aggregate reports; duplicate flooding does not alter individual shift wages or audit logs. | Malicious actors could theoretically submit synthetic reports to trigger false cluster alerts. Administrators must verify physical site conditions. |
-| **Silent hazards** | Safe Signal alerts proactively when reports exist. | Safe Signal cannot detect hazards that no worker has reported. It is a complement to, not a replacement for, scheduled physical safety audits. |
-| **Data leakage to unauthorized users** | Enforced role check (`role === 'admin'`) and organization isolation (`org_id`). | Non-admin workers are blocked with HTTP 403. Workers only view their own submitted reports. |
+| Threat / Risk                          | Safe Signal Mitigation                                                                             | Honest Limitation                                                                                                                                                                           |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Re-identification via timing**       | Cohort threshold $\ge 3$; only rolling day windows are analyzed.                                   | If an entire department consists of only 3 workers, all 3 workers must have reported for the pattern to appear. In tiny teams ($< 5$ people), additional administrative caution is advised. |
+| **Spam / Report flooding**             | Signals aggregate reports; duplicate flooding does not alter individual shift wages or audit logs. | Malicious actors could theoretically submit synthetic reports to trigger false cluster alerts. Administrators must verify physical site conditions.                                         |
+| **Silent hazards**                     | Safe Signal alerts proactively when reports exist.                                                 | Safe Signal cannot detect hazards that no worker has reported. It is a complement to, not a replacement for, scheduled physical safety audits.                                              |
+| **Data leakage to unauthorized users** | Enforced role check (`role === 'admin'`) and organization isolation (`org_id`).                    | Non-admin workers are blocked with HTTP 403. Workers only view their own submitted reports.                                                                                                 |
 
 ---
 

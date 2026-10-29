@@ -211,8 +211,8 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
     const assignee = input.assignee === undefined ? row.assignee : input.assignee || null;
     const actionTaken = input.actionTaken !== undefined ? input.actionTaken : null;
     const followUpDate = input.followUpDate !== undefined ? input.followUpDate : null;
-    const verifiedBy = input.to === 'outcome_verified' ? (input.verifiedBy || (actor.id ? 'Safety Officer' : null)) : null;
-    const verificationNote = input.to === 'outcome_verified' ? (input.verificationNote || input.note) : null;
+    const verifiedBy = input.to === 'outcome_verified' ? input.verifiedBy || (actor.id ? 'Safety Officer' : null) : null;
+    const verificationNote = input.to === 'outcome_verified' ? input.verificationNote || input.note : null;
 
     const changed = ctx.db.run(
       `UPDATE safety_reports SET
