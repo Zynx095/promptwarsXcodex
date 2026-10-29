@@ -129,13 +129,7 @@ export function correctShift(ctx: AppContext, org: OrgRow, actorId: string, shif
     evaluateWorkerFatigue(ctx, org, existing.workerId);
     if (checkOutAt) {
       const actor = findSessionUser(ctx.db, actorId);
-      generateCorrectedReceiptForShift(
-        ctx,
-        org,
-        shiftId,
-        { id: actorId, name: actor?.name ?? 'Admin' },
-        input.reason,
-      );
+      generateCorrectedReceiptForShift(ctx, org, shiftId, { id: actorId, name: actor?.name ?? 'Admin' }, input.reason);
     }
     return shifts.getShift(ctx.db, org.id, shiftId)!;
   });

@@ -141,15 +141,9 @@ describe('FairShift Proof — Work Receipts & Integrity Verification', () => {
   });
 
   it('rejects earnings calculation for invalid shift times', () => {
-    expect(() =>
-      calculateShiftEarnings(
-        { checkInAt: '2026-10-27T17:00:00.000Z', checkOutAt: '2026-10-27T08:00:00.000Z' },
-        0,
-        480,
-        10000,
-        20000,
-      ),
-    ).toThrow(DomainError);
+    expect(() => calculateShiftEarnings({ checkInAt: '2026-10-27T17:00:00.000Z', checkOutAt: '2026-10-27T08:00:00.000Z' }, 0, 480, 10000, 20000)).toThrow(
+      DomainError,
+    );
   });
 
   it('builds structured correction diff comparing versions accurately', () => {

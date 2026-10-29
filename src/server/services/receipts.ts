@@ -3,21 +3,10 @@ import type { AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';
 import { getShift, listWorkerShifts } from '../repositories/shifts';
 import { getWorker } from '../repositories/users';
-import {
-  buildCorrectionDiff,
-  calculateShiftEarnings,
-  computeReceiptDigest,
-  verifyReceiptDigest,
-} from '../../domain/proof';
+import { buildCorrectionDiff, calculateShiftEarnings, computeReceiptDigest, verifyReceiptDigest } from '../../domain/proof';
 import type { CanonicalReceiptData, WorkReceiptDTO } from '../../shared/types';
-import { localDate, localRangeToUtc } from '../../shared/time';
-import {
-  getLatestReceiptForShift,
-  getReceiptById,
-  getReceiptHistoryForShift,
-  insertReceipt,
-  toWorkReceiptDTO,
-} from '../repositories/receipts';
+import { localDate, localRangeToUtc, minutesBetween } from '../../shared/time';
+import { getLatestReceiptForShift, getReceiptById, getReceiptHistoryForShift, insertReceipt, toWorkReceiptDTO } from '../repositories/receipts';
 import { notFound } from '../http';
 
 /**
@@ -54,7 +43,7 @@ export function generateReceiptForShift(ctx: AppContext, org: OrgRow, shiftId: s
   // List all completed shifts for this worker on this day that started before this shift
   const dayShifts = listWorkerShifts(ctx.db, shift.workerId, dayStartUtc, dayEndUtc);
   const priorCompleted = dayShifts.filter((s) => s.id !== shiftId && s.checkOutAt && s.checkInAt < shift.checkInAt);
-  const priorMinutes = priorCompleted.reduce((acc, s) => acc + (s.durationMinutes ?? 0), 0);
+  const priorMinutes = priorCompleted.reduce((acc, s) => acc + (s.checkOutAt ? minutesBetween(s.checkInAt, s.checkOutAt) : 0), 0);
 
   const earnings = calculateShiftEarnings(
     { checkInAt: shift.checkInAt, checkOutAt: shift.checkOutAt },
@@ -135,7 +124,7 @@ export function generateCorrectedReceiptForShift(
 
   const dayShifts = listWorkerShifts(ctx.db, shift.workerId, dayStartUtc, dayEndUtc);
   const priorCompleted = dayShifts.filter((s) => s.id !== shiftId && s.checkOutAt && s.checkInAt < shift.checkInAt);
-  const priorMinutes = priorCompleted.reduce((acc, s) => acc + (s.durationMinutes ?? 0), 0);
+  const priorMinutes = priorCompleted.reduce((acc, s) => acc + (s.checkOutAt ? minutesBetween(s.checkInAt, s.checkOutAt) : 0), 0);
 
   const earnings = calculateShiftEarnings(
     { checkInAt: shift.checkInAt, checkOutAt: shift.checkOutAt },
@@ -212,11 +201,7 @@ export function generateCorrectedReceiptForShift(
 /**
  * Fetches the current latest receipt and historical versions for a given shift.
  */
-export function getShiftReceipts(
-  ctx: AppContext,
-  orgId: string,
-  shiftId: string,
-): { current: WorkReceiptDTO | null; history: WorkReceiptDTO[] } {
+export function getShiftReceipts(ctx: AppContext, orgId: string, shiftId: string): { current: WorkReceiptDTO | null; history: WorkReceiptDTO[] } {
   const rows = getReceiptHistoryForShift(ctx.db, orgId, shiftId);
   if (rows.length === 0) {
     return { current: null, history: [] };
@@ -237,11 +222,7 @@ export function getShiftReceipts(
 /**
  * Verifies cryptographic integrity of a specific receipt version.
  */
-export function verifyReceipt(
-  ctx: AppContext,
-  orgId: string,
-  receiptId: string,
-): { receipt: WorkReceiptDTO; verified: boolean } {
+export function verifyReceipt(ctx: AppContext, orgId: string, receiptId: string): { receipt: WorkReceiptDTO; verified: boolean } {
   const row = getReceiptById(ctx.db, orgId, receiptId);
   if (!row) {
     throw notFound('Work receipt');

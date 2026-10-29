@@ -1,4 +1,4 @@
-import type { Database } from '../db/db';
+import type { Db } from '../db/db';
 import type { CanonicalReceiptData, WorkReceiptDTO } from '../../shared/types';
 
 export interface WorkReceiptRow {
@@ -17,7 +17,7 @@ export interface WorkReceiptRow {
 }
 
 export function insertReceipt(
-  db: Database,
+  db: Db,
   receipt: {
     id: string;
     orgId: string;
@@ -58,7 +58,7 @@ export function insertReceipt(
   );
 }
 
-export function getLatestReceiptForShift(db: Database, orgId: string, shiftId: string): WorkReceiptRow | undefined {
+export function getLatestReceiptForShift(db: Db, orgId: string, shiftId: string): WorkReceiptRow | undefined {
   return db.get<WorkReceiptRow>(
     `SELECT * FROM work_receipts
      WHERE org_id = @orgId AND shift_id = @shiftId
@@ -67,7 +67,7 @@ export function getLatestReceiptForShift(db: Database, orgId: string, shiftId: s
   );
 }
 
-export function getReceiptHistoryForShift(db: Database, orgId: string, shiftId: string): WorkReceiptRow[] {
+export function getReceiptHistoryForShift(db: Db, orgId: string, shiftId: string): WorkReceiptRow[] {
   return db.all<WorkReceiptRow>(
     `SELECT * FROM work_receipts
      WHERE org_id = @orgId AND shift_id = @shiftId
@@ -76,7 +76,7 @@ export function getReceiptHistoryForShift(db: Database, orgId: string, shiftId: 
   );
 }
 
-export function getReceiptById(db: Database, orgId: string, id: string): WorkReceiptRow | undefined {
+export function getReceiptById(db: Db, orgId: string, id: string): WorkReceiptRow | undefined {
   return db.get<WorkReceiptRow>(
     `SELECT * FROM work_receipts
      WHERE org_id = @orgId AND id = @id`,
@@ -84,13 +84,7 @@ export function getReceiptById(db: Database, orgId: string, id: string): WorkRec
   );
 }
 
-export function markReceiptsFinalizedForPeriod(
-  db: Database,
-  orgId: string,
-  workerId: string,
-  startIso: string,
-  endIso: string,
-): void {
+export function markReceiptsFinalizedForPeriod(db: Db, orgId: string, workerId: string, startIso: string, endIso: string): void {
   // Finds latest receipts for shifts that fall within the period and sets status to finalized
   db.run(
     `UPDATE work_receipts

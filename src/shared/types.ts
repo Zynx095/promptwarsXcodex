@@ -428,4 +428,3 @@ export interface WorkReceiptDTO {
   createdBy: string | null;
   verified?: boolean;
 }
-

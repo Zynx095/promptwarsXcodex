@@ -7,12 +7,14 @@ import { formatDate, formatMinutes, formatTime } from '../../lib/format';
 import type { ShiftDTO } from '../../../shared/types';
 import { Async, Badge, Button, Card, Empty, Field, Page } from '../../components/ui';
 import { ShiftCard } from '../../components/ShiftCard';
+import { ReceiptModal } from '../../components/ReceiptView';
 
 export function WorkerAttendance() {
   const { t, locale } = useI18n();
   const me = useMe();
   const [range, setRange] = useState<{ from?: string; to?: string }>({});
   const [draft, setDraft] = useState<{ from: string; to: string }>({ from: '', to: '' });
+  const [viewingReceiptShiftId, setViewingReceiptShiftId] = useState<string | null>(null);
   const history = useApi<{ range: { from: string; to: string }; items: ShiftDTO[] }>(`/attendance/shifts${qs(range)}`);
 
   return (
@@ -57,6 +59,9 @@ export function WorkerAttendance() {
                         <th scope="col" className="num">
                           {t('att.hours')}
                         </th>
+                        <th scope="col">
+                          <span className="visually-hidden">{t('receipt.view')}</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -74,6 +79,17 @@ export function WorkerAttendance() {
                           <td>{formatTime(s.checkInAt, me.org.timezone, locale)}</td>
                           <td>{s.checkOutAt ? formatTime(s.checkOutAt, me.org.timezone, locale) : <Badge tone="good">{t('att.open')}</Badge>}</td>
                           <td className="num">{s.durationMinutes !== null ? formatMinutes(s.durationMinutes) : '—'}</td>
+                          <td>
+                            {s.checkOutAt ? (
+                              <Button
+                                variant="link"
+                                onClick={() => setViewingReceiptShiftId(s.id)}
+                                aria-label={`${t('receipt.view')} ${formatDate(s.localDate, locale)}`}
+                              >
+                                {t('receipt.view')}
+                              </Button>
+                            ) : null}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -84,6 +100,7 @@ export function WorkerAttendance() {
           }
         </Async>
       </Card>
+      {viewingReceiptShiftId ? <ReceiptModal shiftId={viewingReceiptShiftId} onClose={() => setViewingReceiptShiftId(null)} /> : null}
     </Page>
   );
 }

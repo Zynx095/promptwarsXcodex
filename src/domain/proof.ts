@@ -4,12 +4,7 @@ import { safeEqual } from '../server/auth/crypto';
 import { payForMinutes } from '../shared/money';
 import { minutesBetween } from '../shared/time';
 import { DomainError } from './errors';
-import type {
-  CanonicalReceiptData,
-  ReceiptCalculationRule,
-  ReceiptCorrectionDiff,
-  ReceiptEarningsBreakdown,
-} from '../shared/types';
+import type { CanonicalReceiptData, ReceiptCalculationRule, ReceiptCorrectionDiff, ReceiptEarningsBreakdown } from '../shared/types';
 
 export type { CanonicalReceiptData, ReceiptCalculationRule, ReceiptCorrectionDiff, ReceiptEarningsBreakdown };
 
