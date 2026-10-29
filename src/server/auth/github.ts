@@ -147,9 +147,11 @@ export async function handleGithubCallback(ctx: AppContext, req: Request, res: R
   });
 
   if (emailsRes.ok) {
-    const emails = (await emailsRes.json()) as Array<{ email: string; primary: boolean; verified: boolean }>;
-    const match = emails.find((e) => e.primary && e.verified);
-    if (match) primaryEmail = match.email.toLowerCase();
+    const emailsData = await emailsRes.json().catch(() => null);
+    if (Array.isArray(emailsData)) {
+      const match = emailsData.find((e) => e && e.primary && e.verified);
+      if (match && typeof match.email === 'string') primaryEmail = match.email.toLowerCase();
+    }
   }
 
   // Identity Mapping & Authorization

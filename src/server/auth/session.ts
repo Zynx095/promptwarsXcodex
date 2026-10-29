@@ -55,6 +55,7 @@ export function setSessionCookie(ctx: AppContext, res: Response, userId: string)
 
 export function clearSessionCookie(ctx: AppContext, res: Response): void {
   res.clearCookie(SESSION_COOKIE, { httpOnly: true, sameSite: 'lax', secure: ctx.config.production, path: '/' });
+  res.clearCookie('fs_oauth_state', { httpOnly: true, sameSite: 'lax', secure: ctx.config.production, path: '/' });
 }
 
 /** Attaches req.user when a valid session cookie for an active user is present. */
