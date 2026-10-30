@@ -63,9 +63,11 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
       const checkInRes = await worker.post('/api/attendance/check-in').send({});
       expect(checkInRes.status).toBe(401);
 
-      // 3. Reactivate worker and check-in succeeds
+      // 3. Reactivation does not revive the old session; after signing in again check-in succeeds
       await admin.patch(`/api/admin/workers/${workerId}`).send({ active: true });
-      const checkInAfter = await worker.post('/api/attendance/check-in').send({});
+      expect((await worker.post('/api/attendance/check-in').send({})).status).toBe(401);
+      const workerAgain = await env.login(PHONES.lakshmi);
+      const checkInAfter = await workerAgain.post('/api/attendance/check-in').send({});
       expect(checkInAfter.status).toBe(201);
     });
   });
