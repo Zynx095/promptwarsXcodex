@@ -7,6 +7,10 @@ export interface AppConfig {
   receiptSigningSecret: string;
   receiptSigningKeys: Record<string, string>;
   activeReceiptKeyId: string;
+  checkpointSigningSecret: string;
+  checkpointSigningKeys: Record<string, string>;
+  activeCheckpointKeyId: string;
+  signalPseudonymSecret: string;
   databasePath: string;
   demoMode: boolean;
   googleClientId?: string;
@@ -50,6 +54,24 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     }
   }
 
+  // Checkpoint Signing Keys & Active Key ID (supports independent anchoring & key rotation)
+  const checkpointSigningSecret = env.CHECKPOINT_SIGNING_SECRET?.trim() || sessionSecret;
+  const activeCheckpointKeyId = env.ACTIVE_CHECKPOINT_KEY_ID?.trim() || 'chk_v1';
+  let checkpointSigningKeys: Record<string, string> = { [activeCheckpointKeyId]: checkpointSigningSecret };
+  if (env.CHECKPOINT_KEYS_JSON) {
+    try {
+      const parsed = JSON.parse(env.CHECKPOINT_KEYS_JSON) as Record<string, string>;
+      if (typeof parsed === 'object' && parsed !== null) {
+        checkpointSigningKeys = { ...parsed, [activeCheckpointKeyId]: checkpointSigningSecret };
+      }
+    } catch {
+      console.warn('[fairshift] Failed to parse CHECKPOINT_KEYS_JSON; falling back to primary checkpoint key.');
+    }
+  }
+
+  // Dedicated Safe Signal Pseudonym Secret (decoupled from session cookie rotation)
+  const signalPseudonymSecret = env.SIGNAL_PSEUDONYM_SECRET?.trim() || sessionSecret;
+
   const smsProviderEnv = (env.SMS_PROVIDER ?? '').toLowerCase();
   const smsProvider: 'twilio' | 'mock' | 'none' = smsProviderEnv === 'twilio' ? 'twilio' : smsProviderEnv === 'mock' ? 'mock' : 'none';
 
@@ -60,6 +82,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     receiptSigningSecret,
     receiptSigningKeys,
     activeReceiptKeyId,
+    checkpointSigningSecret,
+    checkpointSigningKeys,
+    activeCheckpointKeyId,
+    signalPseudonymSecret,
     databasePath: env.DATABASE_PATH ?? './data/fairshift.db',
     demoMode,
     googleClientId: env.GOOGLE_CLIENT_ID?.trim() || undefined,

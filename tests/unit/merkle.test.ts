@@ -40,7 +40,7 @@ describe('Merkle Tree and Inclusion Proofs', () => {
     for (let i = 0; i < leaves.length; i++) {
       const proof = generateMerkleProof(tree, i);
       expect(proof).toHaveLength(2);
-      expect(verifyMerkleProof(leaves[i], proof, tree.root)).toBe(true);
+      expect(verifyMerkleProof(leaves[i]!, proof, tree.root)).toBe(true);
     }
   });
 
@@ -50,7 +50,7 @@ describe('Merkle Tree and Inclusion Proofs', () => {
 
     for (let i = 0; i < leaves.length; i++) {
       const proof = generateMerkleProof(tree, i);
-      expect(verifyMerkleProof(leaves[i], proof, tree.root)).toBe(true);
+      expect(verifyMerkleProof(leaves[i]!, proof, tree.root)).toBe(true);
     }
   });
 
@@ -60,7 +60,7 @@ describe('Merkle Tree and Inclusion Proofs', () => {
 
     for (let i = 0; i < leaves.length; i++) {
       const proof = generateMerkleProof(tree, i);
-      expect(verifyMerkleProof(leaves[i], proof, tree.root)).toBe(true);
+      expect(verifyMerkleProof(leaves[i]!, proof, tree.root)).toBe(true);
     }
   });
 
@@ -79,12 +79,12 @@ describe('Merkle Tree and Inclusion Proofs', () => {
     const proof = generateMerkleProof(tree, 0);
 
     // Tamper one hash in the proof
-    const tamperedProof = [{ position: proof[0].position, hash: dummyDigest5 }, ...proof.slice(1)];
-    expect(verifyMerkleProof(leaves[0], tamperedProof, tree.root)).toBe(false);
+    const tamperedProof = [{ position: proof[0]!.position, hash: dummyDigest5 }, ...proof.slice(1)];
+    expect(verifyMerkleProof(leaves[0]!, tamperedProof, tree.root)).toBe(false);
 
     // Invert position
-    const invertedProof = [{ position: proof[0].position === 'left' ? 'right' : 'left', hash: proof[0].hash }, ...proof.slice(1)];
-    expect(verifyMerkleProof(leaves[0], invertedProof, tree.root)).toBe(false);
+    const invertedProof = [{ position: (proof[0]!.position === 'left' ? 'right' : 'left') as 'left' | 'right', hash: proof[0]!.hash }, ...proof.slice(1)];
+    expect(verifyMerkleProof(leaves[0]!, invertedProof, tree.root)).toBe(false);
   });
 
   it('rejects tampered root', () => {
@@ -93,7 +93,7 @@ describe('Merkle Tree and Inclusion Proofs', () => {
     const proof = generateMerkleProof(tree, 0);
 
     const tamperedRoot = hashSha256('tampered_root');
-    expect(verifyMerkleProof(leaves[0], proof, tamperedRoot)).toBe(false);
+    expect(verifyMerkleProof(leaves[0]!, proof, tamperedRoot)).toBe(false);
   });
 
   it('throws when requesting proof for out-of-bounds leaf index', () => {

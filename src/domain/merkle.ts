@@ -65,8 +65,8 @@ export function buildMerkleTree(leafHashes: string[]): MerkleTree {
   while (currentLevel.length > 1) {
     const nextLevel: string[] = [];
     for (let i = 0; i < currentLevel.length; i += 2) {
-      const left = currentLevel[i];
-      const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : left;
+      const left = currentLevel[i]!;
+      const right = i + 1 < currentLevel.length ? currentLevel[i + 1]! : left;
       nextLevel.push(computeNodeHash(left, right));
     }
     levels.push(nextLevel);
@@ -76,7 +76,7 @@ export function buildMerkleTree(leafHashes: string[]): MerkleTree {
   return {
     leaves: validatedLeaves,
     levels,
-    root: currentLevel[0],
+    root: currentLevel[0] ?? EMPTY_ROOT,
   };
 }
 
@@ -94,15 +94,16 @@ export function generateMerkleProof(tree: MerkleTree, leafIndex: number): Merkle
   // Walk from bottom to top (excluding the root level)
   for (let l = 0; l < tree.levels.length - 1; l++) {
     const level = tree.levels[l];
+    if (!level) continue;
     const isRight = index % 2 === 1;
     const siblingIndex = isRight ? index - 1 : index + 1;
 
     let siblingHash: string;
-    if (siblingIndex < level.length) {
-      siblingHash = level[siblingIndex];
+    if (siblingIndex < level.length && level[siblingIndex]) {
+      siblingHash = level[siblingIndex]!;
     } else {
       // Duplicated last node for odd length
-      siblingHash = level[index];
+      siblingHash = level[index]!;
     }
 
     proof.push({

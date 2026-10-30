@@ -263,14 +263,15 @@ export function validateReceiptVersionChain(history: { id: string; version: numb
 } {
   if (history.length === 0) return { valid: true };
   const sorted = [...history].sort((a, b) => a.version - b.version);
-  if (sorted[0].version !== 1 || sorted[0].previousVersionId !== null) {
-    return { valid: false, brokenAtVersion: sorted[0].version };
+  const first = sorted[0];
+  if (!first || first.version !== 1 || first.previousVersionId !== null) {
+    return { valid: false, brokenAtVersion: first?.version };
   }
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1];
     const curr = sorted[i];
-    if (curr.version !== prev.version + 1 || curr.previousVersionId !== prev.id) {
-      return { valid: false, brokenAtVersion: curr.version };
+    if (!prev || !curr || curr.version !== prev.version + 1 || curr.previousVersionId !== prev.id) {
+      return { valid: false, brokenAtVersion: curr?.version };
     }
   }
   return { valid: true };
