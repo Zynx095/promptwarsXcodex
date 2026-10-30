@@ -1,105 +1,118 @@
-// Safety report details and timestamped status history. Admins also get the transition form.
+// A safety report as a case: what was reported, where it is in the accountability loop, what
+// was done, and every recorded step. Admins also get the transition form.
 import { useState } from 'react';
-import { ShieldCheck, CalendarCheck } from 'lucide-react';
+import { CalendarCheck, ClipboardCheck, EyeOff, Wrench } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { useMe } from '../lib/session';
-import { formatDateTime } from '../lib/format';
+import { formatDate, formatDateTime } from '../lib/format';
 import { allowedTransitions } from '../../domain/safety';
 import { getIndustry } from '../../shared/industries';
 import type { ReportStatus, SafetyReportDTO } from '../../shared/types';
-import { Badge, Button, Card, ErrorBox, Field, Notice, ReportStatusBadge, SeverityBadge } from './ui';
+import { Button, Card, ErrorBox, Field, Notice, ReportStatusBadge, SeverityBadge } from './ui';
+import { LifecycleSteps } from './Lifecycle';
 
 export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; onUpdated?: (r: SafetyReportDTO) => void }) {
   const { t, locale, category } = useI18n();
   const me = useMe();
   const tz = me.org.timezone;
   const cat = getIndustry(me.org.industry).hazardCategories.find((c) => c.key === report.category);
+  const open = report.status !== 'resolved' && report.status !== 'outcome_verified' && report.status !== 'follow_up_pending';
+  const history = report.history ?? [];
 
   return (
     <>
-      <Card>
-        <div className="row">
-          <h2 className="m-0">{report.title}</h2>
-          <span className="row row-tight">
-            <SeverityBadge severity={report.severity} />
+      <article className="case" aria-labelledby="case-title">
+        <header className="case-head">
+          <h2 id="case-title" className="case-title">
+            {report.title}
+          </h2>
+          <div className="case-tags">
             <ReportStatusBadge status={report.status} />
-          </span>
-        </div>
-        <p className="muted small">
-          {t('rep.reportedOn', { date: formatDateTime(report.createdAt, tz, locale) })} · {category('hazard', report.category, cat?.label ?? report.category)} ·{' '}
-          {report.location}
-        </p>
-        <p className="pre-wrap">{report.description}</p>
-        <p className="small">
-          {report.confidential ? <Badge tone="info">Confidential</Badge> : null}{' '}
-          {report.reporterName ? (
-            <span className="muted">Reported by {report.reporterName}</span>
-          ) : report.confidential ? (
-            <span className="muted">Reporter identity protected</span>
-          ) : null}
-        </p>
-        {report.assignee ? (
-          <p>
-            <strong>{t('rep.assignee')}:</strong> {report.assignee}
-          </p>
-        ) : null}
-
-        {/* Accountability Loop: Corrective Action Display */}
-        {report.actionTaken ? (
-          <div className="p-3 my-3 rounded border" style={{ background: 'rgba(58, 15, 52, 0.03)', borderColor: 'rgba(58, 15, 52, 0.12)' }}>
-            <strong className="text-sm block mb-1" style={{ color: 'var(--c-heading)' }}>
-              Corrective Action Taken
-            </strong>
-            <p className="m-0 text-sm">{report.actionTaken}</p>
-          </div>
-        ) : null}
-
-        {/* Accountability Loop: Scheduled Follow-Up */}
-        {report.followUpDate ? (
-          <p className="small text-muted mb-2 flex items-center gap-1">
-            <CalendarCheck className="icon" style={{ width: 14, height: 14 }} aria-hidden="true" />
-            <span>
-              <strong>Scheduled Follow-Up Inspection:</strong> {report.followUpDate}
-            </span>
-          </p>
-        ) : null}
-
-        {/* Accountability Loop: Outcome Verification Seal */}
-        {report.verifiedAt ? (
-          <div className="p-3 my-3 rounded border" style={{ background: 'rgba(46, 125, 50, 0.05)', borderColor: 'rgba(46, 125, 50, 0.3)' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldCheck className="icon text-good" style={{ color: 'var(--c-good)' }} aria-hidden="true" />
-              <strong className="text-sm" style={{ color: 'var(--c-good)' }}>
-                Outcome Verified
-              </strong>
-              <span className="text-xs text-muted">· {formatDateTime(report.verifiedAt, tz, locale)}</span>
-            </div>
-            {report.verifiedBy ? <p className="text-xs m-0">Verified by: {report.verifiedBy}</p> : null}
-            {report.verificationNote ? <p className="text-xs m-0 text-muted mt-1">{report.verificationNote}</p> : null}
-          </div>
-        ) : null}
-
-        {report.status !== 'resolved' && report.status !== 'outcome_verified' && report.status !== 'follow_up_pending' ? (
-          <Notice kind="info">{t('rep.reportedHazardNote')}</Notice>
-        ) : null}
-        {report.synthetic ? <p className="muted small">Synthetic demo report.</p> : null}
-      </Card>
-
-      <Card title={t('rep.history')}>
-        <ol className="timeline">
-          {(report.history ?? []).map((h) => (
-            <li key={h.id}>
-              <strong>{t(`status.${h.toStatus}`)}</strong>
-              <span className="muted small">
-                {' '}
-                · {formatDateTime(h.createdAt, tz, locale)} · {h.actorLabel}
+            <SeverityBadge severity={report.severity} />
+            {report.confidential ? (
+              <span className="badge badge-info">
+                <EyeOff className="icon-xs" aria-hidden="true" />
+                {t('rep.confidentialTag')}
               </span>
-              {h.note ? <p className="m-0">{h.note}</p> : null}
+            ) : null}
+          </div>
+          <p className="case-meta">
+            {t('rep.reportedOn', { date: formatDateTime(report.createdAt, tz, locale) })}
+            <br />
+            {category('hazard', report.category, cat?.label ?? report.category)}, {report.location}
+          </p>
+        </header>
+
+        <LifecycleSteps status={report.status} followUpDate={report.followUpDate ? formatDate(report.followUpDate, locale) : null} />
+
+        <section className="case-section" aria-labelledby="case-what">
+          <h3 id="case-what">{t('rep.whatReported')}</h3>
+          <p className="pre-wrap">{report.description}</p>
+          <dl className="case-facts">
+            <div>
+              <dt>{t('rep.reporter')}</dt>
+              <dd>{report.reporterName ?? (report.confidential ? t('rep.reporterProtected') : '—')}</dd>
+            </div>
+            <div>
+              <dt>{t('rep.assignee')}</dt>
+              <dd>{report.assignee ?? t('rep.notAssigned')}</dd>
+            </div>
+          </dl>
+        </section>
+
+        {report.actionTaken ? (
+          <section className="case-section case-done" aria-labelledby="case-action">
+            <h3 id="case-action">
+              <Wrench className="icon" aria-hidden="true" />
+              {t('rep.whatDone')}
+            </h3>
+            <p className="pre-wrap">{report.actionTaken}</p>
+          </section>
+        ) : null}
+
+        {report.followUpDate ? (
+          <p className="case-followup">
+            <CalendarCheck className="icon" aria-hidden="true" />
+            {t('life.followUpOn', { date: formatDate(report.followUpDate, locale) })}
+          </p>
+        ) : null}
+
+        {report.verifiedAt ? (
+          <section className="case-section case-verified" aria-labelledby="case-verified">
+            <h3 id="case-verified">
+              <ClipboardCheck className="icon" aria-hidden="true" />
+              {t('rep.outcomeChecked')}
+            </h3>
+            <p className="m-0">{formatDateTime(report.verifiedAt, tz, locale)}</p>
+            {report.verifiedBy ? <p className="m-0">{t('rep.checkedBy', { name: report.verifiedBy })}</p> : null}
+            {report.verificationNote ? <p className="case-note">{report.verificationNote}</p> : null}
+          </section>
+        ) : null}
+
+        {open ? <Notice kind="info">{t('rep.reportedHazardNote')}</Notice> : null}
+        {report.synthetic ? <p className="case-foot">{t('rep.syntheticNote')}</p> : null}
+      </article>
+
+      <section className="case-history" aria-labelledby="case-history">
+        <h2 id="case-history" className="section-title">
+          {t('rep.history')}
+        </h2>
+        <ol className="timeline">
+          {history.map((h) => (
+            <li key={h.id}>
+              <span className="timeline-dot" aria-hidden="true" />
+              <div className="timeline-body">
+                <p className="timeline-title">{t(`status.${h.toStatus}`)}</p>
+                <p className="timeline-meta">
+                  {formatDateTime(h.createdAt, tz, locale)}, {h.actorLabel}
+                </p>
+                {h.note ? <p className="timeline-note">{h.note}</p> : null}
+              </div>
             </li>
           ))}
         </ol>
-      </Card>
+      </section>
 
       {me.user.role === 'admin' && onUpdated ? <TransitionForm report={report} onUpdated={onUpdated} /> : null}
     </>

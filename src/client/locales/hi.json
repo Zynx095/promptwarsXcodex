@@ -376,5 +376,14 @@
   "life.followUpOn": "{date} को दोबारा जाँच",
   "life.done": "पूरा",
   "life.now": "मौजूदा कदम",
-  "life.notYet": "अभी नहीं"
+  "life.notYet": "अभी नहीं",
+  "rep.confidentialTag": "गोपनीय",
+  "rep.whatReported": "क्या रिपोर्ट किया गया",
+  "rep.reporter": "रिपोर्ट करने वाले",
+  "rep.reporterProtected": "रिपोर्ट करने वाले की पहचान सुरक्षित",
+  "rep.notAssigned": "अभी किसी को नहीं सौंपा गया",
+  "rep.whatDone": "क्या किया गया",
+  "rep.outcomeChecked": "नतीजे की जाँच हुई",
+  "rep.checkedBy": "{name} द्वारा जाँचा गया, ऐसा दर्ज है",
+  "rep.syntheticNote": "सिंथेटिक डेमो रिपोर्ट।"
 }

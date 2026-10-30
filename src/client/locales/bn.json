@@ -376,5 +376,14 @@
   "life.followUpOn": "{date} তারিখে আবার যাচাই",
   "life.done": "সম্পন্ন",
   "life.now": "বর্তমান ধাপ",
-  "life.notYet": "এখনও নয়"
+  "life.notYet": "এখনও নয়",
+  "rep.confidentialTag": "গোপনীয়",
+  "rep.whatReported": "কী জানানো হয়েছে",
+  "rep.reporter": "যিনি জানিয়েছেন",
+  "rep.reporterProtected": "যিনি জানিয়েছেন তাঁর পরিচয় সুরক্ষিত",
+  "rep.notAssigned": "এখনও কাউকে দেওয়া হয়নি",
+  "rep.whatDone": "কী করা হয়েছে",
+  "rep.outcomeChecked": "ফলাফল যাচাই হয়েছে",
+  "rep.checkedBy": "{name} যাচাই করেছেন বলে রেকর্ড করা হয়েছে",
+  "rep.syntheticNote": "কৃত্রিম ডেমো রিপোর্ট।"
 }

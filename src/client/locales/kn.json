@@ -375,5 +375,14 @@
   "life.followUpOn": "{date} ರಂದು ಮರುಪರಿಶೀಲನೆ",
   "life.done": "ಪೂರ್ಣಗೊಂಡಿದೆ",
   "life.now": "ಈಗಿನ ಹಂತ",
-  "life.notYet": "ಇನ್ನೂ ಇಲ್ಲ"
+  "life.notYet": "ಇನ್ನೂ ಇಲ್ಲ",
+  "rep.confidentialTag": "ಗೋಪ್ಯ",
+  "rep.whatReported": "ವರದಿಯಾದದ್ದು ಏನು",
+  "rep.reporter": "ವರದಿ ಮಾಡಿದವರು",
+  "rep.reporterProtected": "ವರದಿಗಾರರ ಗುರುತು ರಕ್ಷಿತ",
+  "rep.notAssigned": "ಇನ್ನೂ ನಿಯೋಜಿಸಿಲ್ಲ",
+  "rep.whatDone": "ಏನು ಮಾಡಲಾಯಿತು",
+  "rep.outcomeChecked": "ಫಲಿತಾಂಶ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "rep.checkedBy": "{name} ಪರಿಶೀಲಿಸಿದ್ದಾರೆ ಎಂದು ದಾಖಲಾಗಿದೆ",
+  "rep.syntheticNote": "ಸಂಶ್ಲೇಷಿತ ಡೆಮೊ ವರದಿ."
 }

@@ -376,5 +376,14 @@
   "life.followUpOn": "Follow-up check on {date}",
   "life.done": "done",
   "life.now": "current step",
-  "life.notYet": "not yet"
+  "life.notYet": "not yet",
+  "rep.confidentialTag": "Confidential",
+  "rep.whatReported": "What was reported",
+  "rep.reporter": "Reported by",
+  "rep.reporterProtected": "Reporter identity protected",
+  "rep.notAssigned": "Not assigned yet",
+  "rep.whatDone": "What was done",
+  "rep.outcomeChecked": "Outcome checked",
+  "rep.checkedBy": "Recorded as checked by {name}",
+  "rep.syntheticNote": "Synthetic demo report."
 }

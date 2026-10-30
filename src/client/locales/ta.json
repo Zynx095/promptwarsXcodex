@@ -376,5 +376,14 @@
   "life.followUpOn": "{date} அன்று மறு சோதனை",
   "life.done": "முடிந்தது",
   "life.now": "தற்போதைய படி",
-  "life.notYet": "இன்னும் இல்லை"
+  "life.notYet": "இன்னும் இல்லை",
+  "rep.confidentialTag": "இரகசியம்",
+  "rep.whatReported": "என்ன தெரிவிக்கப்பட்டது",
+  "rep.reporter": "தெரிவித்தவர்",
+  "rep.reporterProtected": "தெரிவித்தவரின் அடையாளம் பாதுகாக்கப்பட்டுள்ளது",
+  "rep.notAssigned": "இன்னும் ஒதுக்கப்படவில்லை",
+  "rep.whatDone": "என்ன செய்யப்பட்டது",
+  "rep.outcomeChecked": "முடிவு சரிபார்க்கப்பட்டது",
+  "rep.checkedBy": "{name} சரிபார்த்ததாகப் பதிவு செய்யப்பட்டுள்ளது",
+  "rep.syntheticNote": "செயற்கையான டெமோ அறிக்கை."
 }

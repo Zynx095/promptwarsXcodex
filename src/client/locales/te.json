@@ -376,5 +376,14 @@
   "life.followUpOn": "{date} న మళ్ళీ తనిఖీ",
   "life.done": "పూర్తయింది",
   "life.now": "ప్రస్తుత దశ",
-  "life.notYet": "ఇంకా లేదు"
+  "life.notYet": "ఇంకా లేదు",
+  "rep.confidentialTag": "గోప్యం",
+  "rep.whatReported": "ఏమి నివేదించారు",
+  "rep.reporter": "నివేదించినవారు",
+  "rep.reporterProtected": "నివేదించినవారి గుర్తింపు రక్షించబడింది",
+  "rep.notAssigned": "ఇంకా ఎవరికీ అప్పగించలేదు",
+  "rep.whatDone": "ఏమి చేశారు",
+  "rep.outcomeChecked": "ఫలితం తనిఖీ చేశారు",
+  "rep.checkedBy": "{name} తనిఖీ చేసినట్లు నమోదైంది",
+  "rep.syntheticNote": "కృత్రిమ డెమో నివేదిక."
 }
