@@ -1,12 +1,15 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Award,
   BarChart3,
   CalendarCheck,
+  ChevronRight,
   ClipboardList,
   Clock,
+  Ellipsis,
   FileText,
   Home,
+  IndianRupee,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -22,15 +25,31 @@ import { LANGUAGES, useI18n, type Lang, type MessageKey } from '../lib/i18n';
 import { useSession } from '../lib/session';
 import { getIndustry } from '../../shared/industries';
 import { NotificationBell } from './NotificationBell';
+import { Sheet } from './Sheet';
 
-const WORKER_NAV: { to: string; key: MessageKey; short: MessageKey; icon: LucideIcon }[] = [
-  { to: '/worker', key: 'nav.home', short: 'navShort.home', icon: Home },
+interface WorkerDestination {
+  to: string;
+  key: MessageKey;
+  short: MessageKey;
+  icon: LucideIcon;
+  exact?: boolean;
+}
+
+/** The four destinations a worker uses daily live in the bottom bar; the rest are under More. */
+const WORKER_PRIMARY: WorkerDestination[] = [
+  { to: '/worker', key: 'nav.home', short: 'navShort.home', icon: Home, exact: true },
   { to: '/worker/attendance', key: 'nav.attendance', short: 'navShort.attendance', icon: Clock },
-  { to: '/worker/payslips', key: 'nav.payslips', short: 'navShort.payslips', icon: Wallet },
+  { to: '/worker/payslips', key: 'nav.payslips', short: 'navShort.payslips', icon: IndianRupee },
   { to: '/worker/reports', key: 'nav.reports', short: 'navShort.reports', icon: ShieldAlert },
+];
+const WORKER_SECONDARY: WorkerDestination[] = [
   { to: '/worker/feedback', key: 'nav.feedback', short: 'navShort.feedback', icon: MessageSquare },
   { to: '/worker/skills', key: 'nav.skills', short: 'navShort.skills', icon: Award },
 ];
+
+function isActive(path: string, d: WorkerDestination): boolean {
+  return d.exact ? path === d.to : path === d.to || path.startsWith(d.to + '/');
+}
 
 const ADMIN_NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -72,76 +91,158 @@ export function DemoBanner() {
 
 export function BrandMark() {
   return (
-    <span className="brand-mark" aria-hidden="true">
-      F
+    <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <rect width="32" height="32" rx="8" fill="#3a0f34" />
+      <path d="M10 7h13v4.5h-8v3.2h6.5v4.3H15V25h-5z" fill="#eaaa00" />
+    </svg>
+  );
+}
+
+function Wordmark() {
+  return (
+    <span className="wordmark">
+      <BrandMark />
+      <span className="wordmark-text">FairShift</span>
     </span>
   );
 }
 
-function SignOut() {
+function SignOut({ className = 'btn btn-secondary', onDone, compact = true }: { className?: string; onDone?: () => void; compact?: boolean }) {
   const { logout } = useSession();
   const { t } = useI18n();
   const { navigate } = useRouter();
   return (
     <button
       type="button"
-      className="btn btn-secondary"
+      className={className}
       onClick={async () => {
+        onDone?.();
         await logout();
         navigate('/', { replace: true });
       }}
     >
       <LogOut className="icon" aria-hidden="true" />
-      <span className="label-sm-hidden">{t('action.signOut')}</span>
+      <span className={compact ? 'label-sm-hidden' : undefined}>{t('action.signOut')}</span>
     </button>
   );
 }
 
-/** Worker shell: compact header, top tabs on wide screens and a bottom bar on phones. */
+/**
+ * Worker shell. Phones get a top bar and a bottom bar with the four daily destinations plus a
+ * More sheet; wide screens get a light rail with every destination. Both navigations are in the
+ * document, and CSS shows exactly one of them for the current width.
+ */
 function WorkerShell({ children }: { children: ReactNode }) {
   const { me } = useSession();
   const { t } = useI18n();
+  const { path } = useRouter();
+  const [moreOpen, setMoreOpen] = useState(false);
   if (!me) return null;
+  const demo = me.org.synthetic || me.demoMode;
+  const moreActive = WORKER_SECONDARY.some((d) => isActive(path, d));
+  const role = [me.user.jobTitle, me.user.team].filter(Boolean).join(', ');
+
   return (
-    <div className="area-worker">
+    <div className="worker-shell">
       <a className="skip-link" href="#main">
         {t('nav.skip')}
       </a>
-      <header className="topbar">
-        <div className="brand">
-          <BrandMark />
-          <div className="brand-text">
-            FairShift <span className="role-pill">{t('role.worker')}</span>
-            <small>
-              {me.org.name} · {getIndustry(me.org.industry).label}
-            </small>
+
+      <aside className="ws-rail">
+        <Wordmark />
+        <p className="ws-rail-org">{me.org.name}</p>
+        <nav className="ws-rail-nav" aria-label={t('nav.main')}>
+          <ul>
+            {[...WORKER_PRIMARY, ...WORKER_SECONDARY].map((d) => (
+              <li key={d.to}>
+                <Link to={d.to} aria-current={isActive(path, d) ? 'page' : undefined}>
+                  <d.icon className="icon" aria-hidden="true" />
+                  <span>{t(d.key)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="ws-rail-foot">
+          <p className="ws-rail-user">
+            <strong>{me.user.name}</strong>
+            {role ? <span>{role}</span> : null}
+          </p>
+          <SignOut className="btn btn-secondary btn-sm ws-signout" compact={false} />
+        </div>
+      </aside>
+
+      <div className="ws-body">
+        <header className="ws-topbar">
+          <span className="ws-topbar-brand">
+            <Wordmark />
+          </span>
+          <span className="ws-topbar-org">{me.org.name}</span>
+          {demo ? (
+            <span className="demo-chip" title={t('demo.banner')}>
+              {t('demo.chip')}
+            </span>
+          ) : null}
+          <div className="ws-topbar-tools">
+            <LanguageSelect />
+            <NotificationBell />
           </div>
-        </div>
-        <div className="topbar-tools">
-          <NotificationBell />
-          <LanguageSelect />
-          <SignOut />
-        </div>
-      </header>
-      {me.org.synthetic || me.demoMode ? <DemoBanner /> : null}
-      <nav className="mainnav" aria-label={t('nav.main')}>
+        </header>
+
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
+      </div>
+
+      <nav className="ws-tabbar" aria-label={t('nav.main')}>
         <ul>
-          {WORKER_NAV.map(({ to, key, short, icon: Icon }) => (
-            <li key={to}>
-              <Link to={to}>
-                <Icon className="icon" aria-hidden="true" />
-                <span className="nav-full">{t(key)}</span>
-                <span className="nav-short" aria-hidden="true">
-                  {t(short)}
-                </span>
+          {WORKER_PRIMARY.map((d) => (
+            <li key={d.to}>
+              <Link to={d.to} aria-current={isActive(path, d) ? 'page' : undefined}>
+                <d.icon className="icon" aria-hidden="true" />
+                <span>{t(d.short)}</span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded={moreOpen}
+              aria-current={moreActive ? 'page' : undefined}
+              onClick={() => setMoreOpen(true)}
+            >
+              <Ellipsis className="icon" aria-hidden="true" />
+              <span>{t('navShort.more')}</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <Sheet open={moreOpen} onClose={() => setMoreOpen(false)} title={t('navShort.more')}>
+        <ul className="sheet-links">
+          {WORKER_SECONDARY.map((d) => (
+            <li key={d.to}>
+              <Link to={d.to} onClick={() => setMoreOpen(false)} aria-current={isActive(path, d) ? 'page' : undefined}>
+                <d.icon className="icon" aria-hidden="true" />
+                <span>{t(d.key)}</span>
+                <ChevronRight className="icon chevron" aria-hidden="true" />
               </Link>
             </li>
           ))}
         </ul>
-      </nav>
-      <main id="main" tabIndex={-1}>
-        {children}
-      </main>
+        <div className="sheet-account">
+          <p className="m-0">
+            <strong>{me.user.name}</strong>
+          </p>
+          {role ? <p className="muted small m-0">{role}</p> : null}
+          <p className="muted small">
+            {me.org.name}, {getIndustry(me.org.industry).label}
+          </p>
+          {demo ? <p className="demo-note">{t('demo.banner')}</p> : null}
+          <SignOut className="btn btn-secondary sheet-signout" compact={false} onDone={() => setMoreOpen(false)} />
+        </div>
+      </Sheet>
     </div>
   );
 }

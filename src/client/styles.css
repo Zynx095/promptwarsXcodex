@@ -29,24 +29,6 @@
   letter-spacing: -0.01em;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #3a0f34 0%, #20051c 100%);
-  border: 1px solid rgba(234, 170, 0, 0.45);
-  color: #eaaa00;
-  font-weight: 800;
-  font-size: 1.05rem;
-  flex: none;
-  box-shadow:
-    0 2px 8px rgba(58, 15, 52, 0.25),
-    inset 0 1px 1px rgba(255, 255, 255, 0.2);
-}
-
 .brand-text {
   min-width: 0;
 }
@@ -123,11 +105,6 @@ main {
   padding: var(--space-5) var(--space-4) var(--space-6);
 }
 
-/* Worker: desktop tab bar, mobile glass dock */
-.area-worker main {
-  max-width: 780px;
-}
-
 .mainnav {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: var(--glass-blur);
@@ -191,61 +168,6 @@ main {
   font-weight: 700;
   line-height: 18px;
   text-align: center;
-}
-
-@media (max-width: 767px) {
-  .area-worker .mainnav {
-    position: fixed;
-    inset: auto 0 0 0;
-    z-index: 30;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(58, 15, 52, 0.08);
-    border-bottom: 0;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -4px 20px rgba(58, 15, 52, 0.08);
-  }
-  .area-worker .mainnav ul {
-    padding: 0;
-    gap: 0;
-  }
-  .area-worker .mainnav li {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .area-worker .mainnav a {
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    height: var(--bottom-nav);
-    padding: 0 2px;
-    border-bottom: 0;
-    border-top: 2px solid transparent;
-    font-size: 0.68rem;
-    color: var(--c-muted);
-  }
-  .area-worker .mainnav a[aria-current='page'] {
-    border-top-color: var(--c-gold);
-    color: var(--c-heading);
-    font-weight: 700;
-  }
-  .area-worker .nav-full {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-  .area-worker .nav-short {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .area-worker main {
-    padding-bottom: calc(var(--bottom-nav) + var(--space-6));
-  }
 }
 
 /* Admin shell (Deep Aubergine glass console) */

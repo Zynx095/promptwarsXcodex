@@ -6,6 +6,7 @@ import './styles/tokens.css';
 import './styles/fonts.css';
 import './styles/base.css';
 import './styles/primitives.css';
+import './styles/shell.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';
