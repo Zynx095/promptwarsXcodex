@@ -1,10 +1,11 @@
 // Reusable presentational building blocks. Styling lives in styles.css.
-import { useId, useEffect, type ButtonHTMLAttributes, type ReactElement, type ReactNode, cloneElement } from 'react';
+import { useId, useRef, type ButtonHTMLAttributes, type ReactElement, type ReactNode, type Ref, cloneElement } from 'react';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { formatMoney } from '../../shared/money';
 import type { ApiError } from '../lib/api';
 import type { ReportStatus, Severity } from '../../shared/types';
+import { Sheet } from './Sheet';
 
 export function Page({ title, description, actions, children }: { title: string; description?: ReactNode; actions?: ReactNode; children: ReactNode }) {
   return (
@@ -35,10 +36,15 @@ export function Button({
   variant = 'primary',
   busy,
   children,
+  ref,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'link'; busy?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'danger' | 'link' | 'quiet';
+  busy?: boolean;
+  ref?: Ref<HTMLButtonElement>;
+}) {
   return (
-    <button type="button" className={`btn btn-${variant}`} disabled={busy || rest.disabled} aria-busy={busy || undefined} {...rest}>
+    <button ref={ref} type="button" className={`btn btn-${variant}`} disabled={busy || rest.disabled} aria-busy={busy || undefined} {...rest}>
       {children}
     </button>
   );
@@ -112,42 +118,20 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onCancel();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onCancel]);
-
-  if (!isOpen) return null;
-
+  // Focus starts on the safer choice so Enter does not confirm by accident.
+  const cancelRef = useRef<HTMLButtonElement>(null);
   return (
-    <div
-      className="dialog-backdrop"
-      role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !busy) onCancel();
-      }}
-    >
-      <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-        <h3 id="dialog-title" className="dialog-title">
-          {title}
-        </h3>
-        <div className="dialog-message">{message}</div>
-        <div className="dialog-actions">
-          <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
-          </Button>
-          <Button variant={variant} onClick={onConfirm} busy={busy}>
-            {confirmLabel}
-          </Button>
-        </div>
+    <Sheet open={isOpen} onClose={onCancel} title={title} role="alertdialog" initialFocus={cancelRef} dismissible={!busy}>
+      <div className="dialog-message">{message}</div>
+      <div className="dialog-actions">
+        <Button ref={cancelRef} variant="secondary" onClick={onCancel} disabled={busy}>
+          {cancelLabel}
+        </Button>
+        <Button variant={variant} onClick={onConfirm} busy={busy}>
+          {confirmLabel}
+        </Button>
       </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -200,8 +184,15 @@ export function Notice({ kind = 'info', children }: { kind?: 'info' | 'success' 
   );
 }
 
-export function Empty({ children }: { children: ReactNode }) {
-  return <p className="state state-empty">{children}</p>;
+/** An empty state says what is missing and, where possible, offers the next step. */
+export function Empty({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  if (!action) return <p className="state state-empty">{children}</p>;
+  return (
+    <div className="state state-empty">
+      <p className="m-0">{children}</p>
+      <div className="mt-3">{action}</div>
+    </div>
+  );
 }
 
 /** Renders loading / error / content for a useApi result. */

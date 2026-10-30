@@ -334,5 +334,6 @@
   "proof.invalid": "अमान्य या छेड़छाड़ की गई रसीद",
   "proof.versionChain": "रसीद संस्करण इतिहास और सुधार ऑडिट",
   "proof.downloadBundle": "सत्यापन बंडल डाउनलोड करें",
-  "proof.offlineInstructions": "OpenSSL या Node.js से ऑफलाइन सत्यापन कैसे करें"
+  "proof.offlineInstructions": "OpenSSL या Node.js से ऑफलाइन सत्यापन कैसे करें",
+  "common.close": "बंद करें"
 }

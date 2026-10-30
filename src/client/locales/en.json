@@ -334,5 +334,6 @@
   "proof.invalid": "Tampered or Invalid Receipt",
   "proof.versionChain": "Receipt Version History & Correction Audit",
   "proof.downloadBundle": "Download Verification Bundle",
-  "proof.offlineInstructions": "How to verify offline using OpenSSL or Node.js"
+  "proof.offlineInstructions": "How to verify offline using OpenSSL or Node.js",
+  "common.close": "Close"
 }

@@ -333,5 +333,6 @@
   "proof.invalid": "ತಿರುಚಿದ ಅಥವಾ ಅಮಾನ್ಯ ರಶೀದಿ",
   "proof.versionChain": "ರಶೀದಿ ಆವೃತ್ತಿಯ ಇತಿಹಾಸ ಮತ್ತು ತಿದ್ದುಪಡಿ ಲೆಕ್ಕಪರಿಶೋಧನೆ",
   "proof.downloadBundle": "ಪರಿಶೀಲನಾ ಬಂಡಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
-  "proof.offlineInstructions": "OpenSSL ಅಥವಾ Node.js ಬಳಸಿ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಹೇಗೆ ಪರಿಶೀಲಿಸುವುದು"
+  "proof.offlineInstructions": "OpenSSL ಅಥವಾ Node.js ಬಳಸಿ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಹೇಗೆ ಪರಿಶೀಲಿಸುವುದು",
+  "common.close": "ಮುಚ್ಚಿ"
 }
