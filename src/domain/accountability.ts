@@ -158,7 +158,7 @@ export function calculateAccountabilityMetrics(
     reopenedCount,
     meanTimeToAcknowledgeMinutes,
     meanTimeToResolveMinutes,
-    meanTimeToVerifyMinutes,
+    ...(meanTimeToVerifyMinutes !== null ? { meanTimeToVerifyMinutes } : {}),
     verificationRatePercent,
     reopenRatePercent,
     overdueFollowUps,

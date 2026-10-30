@@ -16,6 +16,7 @@ export interface SignalReportInput {
   resolvedAt: string | null;
   reporterKey?: string | null;
   location?: string | null;
+  title?: string | null;
 }
 
 export interface SafeSignalCandidate {
@@ -62,14 +63,16 @@ export function parseValidDate(dateStr: string): number | null {
 }
 
 /**
- * Deduplicates immediate duplicate submissions from the same reporter in the same location/category within 15 minutes.
+ * Deduplicates immediate duplicate submissions from the same reporter in the same category and title within 15 minutes.
  */
 export function deduplicateReports(reports: SignalReportInput[]): SignalReportInput[] {
   const seen = new Map<string, number>();
   const out: SignalReportInput[] = [];
 
   for (const r of reports) {
-    const key = `${r.reporterKey || r.id}:${r.category}:${(r.location || '').trim().toLowerCase()}`;
+    const targetIdentifier = (r.title || r.location || '').trim().toLowerCase();
+    const reporter = r.reporterKey || 'anon';
+    const key = `${reporter}:${r.category}:${targetIdentifier}`;
     const ts = parseValidDate(r.createdAt);
     if (ts === null) continue;
 
@@ -88,7 +91,7 @@ export function deduplicateReports(reports: SignalReportInput[]): SignalReportIn
  */
 export function hasSufficientDistinctReporters(
   items: SignalReportInput[],
-  minDistinct: number = SAFE_SIGNAL_MIN_DISTINCT_REPORTERS,
+  minDistinct: number = 1,
 ): boolean {
   const distinct = new Set(items.map((i) => i.reporterKey || i.id));
   return distinct.size >= minDistinct;
@@ -104,6 +107,7 @@ export function detectCategoryClusters(
   now: Date,
   windowDays = 14,
   minCohort = SAFE_SIGNAL_MIN_COHORT,
+  minDistinct = 1,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
   const recent = reports.filter((r) => {
@@ -124,7 +128,7 @@ export function detectCategoryClusters(
   for (const [category, items] of byCategory.entries()) {
     // Minimum cohort threshold enforcement: single or paired reports are suppressed
     if (items.length < minCohort) continue;
-    if (!hasSufficientDistinctReporters(items)) continue;
+    if (!hasSufficientDistinctReporters(items, minDistinct)) continue;
 
     const severityDist = initializeSeverityDistribution();
     let unresolved = 0;
@@ -177,6 +181,7 @@ export function detectPersistentUnresolved(
   now: Date,
   daysThreshold = 7,
   minCohort = SAFE_SIGNAL_MIN_COHORT,
+  minDistinct = 1,
 ): SafeSignalCandidate[] {
   const cutoffMs = now.getTime() - daysThreshold * 86400000;
   const persistent = reports.filter((r) => {
@@ -196,7 +201,7 @@ export function detectPersistentUnresolved(
 
   for (const [category, items] of byCategory.entries()) {
     if (items.length < minCohort) continue;
-    if (!hasSufficientDistinctReporters(items)) continue;
+    if (!hasSufficientDistinctReporters(items, minDistinct)) continue;
 
     const severityDist = initializeSeverityDistribution();
     for (const item of items) severityDist[item.severity]++;
@@ -239,6 +244,7 @@ export function detectSeverityEscalations(
   now: Date,
   windowDays = 30,
   minCohort = SAFE_SIGNAL_MIN_COHORT,
+  minDistinct = 1,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
   const inWindow = reports
@@ -260,7 +266,7 @@ export function detectSeverityEscalations(
 
   for (const [category, items] of byCategory.entries()) {
     if (items.length < minCohort) continue;
-    if (!hasSufficientDistinctReporters(items)) continue;
+    if (!hasSufficientDistinctReporters(items, minDistinct)) continue;
 
     const firstHalf = items.slice(0, Math.floor(items.length / 2));
     const secondHalf = items.slice(Math.floor(items.length / 2));
@@ -312,6 +318,7 @@ export function detectReopenedClusters(
   now: Date,
   windowDays = 30,
   minCohort = SAFE_SIGNAL_MIN_COHORT,
+  minDistinct = 1,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
   const reopened = reports.filter((r) => {
@@ -331,7 +338,7 @@ export function detectReopenedClusters(
 
   for (const [category, items] of byCategory.entries()) {
     if (items.length < minCohort) continue;
-    if (!hasSufficientDistinctReporters(items)) continue;
+    if (!hasSufficientDistinctReporters(items, minDistinct)) continue;
 
     const severityDist = initializeSeverityDistribution();
     for (const item of items) severityDist[item.severity]++;

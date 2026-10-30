@@ -10,6 +10,7 @@ interface SafeReportRow {
   severity: Severity;
   status: string;
   location: string | null;
+  title: string;
   createdAt: string;
   resolvedAt: string | null;
   reporterKey: string | null;
@@ -23,7 +24,7 @@ export function getSafeSignals(ctx: AppContext, org: OrgRow, opts: { category?: 
   // Query only privacy-safe aggregation columns; reporter_id and reporter_ref are converted
   // into an opaque internal pseudonym (reporterKey) and NEVER returned to the client.
   const rows = ctx.db.all<SafeReportRow>(
-    `SELECT id, category, severity, status, location,
+    `SELECT id, category, severity, status, location, title,
             created_at AS createdAt, resolved_at AS resolvedAt,
             COALESCE(reporter_ref, reporter_id) AS reporterKey
      FROM safety_reports
@@ -39,6 +40,7 @@ export function getSafeSignals(ctx: AppContext, org: OrgRow, opts: { category?: 
     severity: r.severity,
     status: r.status,
     location: r.location,
+    title: r.title,
     createdAt: r.createdAt,
     resolvedAt: r.resolvedAt,
     reporterKey: r.reporterKey,
