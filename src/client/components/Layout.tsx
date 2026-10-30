@@ -9,6 +9,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  MapPin,
   MessageSquare,
   ShieldAlert,
   SlidersHorizontal,
@@ -20,6 +21,7 @@ import { Link, useRouter } from '../lib/router';
 import { LANGUAGES, useI18n, type Lang, type MessageKey } from '../lib/i18n';
 import { useSession } from '../lib/session';
 import { getIndustry } from '../../shared/industries';
+import { NotificationBell } from './NotificationBell';
 
 const WORKER_NAV: { to: string; key: MessageKey; short: MessageKey; icon: LucideIcon }[] = [
   { to: '/worker', key: 'nav.home', short: 'navShort.home', icon: Home },
@@ -33,6 +35,7 @@ const WORKER_NAV: { to: string; key: MessageKey; short: MessageKey; icon: Lucide
 const ADMIN_NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/workers', label: 'Workforce', icon: Users },
+  { to: '/admin/sites', label: 'Sites & Locations', icon: MapPin },
   { to: '/admin/shifts', label: 'Shifts', icon: CalendarCheck },
   { to: '/admin/reports', label: 'Safety reports', icon: ShieldAlert },
   { to: '/admin/alerts', label: 'Hours alerts', icon: BarChart3 },
@@ -115,6 +118,7 @@ function WorkerShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="topbar-tools">
+          <NotificationBell />
           <LanguageSelect />
           <SignOut />
         </div>
@@ -200,6 +204,7 @@ function AdminShell({ children }: { children: ReactNode }) {
               <strong>{me.user.name}</strong>
               <span>{me.user.jobTitle}</span>
             </div>
+            <NotificationBell />
             <LanguageSelect />
             <SignOut />
           </div>
