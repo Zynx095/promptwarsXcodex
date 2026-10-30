@@ -437,6 +437,67 @@ export interface WorkReceiptDTO {
   createdAt: string;
   createdBy: string | null;
   verified?: boolean;
+  anchored?: boolean;
+  checkpointId?: string | null;
+}
+
+// ---- Independent Proof Anchoring & Checkpoints ----
+
+export interface ProofCheckpointDTO {
+  id: string;
+  orgId: string;
+  sequence: number;
+  merkleRoot: string;
+  receiptCount: number;
+  previousCheckpointRoot: string | null;
+  keyId: string;
+  signature: string;
+  createdAt: string;
+}
+
+export interface MerkleAuditStepDTO {
+  position: 'left' | 'right';
+  hash: string;
+}
+
+export interface ReceiptInclusionProofDTO {
+  receiptId: string;
+  canonicalDigest: string;
+  leafHash: string;
+  leafIndex: number;
+  checkpointId: string;
+  checkpointSequence: number;
+  merkleRoot: string;
+  auditPath: MerkleAuditStepDTO[];
+}
+
+export interface IndependentVerificationBundle {
+  version: '1.0';
+  receipt: CanonicalReceiptData;
+  canonicalDigest: string;
+  leafHash: string;
+  leafIndex: number;
+  auditPath: MerkleAuditStepDTO[];
+  checkpoint: ProofCheckpointDTO;
+}
+
+export type VerificationTrustStatus =
+  | 'valid_and_anchored'
+  | 'valid_unanchored'
+  | 'invalid_digest'
+  | 'invalid_proof'
+  | 'invalid_checkpoint_signature'
+  | 'missing_checkpoint'
+  | 'unknown_key'
+  | 'broken_version_chain';
+
+export interface ReceiptVerificationResponse {
+  receipt: WorkReceiptDTO;
+  verified: boolean;
+  trustStatus: VerificationTrustStatus;
+  checkpoint?: ProofCheckpointDTO | null;
+  proof?: ReceiptInclusionProofDTO | null;
+  independentBundle?: IndependentVerificationBundle | null;
 }
 
 // ---- Safe Signal (Recurring Hazard Detection) ----

@@ -4,9 +4,26 @@ import { safeEqual } from '../server/auth/crypto';
 import { payForMinutes } from '../shared/money';
 import { minutesBetween } from '../shared/time';
 import { DomainError } from './errors';
-import type { CanonicalReceiptData, ReceiptCalculationRule, ReceiptCorrectionDiff, ReceiptEarningsBreakdown } from '../shared/types';
+import { computeReceiptLeafHash, verifyMerkleProof } from './merkle';
+import type {
+  CanonicalReceiptData,
+  IndependentVerificationBundle,
+  ProofCheckpointDTO,
+  ReceiptCalculationRule,
+  ReceiptCorrectionDiff,
+  ReceiptEarningsBreakdown,
+  VerificationTrustStatus,
+} from '../shared/types';
 
-export type { CanonicalReceiptData, ReceiptCalculationRule, ReceiptCorrectionDiff, ReceiptEarningsBreakdown };
+export type {
+  CanonicalReceiptData,
+  IndependentVerificationBundle,
+  ProofCheckpointDTO,
+  ReceiptCalculationRule,
+  ReceiptCorrectionDiff,
+  ReceiptEarningsBreakdown,
+  VerificationTrustStatus,
+};
 
 /**
  * Deterministically serializes any JavaScript object or primitive into canonical JSON.
@@ -154,4 +171,107 @@ export function buildCorrectionDiff(
     reason: meta.reason,
     changes,
   };
+}
+
+export interface CheckpointHeader {
+  id: string;
+  orgId: string;
+  sequence: number;
+  merkleRoot: string;
+  receiptCount: number;
+  previousCheckpointRoot: string | null;
+  keyId: string;
+  createdAt: string;
+}
+
+/**
+ * Computes a cryptographic HMAC-SHA256 signature for a checkpoint header.
+ */
+export function computeCheckpointSignature(secret: string, header: CheckpointHeader): string {
+  if (!secret || typeof secret !== 'string' || secret.trim().length === 0) {
+    throw new DomainError('INVALID_SIGNING_SECRET', 'A valid non-empty signing secret is required to sign checkpoints.');
+  }
+  const canonical = canonicalizeJson(header);
+  return createHmac('sha256', secret).update(canonical).digest('hex');
+}
+
+/**
+ * Verifies that a checkpoint's signature matches its header attributes.
+ */
+export function verifyCheckpointSignature(secret: string, checkpoint: ProofCheckpointDTO): boolean {
+  if (!secret || typeof secret !== 'string' || secret.trim().length === 0) return false;
+  if (!checkpoint.signature || !/^[0-9a-fA-F]{64}$/.test(checkpoint.signature)) return false;
+  const header: CheckpointHeader = {
+    id: checkpoint.id,
+    orgId: checkpoint.orgId,
+    sequence: checkpoint.sequence,
+    merkleRoot: checkpoint.merkleRoot,
+    receiptCount: checkpoint.receiptCount,
+    previousCheckpointRoot: checkpoint.previousCheckpointRoot,
+    keyId: checkpoint.keyId,
+    createdAt: checkpoint.createdAt,
+  };
+  try {
+    const computed = computeCheckpointSignature(secret, header);
+    return safeEqual(computed.toLowerCase(), checkpoint.signature.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Independently verifies a complete verification bundle containing receipt, Merkle proof, and checkpoint.
+ * Does NOT require database access or receipt signing secrets.
+ */
+export function verifyIndependentBundle(
+  bundle: IndependentVerificationBundle,
+  checkpointSecret?: string,
+): { valid: boolean; trustStatus: VerificationTrustStatus; reason?: string } {
+  if (!bundle || bundle.version !== '1.0' || !bundle.receipt || !bundle.checkpoint) {
+    return { valid: false, trustStatus: 'invalid_digest', reason: 'Malformed verification bundle structure' };
+  }
+
+  // 1. Verify canonical digest against leaf data
+  const leafHash = computeReceiptLeafHash(bundle.canonicalDigest);
+  if (!safeEqual(leafHash.toLowerCase(), bundle.leafHash.toLowerCase())) {
+    return { valid: false, trustStatus: 'invalid_digest', reason: 'Leaf hash does not match canonical digest' };
+  }
+
+  // 2. Verify Merkle inclusion proof against checkpoint root
+  const proofValid = verifyMerkleProof(bundle.leafHash, bundle.auditPath, bundle.checkpoint.merkleRoot);
+  if (!proofValid) {
+    return { valid: false, trustStatus: 'invalid_proof', reason: 'Merkle inclusion proof does not evaluate to checkpoint root' };
+  }
+
+  // 3. Verify checkpoint signature if secret is provided
+  if (checkpointSecret) {
+    const sigValid = verifyCheckpointSignature(checkpointSecret, bundle.checkpoint);
+    if (!sigValid) {
+      return { valid: false, trustStatus: 'invalid_checkpoint_signature', reason: 'Checkpoint signature verification failed' };
+    }
+  }
+
+  return { valid: true, trustStatus: 'valid_and_anchored' };
+}
+
+/**
+ * Verifies that a sequence of receipt versions forms an unbroken historical chain.
+ */
+export function validateReceiptVersionChain(history: { id: string; version: number; previousVersionId: string | null }[]): {
+  valid: boolean;
+  brokenAtVersion?: number;
+} {
+  if (history.length === 0) return { valid: true };
+  const sorted = [...history].sort((a, b) => a.version - b.version);
+  if (sorted[0].version !== 1 || sorted[0].previousVersionId !== null) {
+    return { valid: false, brokenAtVersion: sorted[0].version };
+  }
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    const curr = sorted[i];
+    if (curr.version !== prev.version + 1 || curr.previousVersionId !== prev.id) {
+      return { valid: false, brokenAtVersion: curr.version };
+    }
+  }
+  return { valid: true };
 }
