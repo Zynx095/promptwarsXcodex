@@ -205,6 +205,7 @@ describe('web client', () => {
 
     for (const [link, heading] of [
       ['Workforce', 'Mohammed Irfan'],
+      ['Sites & Locations', 'Sites & Locations'],
       ['Hours alerts', 'Long working day'],
       ['Payslips', 'Issued payslips'],
       ['Pay & hours rules', 'Overtime multiplier'],
@@ -214,6 +215,7 @@ describe('web client', () => {
       await nav(link);
       await waitForText(heading);
     }
+
 
     await nav('Shifts');
     await type(fieldByLabel('Status'), 'completed');
