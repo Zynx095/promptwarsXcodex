@@ -35,9 +35,9 @@ Organizations can configure their safety governance policies via `org.settings.s
 
 When `requireIndependentVerification` is enabled:
 
-1. **Self-Verification Disallowed:** The administrator who recorded the initial repair (`resolved`) cannot transition the ticket to `outcome_verified`. Any attempt without specifying an independent party throws a `SELF_VERIFICATION_DISALLOWED` domain error.
-2. **Third-Party Auditor Attestation:** Outcome verification requires an explicit, accredited verifier name (`verifiedBy`, e.g., "National Safety Council Inspector", "Er. Rajesh Sharma (Licensed Electrical Inspector)").
-3. **Transparent Limitation Disclosure:** In organizations without the strict policy enabled, the platform transparently appends `(Self-verification)` to the public and worker-facing record rather than implying independent oversight.
+1. **Self-Verification Disallowed:** The administrator account that recorded the repair (`resolved`) cannot transition the ticket to `outcome_verified`, even if it types a third-party name into `verifiedBy`. A different administrator account must perform the verification; otherwise a `SELF_VERIFICATION_DISALLOWED` domain error is raised. (Before this fix, supplying any `verifiedBy` text bypassed the policy.)
+2. **Third-Party Auditor Attestation:** `verifiedBy` records the name of the person or body who inspected the outcome. It is an attestation entered by an administrator, not an authenticated identity.
+3. **Transparent Limitation Disclosure:** In organizations without the strict policy enabled, the platform appends `(Self-verification)` when the resolver verifies without naming anyone, and `(recorded by resolving administrator <name>)` when the resolver enters a third-party name, rather than implying independent oversight.
 
 ---
 

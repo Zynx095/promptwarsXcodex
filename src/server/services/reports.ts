@@ -270,20 +270,24 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
         `SELECT actor_id FROM report_events WHERE report_id = @id AND to_status = 'resolved' ORDER BY created_at DESC LIMIT 1`,
         { id },
       );
-      const isSelfVerification = Boolean(lastResolver && lastResolver.actor_id === actor.id && !input.verifiedBy);
+      // The account that resolved the report is the same one verifying it. A free-text "verifiedBy"
+      // name typed by that account is an attestation, not independent verification.
+      const isResolver = Boolean(lastResolver && lastResolver.actor_id === actor.id);
+      const attestedName = input.verifiedBy?.trim() || null;
 
-      if (isSelfVerification && requireIndependent) {
+      if (isResolver && requireIndependent) {
         throw new DomainError(
           'SELF_VERIFICATION_DISALLOWED',
           'Organization policy requires an independent auditor or third party to verify outcome resolution; self-verification by the resolving administrator is disallowed.',
         );
       }
 
-      verifiedBy = input.verifiedBy?.trim() || null;
-      if (!verifiedBy) {
-        const actorUser = findSessionUser(ctx.db, actor.id);
-        const actorName = actorUser?.name || 'Admin';
-        verifiedBy = isSelfVerification ? `${actorName} (Self-verification)` : actorName || 'Safety Officer';
+      const actorUser = findSessionUser(ctx.db, actor.id);
+      const actorName = actorUser?.name || 'Admin';
+      if (attestedName) {
+        verifiedBy = isResolver ? `${attestedName} (recorded by resolving administrator ${actorName})` : attestedName;
+      } else {
+        verifiedBy = isResolver ? `${actorName} (Self-verification)` : actorName;
       }
       verificationNote = input.verificationNote?.trim() || note.trim();
     }

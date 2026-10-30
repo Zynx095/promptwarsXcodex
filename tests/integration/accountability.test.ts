@@ -74,7 +74,7 @@ describe('FairShift Accountability Loop Integration — Lifecycle & Metrics', ()
     expect(verifyRes.status).toBe(200);
     expect(verifyRes.body.status).toBe('outcome_verified');
     expect(verifyRes.body.verifiedAt).toBeDefined();
-    expect(verifyRes.body.verifiedBy).toBe('Suresh Rao (Third-party Safety Auditor)');
+    expect(verifyRes.body.verifiedBy).toMatch(/^Suresh Rao \(Third-party Safety Auditor\) \(recorded by resolving administrator .+\)$/);
     expect(verifyRes.body.verificationNote).toBe('Anchor confirmed fully rigid and compliant with safety standard IS 4014.');
 
     // 7. Worker opens report: complete transparency of action taken and verification
@@ -84,7 +84,7 @@ describe('FairShift Accountability Loop Integration — Lifecycle & Metrics', ()
     const workerReport = workerReportRes.body as SafetyReportDTO;
     expect(workerReport.status).toBe('outcome_verified');
     expect(workerReport.actionTaken).toBe('Replaced flexible tie wire with 48mm steel scaffold column clamps.');
-    expect(workerReport.verifiedBy).toBe('Suresh Rao (Third-party Safety Auditor)');
+    expect(workerReport.verifiedBy).toContain('Suresh Rao (Third-party Safety Auditor)');
     expect(workerReport.history!.length).toBeGreaterThanOrEqual(5);
 
     // 8. Fetch accountability metrics

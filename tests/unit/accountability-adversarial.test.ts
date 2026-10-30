@@ -174,7 +174,9 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
       });
 
       const updated = getReport(ctx, adminActor, rep.id)!;
-      expect(updated.verifiedBy).toBe('Er. Rajesh Sharma (Licensed Electrical Inspector)');
+      // The named inspector is recorded, together with the fact that the resolving admin entered it.
+      expect(updated.verifiedBy).toContain('Er. Rajesh Sharma (Licensed Electrical Inspector)');
+      expect(updated.verifiedBy).toContain('recorded by resolving administrator');
       expect(updated.verificationNote).toBe('Inspection certificate #EL-2026-99 issued.');
     });
 
@@ -217,8 +219,24 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
         }),
       ).toThrowError(/independent auditor/i);
 
-      // Specifying an authorized independent auditor succeeds
-      transitionReport(ctx, adminActor, rep.id, {
+      // Typing a third-party name from the resolver's own account does not satisfy the policy
+      expect(() =>
+        transitionReport(ctx, adminActor, rep.id, {
+          to: 'outcome_verified',
+          note: 'Third-party auditor verified tripping within 100ms.',
+          verifiedBy: 'National Safety Council Inspector',
+        }),
+      ).toThrowError(/independent auditor/i);
+      expect(getReport(ctx, adminActor, rep.id)!.status).toBe('resolved');
+
+      // A different administrator account can verify the outcome
+      ctx.db.run(
+        `INSERT INTO users (id, org_id, role, name, phone, pin_hash, active, is_synthetic, created_at)
+         VALUES ('usr_test_auditor', @orgId, 'admin', 'Site Safety Auditor', '9000000199', 'scrypt$x$y', 1, 1, '2026-10-01T00:00:00.000Z')`,
+        { orgId: org.id },
+      );
+      const auditorActor = { id: 'usr_test_auditor', orgId: org.id, role: 'admin' as const };
+      transitionReport(ctx, auditorActor, rep.id, {
         to: 'outcome_verified',
         note: 'Third-party auditor verified tripping within 100ms.',
         verifiedBy: 'National Safety Council Inspector',
