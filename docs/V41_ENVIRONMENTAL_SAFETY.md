@@ -84,7 +84,7 @@ To ensure ease of use without manual weather API dependencies, FairShift provide
 
 ## 5. Direct Worker Reporting & Privacy Protection
 
-- **One-Tap Hazard Link**: When hazardous conditions are identified ($HI \ge 39^\circ\text{C}$), workers can click "Report Heat Hazard", which pre-populates category `hazard.heat` in the confidential safety reporting module.
+- **Hazard Link**: The widget always shows a "Report Heat Hazard" link to the safety report form. It does not pre-select a category; workers choose "Heat stress / no shade or water" themselves.
 - **Strict Privacy**: Site-level weather conditions and heat warnings are fully decoupled from individual worker identities. Zero personal or confidential reporting data is leaked.
 
 ---
