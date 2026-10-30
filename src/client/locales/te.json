@@ -353,5 +353,7 @@
   "pay.earningsGroup": "సంపాదన",
   "pay.weekCalculation": "ఈ వారం జీతం ఎలా లెక్కించారు",
   "pay.payslipTitle": "పేస్లిప్",
-  "pay.overtimeRateNote": "గంట రేటుకు {multiplier}"
+  "pay.overtimeRateNote": "గంట రేటుకు {multiplier}",
+  "att.changeDates": "తేదీలు మార్చండి",
+  "att.summary": "షిఫ్ట్‌లు: {count}. నమోదైన సమయం: {hours}."
 }

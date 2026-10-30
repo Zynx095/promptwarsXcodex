@@ -353,5 +353,7 @@
   "pay.earningsGroup": "வருமானம்",
   "pay.weekCalculation": "இந்த வாரச் சம்பளம் எப்படிக் கணக்கிடப்பட்டது",
   "pay.payslipTitle": "சம்பளச் சீட்டு",
-  "pay.overtimeRateNote": "மணிநேரக் கூலியின் {multiplier}"
+  "pay.overtimeRateNote": "மணிநேரக் கூலியின் {multiplier}",
+  "att.changeDates": "தேதிகளை மாற்று",
+  "att.summary": "பணிநேரங்கள்: {count}. பதிவான நேரம்: {hours}."
 }

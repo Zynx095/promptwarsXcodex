@@ -353,5 +353,7 @@
   "pay.earningsGroup": "আয়",
   "pay.weekCalculation": "এই সপ্তাহের বেতন কীভাবে হিসাব হলো",
   "pay.payslipTitle": "পেস্লিপ",
-  "pay.overtimeRateNote": "ঘণ্টার হারের {multiplier}"
+  "pay.overtimeRateNote": "ঘণ্টার হারের {multiplier}",
+  "att.changeDates": "তারিখ বদলান",
+  "att.summary": "শিফট: {count}। রেকর্ড করা সময়: {hours}।"
 }

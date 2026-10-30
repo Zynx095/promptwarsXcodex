@@ -352,5 +352,7 @@
   "pay.earningsGroup": "ಗಳಿಕೆ",
   "pay.weekCalculation": "ಈ ವಾರದ ವೇತನವನ್ನು ಹೇಗೆ ಲೆಕ್ಕ ಹಾಕಲಾಗಿದೆ",
   "pay.payslipTitle": "ಪೇಸ್ಲಿಪ್",
-  "pay.overtimeRateNote": "ಗಂಟೆಯ ದರದ {multiplier}"
+  "pay.overtimeRateNote": "ಗಂಟೆಯ ದರದ {multiplier}",
+  "att.changeDates": "ದಿನಾಂಕಗಳನ್ನು ಬದಲಿಸಿ",
+  "att.summary": "ಶಿಫ್ಟ್‌ಗಳು: {count}. ದಾಖಲಾದ ಸಮಯ: {hours}."
 }

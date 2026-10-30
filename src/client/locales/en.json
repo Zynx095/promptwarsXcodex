@@ -353,5 +353,7 @@
   "pay.earningsGroup": "Earnings",
   "pay.weekCalculation": "How this week's pay is calculated",
   "pay.payslipTitle": "Payslip",
-  "pay.overtimeRateNote": "At {multiplier} the hourly rate"
+  "pay.overtimeRateNote": "At {multiplier} the hourly rate",
+  "att.changeDates": "Change dates",
+  "att.summary": "Shifts: {count}. Time recorded: {hours}."
 }

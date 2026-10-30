@@ -353,5 +353,7 @@
   "pay.earningsGroup": "कमाई",
   "pay.weekCalculation": "इस सप्ताह का वेतन कैसे गिना गया",
   "pay.payslipTitle": "पेस्लिप",
-  "pay.overtimeRateNote": "घंटे की दर का {multiplier}"
+  "pay.overtimeRateNote": "घंटे की दर का {multiplier}",
+  "att.changeDates": "तारीखें बदलें",
+  "att.summary": "शिफ्ट: {count}। दर्ज समय: {hours}।"
 }

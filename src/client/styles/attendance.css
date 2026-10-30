@@ -1,0 +1,138 @@
+/* Attendance history */
+
+.range-picker {
+  margin-bottom: var(--sp-4);
+}
+.range-picker > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-chip);
+  background: var(--fs-paper);
+  color: var(--fs-aubergine);
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+.range-picker > summary::-webkit-details-marker {
+  display: none;
+}
+.range-picker[open] > summary {
+  margin-bottom: var(--sp-3);
+  background: var(--fs-aubergine-tint);
+  border-color: var(--fs-aubergine);
+}
+.range-picker form {
+  padding: var(--sp-4) var(--sp-4) 0;
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+.att-summary {
+  margin: 0 0 var(--sp-3);
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+
+.shift-table td {
+  vertical-align: middle;
+}
+.st-date {
+  white-space: nowrap;
+}
+.st-weekday {
+  display: block;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.st-day {
+  display: block;
+  font-weight: 650;
+  color: var(--fs-ink);
+}
+.st-span {
+  display: block;
+  font-size: var(--fs-text-md);
+  color: var(--fs-ink);
+}
+.st-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 4px;
+}
+.st-tags:empty {
+  display: none;
+}
+.st-site {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-good);
+  font-weight: 600;
+}
+.st-hours {
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+  color: var(--fs-aubergine);
+  white-space: nowrap;
+}
+.st-receipt {
+  text-align: right;
+}
+.shift-table tr.is-open .st-hours {
+  color: var(--fs-ink-3);
+}
+
+/* Phones: each shift is a two-line row; the date block spans both lines. */
+@media (max-width: 599px) {
+  .shift-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .shift-table tbody tr {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--fs-line);
+  }
+  .shift-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .shift-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .shift-table .st-date {
+    grid-row: 1 / span 2;
+    align-self: start;
+    padding-top: 2px;
+  }
+  .shift-table .st-time {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .shift-table .st-hours {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: right;
+  }
+  .shift-table .st-receipt {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .shift-table .st-receipt .btn {
+    min-height: 40px;
+    margin-right: -10px;
+  }
+}
