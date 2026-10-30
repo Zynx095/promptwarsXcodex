@@ -356,6 +356,14 @@ export function adminRoutes(ctx: AppContext): Router {
       'Issued At',
     ];
 
+    const escapeCsvCell = (val: string | number | null | undefined): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val);
+      // CSV Formula Injection defense (OWASP CWE-1236): prefix cells starting with =, +, -, @, \t, \r with single quote (')
+      const safe = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
+
     const rows = slips.map((s) => {
       let regHours = 0;
       let otHours = 0;
@@ -377,7 +385,7 @@ export function adminRoutes(ctx: AppContext): Router {
       return [
         s.id,
         s.worker_id,
-        `"${s.worker_name.replace(/"/g, '""')}"`,
+        escapeCsvCell(s.worker_name),
         s.phone,
         s.period_start,
         s.period_end,
