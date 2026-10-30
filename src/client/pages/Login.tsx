@@ -6,7 +6,8 @@ import { useApi } from '../lib/useApi';
 import { getIndustry } from '../../shared/industries';
 import type { AuthConfigResponse, DemoAccount } from '../../shared/types';
 import { Button, Card, ErrorBox, Field, Notice } from '../components/ui';
-import { BrandMark, DemoBanner, LanguageSelect } from '../components/Layout';
+import { BrandMark, DemoBanner } from '../components/Layout';
+import { LanguagePicker } from '../components/LanguagePicker';
 import { MobileDemoQrModal } from '../components/MobileDemoQrModal';
 import { Clock, KeyRound, Languages, MessageSquare, ShieldAlert, Smartphone, Users } from 'lucide-react';
 
@@ -182,7 +183,7 @@ export function LoginPage() {
                 <Smartphone className="icon-sm" aria-hidden="true" />
                 <span>Mobile Demo</span>
               </button>
-              <LanguageSelect />
+              <LanguagePicker />
             </div>
           </div>
           <h1 id="login-heading">{t('login.heading')}</h1>

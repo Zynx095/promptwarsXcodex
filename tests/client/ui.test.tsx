@@ -190,9 +190,12 @@ describe('web client', () => {
     await waitForText('Entry added as self-reported');
     await waitForText('Shuttering work');
 
-    const lang = container.querySelector<HTMLSelectElement>('select[aria-label="Language"]')!;
-    await type(lang, 'kn');
+    await click(container.querySelector<HTMLButtonElement>('button[data-lang-picker]')!);
+    await waitFor(() => container.querySelector('input[name="language"][value="kn"]') !== null, 'language sheet');
+    await click(container.querySelector<HTMLInputElement>('input[name="language"][value="kn"]')!);
     await waitForText('ಹಾಜರಾತಿ');
+    expect(window.location.pathname).toBe('/worker/skills');
+    expect(container.querySelector('input[name="language"]')).toBeNull();
     expect(document.documentElement.lang).toBe('kn');
 
     await submit('ಸೈನ್ ಔಟ್');

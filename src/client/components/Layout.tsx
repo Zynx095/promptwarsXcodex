@@ -21,11 +21,12 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link, useRouter } from '../lib/router';
-import { LANGUAGES, useI18n, type Lang, type MessageKey } from '../lib/i18n';
+import { useI18n, type MessageKey } from '../lib/i18n';
 import { useSession } from '../lib/session';
 import { getIndustry } from '../../shared/industries';
 import { NotificationBell } from './NotificationBell';
 import { Sheet } from './Sheet';
+import { LanguagePicker } from './LanguagePicker';
 
 interface WorkerDestination {
   to: string;
@@ -63,22 +64,6 @@ const ADMIN_NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
   { to: '/admin/audit', label: 'Audit log', icon: ClipboardList },
 ];
-
-export function LanguageSelect() {
-  const { lang, setLang, t } = useI18n();
-  return (
-    <label className="lang-select">
-      <span className="visually-hidden">{t('common.language')}</span>
-      <select value={lang} onChange={(e) => setLang(e.target.value as Lang)} aria-label={t('common.language')}>
-        {LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code}>
-            {l.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
 
 export function DemoBanner() {
   const { t } = useI18n();
@@ -188,7 +173,7 @@ function WorkerShell({ children }: { children: ReactNode }) {
             </span>
           ) : null}
           <div className="ws-topbar-tools">
-            <LanguageSelect />
+            <LanguagePicker />
             <NotificationBell />
           </div>
         </header>
@@ -310,7 +295,7 @@ function AdminShell({ children }: { children: ReactNode }) {
               <span>{me.user.jobTitle}</span>
             </div>
             <NotificationBell />
-            <LanguageSelect />
+            <LanguagePicker />
             <SignOut />
           </div>
         </header>

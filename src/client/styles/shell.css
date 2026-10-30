@@ -40,7 +40,8 @@
 .ws-topbar {
   position: sticky;
   top: 0;
-  z-index: 30;
+  /* Above the bottom bar, so sheets opened from the top bar (language, alerts) cover it. */
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -106,11 +107,21 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Labels may take two lines; long single words (e.g. Tamil) break rather than being cut off. */
 .ws-tabbar span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.ws-tabbar:lang(ta) a,
+.ws-tabbar:lang(ta) button,
+.ws-tabbar:lang(te) a,
+.ws-tabbar:lang(te) button {
+  font-size: 11px;
 }
 .ws-tabbar svg.icon {
   width: 24px;
@@ -279,13 +290,56 @@
   margin-top: var(--sp-2);
 }
 
-/* Language select in the worker top bar (replaced by the language sheet) */
-.ws-topbar .lang-select select {
-  width: auto;
+/* Language */
+.lang-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 40px;
-  padding: 6px 34px 6px 12px;
-  font-size: var(--fs-text-sm);
+  max-width: 9.5rem;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-chip);
+  background: var(--fs-paper);
+  color: var(--fs-aubergine);
+  font: 650 var(--fs-text-sm) / 1.2 var(--fs-font-text);
+  cursor: pointer;
+}
+.lang-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lang-button:hover {
+  border-color: var(--fs-ink-3);
+}
+.lang-button svg.icon {
+  width: 18px;
+  height: 18px;
+}
+.lang-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+.lang-option {
+  align-items: center;
+  margin: 0;
+}
+.lang-option-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lang-native {
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-lg);
   font-weight: 650;
-  border-color: var(--fs-line-strong);
-  background-position: right 8px center;
+  color: var(--fs-ink);
+  line-height: 1.35;
+}
+.lang-english {
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-2);
 }

@@ -343,5 +343,6 @@
   "att.confirmOutAction": "Yes, check out",
   "att.keepWorking": "Keep working",
   "att.workedSoFar": "Worked today so far",
-  "att.shiftSoFar": "This shift so far"
+  "att.shiftSoFar": "This shift so far",
+  "lang.partialNote": "Messages from your employer, and some technical details, may stay in English."
 }

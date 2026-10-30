@@ -10,12 +10,12 @@ export type MessageKey = keyof typeof en;
 export type Dictionary = Partial<Record<MessageKey, string>>;
 
 export const LANGUAGES = [
-  { code: 'en', label: 'English', locale: 'en-IN' },
-  { code: 'kn', label: 'ಕನ್ನಡ', locale: 'kn-IN' },
-  { code: 'hi', label: 'हिन्दी', locale: 'hi-IN' },
-  { code: 'ta', label: 'தமிழ்', locale: 'ta-IN' },
-  { code: 'te', label: 'తెలుగు', locale: 'te-IN' },
-  { code: 'bn', label: 'বাংলা', locale: 'bn-IN' },
+  { code: 'en', label: 'English', english: 'English', locale: 'en-IN' },
+  { code: 'kn', label: 'ಕನ್ನಡ', english: 'Kannada', locale: 'kn-IN' },
+  { code: 'hi', label: 'हिन्दी', english: 'Hindi', locale: 'hi-IN' },
+  { code: 'ta', label: 'தமிழ்', english: 'Tamil', locale: 'ta-IN' },
+  { code: 'te', label: 'తెలుగు', english: 'Telugu', locale: 'te-IN' },
+  { code: 'bn', label: 'বাংলা', english: 'Bengali', locale: 'bn-IN' },
 ] as const;
 
 export type Lang = (typeof LANGUAGES)[number]['code'];

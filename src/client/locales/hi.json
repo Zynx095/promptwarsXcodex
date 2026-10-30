@@ -343,5 +343,6 @@
   "att.confirmOutAction": "हाँ, चेक आउट करें",
   "att.keepWorking": "काम जारी रखें",
   "att.workedSoFar": "आज अब तक काम किया",
-  "att.shiftSoFar": "इस शिफ्ट में अब तक"
+  "att.shiftSoFar": "इस शिफ्ट में अब तक",
+  "lang.partialNote": "आपके नियोक्ता के संदेश और कुछ तकनीकी विवरण अंग्रेज़ी में ही रह सकते हैं।"
 }
