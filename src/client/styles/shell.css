@@ -18,6 +18,18 @@
   flex: none;
 }
 
+/* Full-width sample-data notice on the sign-in page and in the console */
+.demo-banner {
+  margin: 0;
+  padding: var(--sp-2) var(--gutter);
+  background: var(--fs-caution-bg);
+  border-bottom: 1px solid var(--fs-caution-line);
+  color: var(--fs-caution);
+  font-size: var(--fs-text-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
 .demo-chip {
   flex: none;
   font-size: 12px;

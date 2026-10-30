@@ -5,11 +5,11 @@ import { useSession } from '../lib/session';
 import { useApi } from '../lib/useApi';
 import { getIndustry } from '../../shared/industries';
 import type { AuthConfigResponse, DemoAccount } from '../../shared/types';
-import { Button, Card, ErrorBox, Field, Notice } from '../components/ui';
+import { Button, ErrorBox, Field, Notice } from '../components/ui';
 import { BrandMark, DemoBanner } from '../components/Layout';
 import { LanguagePicker } from '../components/LanguagePicker';
 import { MobileDemoQrModal } from '../components/MobileDemoQrModal';
-import { Clock, KeyRound, Languages, MessageSquare, ShieldAlert, Smartphone, Users } from 'lucide-react';
+import { Clock, KeyRound, Languages, MessageSquare, MessageSquareText, QrCode, ShieldAlert, Users } from 'lucide-react';
 
 function GoogleIcon() {
   return (
@@ -168,33 +168,249 @@ export function LoginPage() {
     );
   }
 
+  const tabs = [
+    { id: 'pin', label: t('login.tabs.phone'), icon: KeyRound },
+    { id: 'otp', label: t('login.tabs.otp'), icon: MessageSquareText },
+    { id: 'social', label: t('login.tabs.social'), icon: Users },
+  ] as const;
+
+  function selectTab(id: (typeof tabs)[number]['id'], focus = false) {
+    setActiveTab(id);
+    if (focus) document.getElementById(`login-tab-${id}`)?.focus();
+  }
+
   return (
-    <>
+    <div className="login-page">
       {demo.data ? <DemoBanner /> : null}
+      <header className="login-bar">
+        <span className="wordmark">
+          <BrandMark />
+          <span className="wordmark-text">FairShift</span>
+        </span>
+        <div className="login-bar-tools">
+          <button type="button" className="btn btn-quiet btn-sm login-qr" onClick={() => setShowQr(true)} aria-haspopup="dialog">
+            <QrCode className="icon-sm" aria-hidden="true" />
+            <span>{t('login.openOnPhone')}</span>
+          </button>
+          <LanguagePicker />
+        </div>
+      </header>
+
       <main id="main" className="login">
-        <section className="login-intro" aria-labelledby="login-heading">
-          <div className="row">
-            <div className="brand">
-              <BrandMark />
-              <span>FairShift</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowQr(true)} title="Scan QR Code to open on mobile phone">
-                <Smartphone className="icon-sm" aria-hidden="true" />
-                <span>Mobile Demo</span>
-              </button>
-              <LanguagePicker />
-            </div>
-          </div>
+        <section className="login-story" aria-labelledby="login-heading">
           <h1 id="login-heading">{t('login.heading')}</h1>
-          <p className="lead">{t('app.tagline')}</p>
+          <p className="login-lead">{t('login.lead')}</p>
+        </section>
+
+        <div className="login-side">
+          <section className="login-panel" aria-labelledby="login-title">
+            <h2 id="login-title" className="login-title">
+              {t('login.title')}
+            </h2>
+            {renderAuthErrorBanner()}
+
+            <div className="segmented" role="tablist" aria-label={t('login.methods')}>
+              {tabs.map((tab, i) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`login-tab-${tab.id}`}
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={activeTab === tab.id ? 'login-method' : undefined}
+                  tabIndex={activeTab === tab.id ? 0 : -1}
+                  className="segmented-option"
+                  onClick={() => selectTab(tab.id)}
+                  onKeyDown={(e) => {
+                    const last = tabs.length - 1;
+                    const to =
+                      e.key === 'ArrowRight'
+                        ? i === last
+                          ? 0
+                          : i + 1
+                        : e.key === 'ArrowLeft'
+                          ? i === 0
+                            ? last
+                            : i - 1
+                          : e.key === 'Home'
+                            ? 0
+                            : e.key === 'End'
+                              ? last
+                              : -1;
+                    if (to < 0) return;
+                    e.preventDefault();
+                    selectTab(tabs[to]!.id, true);
+                  }}
+                >
+                  <tab.icon className="icon-sm" aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div role="tabpanel" id="login-method" aria-labelledby={`login-tab-${activeTab}`} className="login-method">
+              {activeTab === 'pin' && (
+                <form onSubmit={submitPin} noValidate>
+                  {error && !Object.keys(f).length ? <ErrorBox error={error} /> : null}
+                  <Field label={t('login.phone')} hint={t('login.phoneHint')} error={f['phone']}>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="username"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.trim())}
+                      maxLength={10}
+                    />
+                  </Field>
+                  <Field label={t('login.pin')} hint={t('login.pinHint')} error={f['pin']}>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="current-password"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.trim())}
+                      maxLength={6}
+                    />
+                  </Field>
+                  <Button type="submit" busy={busy} className="btn btn-primary btn-big">
+                    {t('action.signIn')}
+                  </Button>
+                </form>
+              )}
+
+              {activeTab === 'otp' && (
+                <>
+                  {otpError && !Object.keys(otpFields).length ? <ErrorBox error={otpError} /> : null}
+                  {!otpSent ? (
+                    <form onSubmit={handleSendOtp} noValidate>
+                      <Field label={t('login.phone')} hint={t('login.phoneHint')} error={otpFields['phone']}>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          autoComplete="tel-national"
+                          value={otpPhone}
+                          onChange={(e) => setOtpPhone(e.target.value.trim())}
+                          maxLength={10}
+                        />
+                      </Field>
+                      {authConfig.data && !authConfig.data.providers.phoneOtp.configured ? (
+                        <p className="login-unavailable">{t('login.otp.notConfigured')}</p>
+                      ) : null}
+                      <Button
+                        type="submit"
+                        busy={otpBusy}
+                        disabled={!otpPhone || Boolean(authConfig.data && !authConfig.data.providers.phoneOtp.configured)}
+                        className="btn btn-primary btn-big"
+                      >
+                        {t('login.otp.requestCode')}
+                      </Button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyOtp} noValidate>
+                      <Notice kind="info">{t('login.otp.sent', { phone: otpPhone })}</Notice>
+                      <Field label={t('login.otp.code')} hint={t('login.otp.codeHint')} error={otpFields['code']}>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.trim())}
+                          maxLength={6}
+                        />
+                      </Field>
+                      <div className="form-actions">
+                        <Button type="submit" busy={otpBusy} className="btn btn-primary btn-big">
+                          {t('login.otp.verifyCode')}
+                        </Button>
+                        <Button type="button" variant="secondary" disabled={otpCooldown > 0 || otpBusy} onClick={handleSendOtp}>
+                          {otpCooldown > 0 ? `${t('login.otp.resend')} (${otpCooldown}s)` : t('login.otp.resend')}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {activeTab === 'social' && (
+                <div className="login-sso">
+                  {authConfig.data?.providers.google.configured ? (
+                    <a href="/api/auth/google/start" className="btn-oauth">
+                      <GoogleIcon />
+                      <span>{t('login.google')}</span>
+                    </a>
+                  ) : (
+                    <div>
+                      <button type="button" disabled className="btn-oauth">
+                        <GoogleIcon />
+                        <span>{t('login.google')}</span>
+                      </button>
+                      <p className="login-unavailable">{t('login.googleNotConfigured')}</p>
+                    </div>
+                  )}
+                  {authConfig.data?.providers.github.configured ? (
+                    <a href="/api/auth/github/start" className="btn-oauth">
+                      <GithubIcon />
+                      <span>{t('login.github')}</span>
+                    </a>
+                  ) : (
+                    <div>
+                      <button type="button" disabled className="btn-oauth">
+                        <GithubIcon />
+                        <span>{t('login.github')}</span>
+                      </button>
+                      <p className="login-unavailable">{t('login.githubNotConfigured')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {demo.data ? (
+            <section className="login-demo" aria-labelledby="login-demo-title">
+              <h2 id="login-demo-title">{t('login.demoTitle')}</h2>
+              <p>
+                {t('login.demoHint')} {demo.data.pinHint}
+              </p>
+              <ul className="demo-accounts">
+                {demo.data.accounts.map((a) => (
+                  <li key={a.phone}>
+                    <button
+                      type="button"
+                      className="demo-account"
+                      aria-pressed={activeTab === 'pin' && phone === a.phone}
+                      onClick={() => {
+                        setActiveTab('pin');
+                        setPhone(a.phone);
+                        setPin('');
+                        setTimeout(() => {
+                          document.querySelector<HTMLInputElement>('#login-method input[type=password]')?.focus();
+                        }, 50);
+                      }}
+                    >
+                      <span className="visually-hidden">{t('login.use')} </span>
+                      <span className="demo-account-name">{a.name}</span>
+                      <span className="demo-account-role">
+                        {a.role === 'admin' ? t('role.admin') : a.jobTitle}, {getIndustry(a.industry).label.split(' (')[0]}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <p className="login-note">{t('login.methodsNote')}</p>
+        </div>
+
+        <div className="login-about">
           <ul className="login-points">
             {(
               [
                 [Clock, 'login.point1'],
                 [ShieldAlert, 'login.point2'],
                 [MessageSquare, 'login.point3'],
-                [Languages, 'login.point4'],
+                [Languages, 'login.languages'],
               ] as const
             ).map(([Icon, key]) => (
               <li key={key}>
@@ -203,218 +419,10 @@ export function LoginPage() {
               </li>
             ))}
           </ul>
-          <p className="small muted">{t('login.sdg')}</p>
-        </section>
-
-        <div>
-          <Card title={t('login.title')}>
-            {renderAuthErrorBanner()}
-
-            {/* Segmented Auth Method Tabs */}
-            <nav className="auth-tabs" aria-label="Sign-in methods">
-              <button
-                type="button"
-                className={`auth-tab-btn ${activeTab === 'pin' ? 'active' : ''}`}
-                onClick={() => setActiveTab('pin')}
-                aria-current={activeTab === 'pin' ? 'page' : undefined}
-              >
-                <KeyRound className="icon mr-1" aria-hidden="true" style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: '-1px' }} />
-                {t('login.tabs.phone')}
-              </button>
-              <button
-                type="button"
-                className={`auth-tab-btn ${activeTab === 'otp' ? 'active' : ''}`}
-                onClick={() => setActiveTab('otp')}
-                aria-current={activeTab === 'otp' ? 'page' : undefined}
-              >
-                <Smartphone className="icon mr-1" aria-hidden="true" style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: '-1px' }} />
-                {t('login.tabs.otp')}
-              </button>
-              <button
-                type="button"
-                className={`auth-tab-btn ${activeTab === 'social' ? 'active' : ''}`}
-                onClick={() => setActiveTab('social')}
-                aria-current={activeTab === 'social' ? 'page' : undefined}
-              >
-                <Users className="icon mr-1" aria-hidden="true" style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: '-1px' }} />
-                {t('login.tabs.social')}
-              </button>
-            </nav>
-
-            {/* Method 1: Phone & PIN */}
-            {activeTab === 'pin' && (
-              <form onSubmit={submitPin} noValidate>
-                {error && !Object.keys(f).length ? <ErrorBox error={error} /> : null}
-                <Field label={t('login.phone')} hint={t('login.phoneHint')} error={f['phone']}>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    autoComplete="username"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.trim())}
-                    maxLength={10}
-                  />
-                </Field>
-                <Field label={t('login.pin')} hint={t('login.pinHint')} error={f['pin']}>
-                  <input
-                    type="password"
-                    inputMode="numeric"
-                    autoComplete="current-password"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value.trim())}
-                    maxLength={6}
-                  />
-                </Field>
-                <Button type="submit" busy={busy} className="btn btn-primary btn-big">
-                  {t('action.signIn')}
-                </Button>
-              </form>
-            )}
-
-            {/* Method 2: Phone OTP */}
-            {activeTab === 'otp' && (
-              <div>
-                {otpError && !Object.keys(otpFields).length ? <ErrorBox error={otpError} /> : null}
-
-                {!otpSent ? (
-                  <form onSubmit={handleSendOtp} noValidate>
-                    <Field label={t('login.phone')} hint={t('login.phoneHint')} error={otpFields['phone']}>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        autoComplete="tel-national"
-                        value={otpPhone}
-                        onChange={(e) => setOtpPhone(e.target.value.trim())}
-                        maxLength={10}
-                      />
-                    </Field>
-                    {authConfig.data && !authConfig.data.providers.phoneOtp.configured ? (
-                      <div className="auth-unconfigured-note mb-3">{t('login.otp.notConfigured')}</div>
-                    ) : null}
-                    <Button
-                      type="submit"
-                      busy={otpBusy}
-                      disabled={!otpPhone || Boolean(authConfig.data && !authConfig.data.providers.phoneOtp.configured)}
-                      className="btn btn-primary btn-big"
-                    >
-                      {t('login.otp.requestCode')}
-                    </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleVerifyOtp} noValidate>
-                    <div className="mb-3">
-                      <Notice kind="info">{t('login.otp.sent', { phone: otpPhone })}</Notice>
-                    </div>
-                    <Field label={t('login.otp.code')} hint={t('login.otp.codeHint')} error={otpFields['code']}>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.trim())}
-                        maxLength={6}
-                        placeholder="123456"
-                      />
-                    </Field>
-                    <div className="row gap-2 mt-3">
-                      <Button type="submit" busy={otpBusy} className="btn btn-primary btn-big flex-1">
-                        {t('login.otp.verifyCode')}
-                      </Button>
-                      <Button type="button" variant="secondary" disabled={otpCooldown > 0 || otpBusy} onClick={handleSendOtp}>
-                        {otpCooldown > 0 ? `${t('login.otp.resend')} (${otpCooldown}s)` : t('login.otp.resend')}
-                      </Button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-
-            {/* Method 3: Google & GitHub OAuth / SSO */}
-            {activeTab === 'social' && (
-              <div className="flex flex-col gap-3">
-                {/* Google Sign-In */}
-                <div>
-                  {authConfig.data?.providers.google.configured ? (
-                    <a href="/api/auth/google/start" className="btn-oauth">
-                      <GoogleIcon />
-                      <span>{t('login.google')}</span>
-                    </a>
-                  ) : (
-                    <>
-                      <button type="button" disabled className="btn-oauth">
-                        <GoogleIcon />
-                        <span>{t('login.google')}</span>
-                      </button>
-                      <div className="auth-unconfigured-note">{t('login.googleNotConfigured')}</div>
-                    </>
-                  )}
-                </div>
-
-                {/* GitHub OAuth */}
-                <div>
-                  {authConfig.data?.providers.github.configured ? (
-                    <a href="/api/auth/github/start" className="btn-oauth">
-                      <GithubIcon />
-                      <span>{t('login.github')}</span>
-                    </a>
-                  ) : (
-                    <>
-                      <button type="button" disabled className="btn-oauth">
-                        <GithubIcon />
-                        <span>{t('login.github')}</span>
-                      </button>
-                      <div className="auth-unconfigured-note">{t('login.githubNotConfigured')}</div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* Synthetic Demo Accounts Panel */}
-          {demo.data ? (
-            <Card title={t('login.demoTitle')}>
-              <p className="muted small">
-                {t('login.demoHint')} {demo.data.pinHint}
-              </p>
-              <ul className="demo-accounts">
-                {demo.data.accounts.map((a) => (
-                  <li key={a.phone} className="demo-account">
-                    <span className="min-w-0">
-                      <strong>{a.name}</strong>
-                      <span className="muted">{a.role === 'admin' ? t('role.admin') : a.jobTitle}</span>
-                      <br />
-                      <span className="muted small">{getIndustry(a.industry).label.split(' (')[0]}</span>
-                    </span>
-                    <Button
-                      variant="secondary"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => {
-                        setActiveTab('pin');
-                        setPhone(a.phone);
-                        setPin('');
-                        // Focus password field after switching tab
-                        setTimeout(() => {
-                          document.querySelector<HTMLInputElement>('input[type=password]')?.focus();
-                        }, 50);
-                      }}
-                      aria-label={`${t('login.use')} ${a.name}`}
-                    >
-                      {t('login.use')}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ) : null}
-
-          <p className="muted small mt-3">
-            Sign-in uses a phone number and PIN issued by your employer, SMS one-time verification, or organization Google SSO. Demo accounts are fictional and
-            exist only for demonstration.
-          </p>
+          <p className="login-sdg">{t('login.sdg')}</p>
         </div>
       </main>
       <MobileDemoQrModal isOpen={showQr} onClose={() => setShowQr(false)} />
-    </>
+    </div>
   );
 }

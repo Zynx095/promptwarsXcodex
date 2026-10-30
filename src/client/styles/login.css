@@ -1,0 +1,303 @@
+/* Sign-in. Phones: a short aubergine band, then the form in thumb reach, then demo accounts and
+   what FairShift does. Wide screens: the band becomes a full-height column beside the form. */
+
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--fs-canvas);
+}
+.login-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--sp-3) var(--gutter);
+}
+.login-bar-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+/* Opening the app on a phone is only useful from a larger screen */
+.login-qr {
+  display: none;
+}
+@media (min-width: 600px) {
+  .login-qr {
+    display: inline-flex;
+  }
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'story' 'side' 'about';
+  gap: var(--sp-5);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) var(--sp-8);
+}
+
+.login-story {
+  grid-area: story;
+  padding: var(--sp-6) var(--sp-5);
+  border-radius: var(--r-slab);
+  background: var(--fs-aubergine);
+  color: var(--fs-on-dark);
+}
+.login-story h1 {
+  margin: 0;
+  max-width: 18ch;
+  color: #fff;
+  font-size: var(--fs-text-2xl);
+  line-height: 1.15;
+}
+.login-lead {
+  margin: var(--sp-3) 0 0;
+  max-width: 44ch;
+  color: var(--fs-on-dark-2);
+}
+
+.login-side {
+  grid-area: side;
+  display: grid;
+  gap: var(--sp-5);
+  align-content: start;
+  min-width: 0;
+}
+.login-panel {
+  padding: var(--sp-5);
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+.login-title {
+  margin: 0 0 var(--sp-4);
+  font-size: var(--fs-text-xl);
+}
+.login-method {
+  margin-top: var(--sp-5);
+}
+.login-method form > .btn-big,
+.login-method .form-actions .btn-big {
+  width: 100%;
+}
+.login-method .form-actions {
+  margin-top: var(--sp-2);
+}
+.login-unavailable {
+  margin: var(--sp-2) 0 var(--sp-4);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+
+/* Google and GitHub buttons keep the providers' own marks on a plain white control */
+.login-sso {
+  display: grid;
+  gap: var(--sp-3);
+}
+.btn-oauth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--fs-line-input);
+  border-radius: var(--r-control);
+  background: var(--fs-paper);
+  color: var(--fs-ink);
+  font: 650 var(--fs-text-md) / 1.2 var(--fs-font-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-oauth:hover:not(:disabled) {
+  border-color: var(--fs-aubergine);
+}
+.btn-oauth:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-oauth svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.login-sso .login-unavailable {
+  margin-bottom: 0;
+}
+
+.login-demo h2 {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-text-lg);
+}
+.login-demo > p {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.demo-accounts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+}
+.demo-account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-control);
+  background: var(--fs-paper);
+  color: var(--fs-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.demo-account:hover {
+  border-color: var(--fs-ink-3);
+}
+.demo-account[aria-pressed='true'] {
+  border-color: var(--fs-aubergine);
+  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
+  background: var(--fs-aubergine-tint);
+}
+.demo-account-name {
+  font-weight: 700;
+}
+.demo-account-role {
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.login-note {
+  margin: 0;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+
+.login-about {
+  grid-area: about;
+  padding: 0 var(--sp-1);
+}
+.login-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.login-points li {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+.login-points svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--fs-aubergine);
+}
+.login-sdg {
+  margin: var(--sp-4) 0 0;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+
+@media (min-width: 600px) {
+  .login-story {
+    padding: var(--sp-7);
+  }
+  .login-story h1 {
+    font-size: var(--fs-text-3xl);
+  }
+  .login-panel {
+    padding: var(--sp-7);
+  }
+}
+
+/* Wide screens: one aubergine column (story above, what FairShift does below) beside the form */
+@media (min-width: 960px) {
+  .login {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'story side' 'about side';
+    gap: 0 var(--sp-8);
+    padding-top: var(--sp-2);
+  }
+  .login-story {
+    border-radius: var(--r-slab) var(--r-slab) 0 0;
+    padding: var(--sp-9) var(--sp-8) var(--sp-7);
+  }
+  .login-story h1 {
+    font-size: var(--fs-text-4xl);
+    line-height: 1.08;
+  }
+  .login-about {
+    padding: 0 var(--sp-8) var(--sp-8);
+    border-radius: 0 0 var(--r-slab) var(--r-slab);
+    background: var(--fs-aubergine);
+    color: var(--fs-on-dark);
+  }
+  .login-points {
+    padding-top: var(--sp-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .login-points svg {
+    color: var(--fs-marigold);
+  }
+  .login-sdg {
+    color: var(--fs-on-dark-3);
+  }
+}
+
+/* Open on a phone */
+.qr-sheet {
+  max-width: 480px;
+}
+.qr-body {
+  display: grid;
+  gap: var(--sp-4);
+}
+.qr-frame {
+  justify-self: center;
+  padding: var(--sp-3);
+  border: 1px solid var(--fs-line);
+  border-radius: var(--r-record);
+  background: #fff;
+  line-height: 0;
+}
+.qr-frame svg {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+.qr-url {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
+  border-radius: var(--r-control);
+  background: var(--fs-sunk);
+}
+.qr-url code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+.qr-note {
+  margin: 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
