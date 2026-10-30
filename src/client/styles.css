@@ -466,9 +466,7 @@ svg.icon[data-size='lg'] {
   position: fixed;
   inset: 0;
   z-index: 120;
-  background: rgba(28, 6, 25, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(36, 8, 31, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
