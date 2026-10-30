@@ -13,6 +13,7 @@ import { nowIso, type AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';
 import { reporterRef } from '../auth/crypto';
 import { recordAudit } from '../repositories/audit';
+import { findSessionUser } from '../repositories/users';
 import { notFound } from '../http';
 
 interface ReportRow {
@@ -199,7 +200,17 @@ export function listOrgReports(ctx: AppContext, org: OrgRow, actor: Actor, f: Re
   return { items, total, limit: f.limit, offset: f.offset };
 }
 
-export function transitionReport(ctx: AppContext, actor: Actor, id: string, input: ReportTransitionInput, opts: { at?: string } = {}) {
+export type ReportTransitionArg = {
+  to: ReportStatus;
+  note?: string;
+  assignee?: string | null;
+  actionTaken?: string | null;
+  followUpDate?: string | null;
+  verifiedBy?: string | null;
+  verificationNote?: string | null;
+};
+
+export function transitionReport(ctx: AppContext, actor: Actor, id: string, input: ReportTransitionArg, opts: { at?: string } = {}) {
   const at = opts.at ?? nowIso(ctx);
   ctx.db.tx(() => {
     const row = ctx.db.get<{ status: ReportStatus; assignee: string | null }>(
@@ -207,12 +218,28 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
       { id, orgId: actor.orgId },
     );
     if (!row) throw notFound('Report');
-    assertTransition(row.status, input.to, input.note);
+    const note = input.note || '';
+    assertTransition(row.status, input.to, note);
     const assignee = input.assignee === undefined ? row.assignee : input.assignee || null;
     const actionTaken = input.actionTaken !== undefined ? input.actionTaken : null;
     const followUpDate = input.followUpDate !== undefined ? input.followUpDate : null;
-    const verifiedBy = input.to === 'outcome_verified' ? input.verifiedBy || (actor.id ? 'Safety Officer' : null) : null;
-    const verificationNote = input.to === 'outcome_verified' ? input.verificationNote || input.note : null;
+
+    let verifiedBy: string | null = null;
+    let verificationNote: string | null = null;
+    if (input.to === 'outcome_verified') {
+      verifiedBy = input.verifiedBy?.trim() || null;
+      if (!verifiedBy) {
+        const lastResolver = ctx.db.get<{ actor_id: string }>(
+          `SELECT actor_id FROM report_events WHERE report_id = @id AND to_status = 'resolved' ORDER BY created_at DESC LIMIT 1`,
+          { id },
+        );
+        const actorUser = findSessionUser(ctx.db, actor.id);
+        const actorName = actorUser?.name || 'Admin';
+        const isSelfVerification = lastResolver && lastResolver.actor_id === actor.id;
+        verifiedBy = isSelfVerification ? `${actorName} (Self-verification)` : (actorName || 'Safety Officer');
+      }
+      verificationNote = input.verificationNote?.trim() || note.trim();
+    }
 
     const changed = ctx.db.run(
       `UPDATE safety_reports SET
@@ -248,7 +275,7 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
     ctx.db.run(
       `INSERT INTO report_events (id, org_id, report_id, from_status, to_status, note, actor_id, actor_role, created_at)
        VALUES (@eid, @orgId, @id, @from, @to, @note, @actorId, 'admin', @at)`,
-      { eid: randomUUID(), orgId: actor.orgId, id, from: row.status, to: input.to, note: input.note, actorId: actor.id, at },
+      { eid: randomUUID(), orgId: actor.orgId, id, from: row.status, to: input.to, note: input.note || '', actorId: actor.id, at },
     );
     recordAudit(ctx.db, {
       orgId: actor.orgId,

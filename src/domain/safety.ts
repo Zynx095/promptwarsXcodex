@@ -24,6 +24,9 @@ export function assertTransition(from: ReportStatus, to: ReportStatus, note: str
   if (!REPORT_TRANSITIONS[from].includes(to)) {
     throw new DomainError('INVALID_TRANSITION', `A report that is "${label(from)}" cannot be changed to "${label(to)}".`);
   }
+  if (to === 'outcome_verified' && note.trim().length < 5) {
+    throw new DomainError('NOTE_REQUIRED', 'Outcome verification requires a specific explanation of how the physical hazard was inspected.');
+  }
   if (NOTE_REQUIRED.has(to) && note.trim().length < 3) {
     const action = to === 'resolved' ? 'resolved' : to === 'reopened' ? 'reopened' : label(to);
     throw new DomainError('NOTE_REQUIRED', `Add a note explaining why the report is being ${action}.`);

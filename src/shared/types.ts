@@ -479,6 +479,7 @@ export interface AccountabilityMetricsDTO {
   reopenedCount: number;
   meanTimeToAcknowledgeMinutes: number | null;
   meanTimeToResolveMinutes: number | null;
+  meanTimeToVerifyMinutes?: number | null;
   verificationRatePercent: number;
   reopenRatePercent: number;
   overdueFollowUps: number;

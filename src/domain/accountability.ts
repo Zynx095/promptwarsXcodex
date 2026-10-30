@@ -30,6 +30,7 @@ export interface AccountabilityMetricsResult {
   reopenedCount: number;
   meanTimeToAcknowledgeMinutes: number | null;
   meanTimeToResolveMinutes: number | null;
+  meanTimeToVerifyMinutes?: number | null;
   verificationRatePercent: number;
   reopenRatePercent: number;
   overdueFollowUps: number;
@@ -111,6 +112,32 @@ export function calculateAccountabilityMetrics(
 
   const meanTimeToResolveMinutes = resolveCount > 0 ? Math.round(totalResolveMinutes / resolveCount) : null;
 
+  // Calculate Mean Time to Independently Verify Outcome (MTTV)
+  let totalVerifyMinutes = 0;
+  let verifyCount = 0;
+
+  for (const report of reports) {
+    const reportEvents = eventsByReport.get(report.id) ?? [];
+    const verifyEvent = reportEvents.find((e) => e.toStatus === 'outcome_verified');
+    if (verifyEvent) {
+      const createdTime = new Date(report.createdAt).getTime();
+      const verTime = new Date(verifyEvent.createdAt).getTime();
+      if (!isNaN(createdTime) && !isNaN(verTime) && verTime >= createdTime) {
+        totalVerifyMinutes += Math.round((verTime - createdTime) / 60000);
+        verifyCount++;
+      }
+    } else if (report.verifiedAt) {
+      const createdTime = new Date(report.createdAt).getTime();
+      const verTime = new Date(report.verifiedAt).getTime();
+      if (!isNaN(createdTime) && !isNaN(verTime) && verTime >= createdTime) {
+        totalVerifyMinutes += Math.round((verTime - createdTime) / 60000);
+        verifyCount++;
+      }
+    }
+  }
+
+  const meanTimeToVerifyMinutes = verifyCount > 0 ? Math.round(totalVerifyMinutes / verifyCount) : null;
+
   // Outcome verification rate: verified / (resolved + followUpPending + verified)
   const totalCompletedAction = resolvedCount + followUpPendingCount + verifiedCount;
   const verificationRatePercent = totalCompletedAction > 0 ? Math.round((verifiedCount / totalCompletedAction) * 100) : 0;
@@ -131,6 +158,7 @@ export function calculateAccountabilityMetrics(
     reopenedCount,
     meanTimeToAcknowledgeMinutes,
     meanTimeToResolveMinutes,
+    meanTimeToVerifyMinutes,
     verificationRatePercent,
     reopenRatePercent,
     overdueFollowUps,
