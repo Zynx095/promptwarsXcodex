@@ -2885,6 +2885,206 @@ svg.icon[data-size='lg'] {
   margin: 0;
 }
 
+/* ---------- Environmental Heat Safety Widget ---------- */
+.heat-widget-card {
+  background: var(--c-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 20px rgba(58, 15, 52, 0.05);
+}
+
+.heat-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.heat-widget-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--c-heading);
+  margin: 0;
+}
+
+.heat-widget-subtitle {
+  font-size: 0.875rem;
+  color: var(--c-muted);
+  margin: 0.25rem 0 0 0;
+}
+
+.heat-presets-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-md, 8px);
+}
+
+.heat-preset-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.preset-pill {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--c-border-strong);
+  border-radius: 20px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-pill:hover {
+  background: #ffffff;
+  border-color: var(--c-accent);
+}
+
+.preset-pill.active {
+  background: var(--c-accent);
+  color: #ffffff;
+  border-color: var(--c-accent);
+}
+
+.heat-calculator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.heat-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-md, 10px);
+  padding: 1rem;
+}
+
+.heat-result-card {
+  border-radius: var(--radius-md, 10px);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.heat-result-card.tone-good {
+  background: rgba(10, 107, 64, 0.08);
+  border-color: rgba(10, 107, 64, 0.25);
+}
+
+.heat-result-card.tone-info {
+  background: rgba(27, 69, 140, 0.08);
+  border-color: rgba(27, 69, 140, 0.25);
+}
+
+.heat-result-card.tone-warn {
+  background: rgba(234, 170, 0, 0.12);
+  border-color: rgba(234, 170, 0, 0.35);
+}
+
+.heat-result-card.tone-bad {
+  background: rgba(186, 20, 53, 0.1);
+  border-color: rgba(186, 20, 53, 0.3);
+}
+
+.heat-gauge-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.heat-gauge-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+.heat-metric-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.heat-metric-val {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--c-heading);
+  letter-spacing: -0.02em;
+}
+
+.heat-metric-sub {
+  font-size: 0.8rem;
+  color: var(--c-muted);
+}
+
+.heat-hazard-flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--c-bad-strong);
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.heat-advisory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.heat-guideline-box {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.85rem;
+}
+
+.heat-widget-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--c-border-subtle);
+}
+
+@media (max-width: 768px) {
+  .heat-calculator-grid {
+    grid-template-columns: 1fr;
+  }
+  .heat-advisory-grid {
+    grid-template-columns: 1fr;
+  }
+  .heat-widget-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 /* ---------- Print Styles for Payslips & Receipts ---------- */
 @media print {
   body {

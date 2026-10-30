@@ -10,6 +10,7 @@ import { SEVERITIES, type SafetyReportDTO, type Severity } from '../../../shared
 import { Async, Badge, Button, Card, Empty, ErrorBox, Field, Notice, Page, ReportStatusBadge, SeverityBadge } from '../../components/ui';
 import { DictateButton } from '../../components/Voice';
 import { ReportDetail } from '../../components/ReportDetail';
+import { HeatSafetyWidget } from '../../components/HeatSafetyWidget';
 
 export function WorkerReports() {
   const { t, locale } = useI18n();
@@ -24,6 +25,7 @@ export function WorkerReports() {
         </Link>
       }
     >
+      <HeatSafetyWidget />
       <Card title={t('rep.mine')}>
         <Async state={mine}>
           {(d) =>
