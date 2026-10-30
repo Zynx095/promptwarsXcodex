@@ -6,6 +6,7 @@ import {
   handleGoogleCallback,
   isGoogleConfigured,
   startGoogleAuth,
+  verifyGoogleTokenInfo,
   verifySignedOAuthState,
 } from '../../src/server/auth/google';
 import type { Request, Response } from 'express';
@@ -167,6 +168,7 @@ describe('Google OAuth & OIDC Authentication', () => {
             email_verified: 'true',
             name: 'Ravi Kumar',
             exp: Math.floor(now.getTime() / 1000) + 3600,
+            nonce: 'nonce-123',
           }),
           { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
@@ -238,6 +240,7 @@ describe('Google OAuth & OIDC Authentication', () => {
             email_verified: 'true',
             name: 'Stranger Danger',
             exp: Math.floor(now.getTime() / 1000) + 3600,
+            nonce: 'nonce-unprov',
           }),
           { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
@@ -281,5 +284,44 @@ describe('Google OAuth & OIDC Authentication', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  describe('ID token claim validation', () => {
+    const now = new Date('2026-10-27T10:00:00.000Z');
+    const valid = {
+      sub: 'google-sub-1',
+      aud: 'client-id',
+      iss: 'https://accounts.google.com',
+      email: 'worker@example.com',
+      email_verified: 'true',
+      exp: Math.floor(now.getTime() / 1000) + 600,
+      nonce: 'expected-nonce',
+    };
+    const withClaims = async (claims: Record<string, unknown>) => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(claims), { status: 200 })));
+      try {
+        return await verifyGoogleTokenInfo('id-token', 'client-id', 'expected-nonce', now);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    };
+
+    it('accepts a token carrying the expected nonce and a future expiry', async () => {
+      await expect(withClaims(valid)).resolves.toMatchObject({ sub: 'google-sub-1', email: 'worker@example.com' });
+    });
+
+    it('rejects a token that omits the nonce sent in the authorization request', async () => {
+      const { nonce: _omit, ...noNonce } = valid;
+      await expect(withClaims(noNonce)).rejects.toThrow(/nonce/i);
+    });
+
+    it('rejects a token with a different nonce', async () => {
+      await expect(withClaims({ ...valid, nonce: 'replayed-nonce' })).rejects.toThrow(/nonce/i);
+    });
+
+    it('rejects a token without an expiry claim', async () => {
+      const { exp: _omit, ...noExp } = valid;
+      await expect(withClaims(noExp)).rejects.toThrow(/expired/i);
+    });
   });
 });

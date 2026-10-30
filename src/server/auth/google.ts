@@ -145,12 +145,13 @@ export async function verifyGoogleTokenInfo(
   }
 
   const nowSec = Math.floor(now.getTime() / 1000);
-  const expSec = typeof data.exp === 'string' ? parseInt(data.exp, 10) : typeof data.exp === 'number' ? data.exp : null;
-  if (expSec !== null && expSec < nowSec) {
+  const expSec = typeof data.exp === 'string' ? parseInt(data.exp, 10) : typeof data.exp === 'number' ? data.exp : NaN;
+  if (!Number.isFinite(expSec) || expSec < nowSec) {
     throw new HttpError(401, 'INVALID_TOKEN', 'Google ID token has expired.');
   }
 
-  if (expectedNonce && data.nonce && !safeEqual(data.nonce, expectedNonce)) {
+  // A nonce was sent with the authorization request, so the ID token must echo it back (OIDC Core 3.1.3.7).
+  if (expectedNonce && (typeof data.nonce !== 'string' || !safeEqual(data.nonce, expectedNonce))) {
     throw new HttpError(401, 'INVALID_TOKEN', 'Google token nonce mismatch.');
   }
 
