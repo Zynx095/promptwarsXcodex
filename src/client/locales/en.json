@@ -176,12 +176,6 @@
   "fb.privacy3": "This is not perfect anonymity: if you mention details only you would know, you could be recognised. Server logs may briefly record that your device used the app.",
   "fb.topic": "Topic",
   "fb.rating": "Rating",
-  "fb.ratingNone": "No rating",
-  "fb.rating1": "1 – Very bad",
-  "fb.rating2": "2 – Bad",
-  "fb.rating3": "3 – Okay",
-  "fb.rating4": "4 – Good",
-  "fb.rating5": "5 – Very good",
   "fb.comment": "Comment",
   "fb.thanks": "Thank you. Your feedback was sent without your name.",
   "sk.title": "Skill passport",
@@ -404,5 +398,12 @@
   "qr.copy": "Copy address",
   "qr.copied": "Copied",
   "qr.network": "On a local server, the phone must be on the same Wi-Fi network. A deployed instance can be opened from anywhere.",
-  "qr.privacy": "The code contains only this page’s address, never sign-in details."
+  "qr.privacy": "The code contains only this page’s address, never sign-in details.",
+  "fb.scale1": "Very bad",
+  "fb.scale2": "Bad",
+  "fb.scale3": "Okay",
+  "fb.scale4": "Good",
+  "fb.scale5": "Very good",
+  "fb.send": "Send feedback",
+  "fb.clearRating": "Clear rating"
 }

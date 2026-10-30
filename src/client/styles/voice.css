@@ -1,0 +1,181 @@
+/* Feedback and the skill passport: the worker's own voice and record */
+
+/* Rating: five faces with numbers, the two ends named in words underneath */
+.rating-scale {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sp-2);
+  max-width: 520px;
+}
+.rating-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-1) var(--sp-2);
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-control);
+  background: var(--fs-paper);
+  color: var(--fs-ink-2);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--m-fast) ease,
+    background var(--m-fast) ease;
+}
+.rating-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.rating-option:hover {
+  border-color: var(--fs-ink-3);
+}
+.rating-option:has(input:focus-visible) {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.rating-option:has(input:checked) {
+  border-color: var(--fs-aubergine);
+  background: var(--fs-aubergine-tint);
+  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
+  color: var(--fs-aubergine);
+}
+.rating-face {
+  width: 30px;
+  height: 30px;
+}
+.rating-number {
+  font-size: var(--fs-text-lg);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--fs-ink);
+}
+.rating-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  max-width: 520px;
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-text-sm);
+  font-weight: 600;
+  color: var(--fs-ink-2);
+}
+.rating-ends span:last-child {
+  text-align: right;
+}
+.has-error .rating-option {
+  border-color: var(--fs-danger);
+}
+.rating-clear {
+  margin-top: var(--sp-2);
+}
+
+/* What the employer can and cannot see, next to the send button */
+.privacy-note {
+  margin: 0 0 var(--sp-5);
+  padding: var(--sp-4);
+  border-radius: var(--r-control);
+  background: var(--fs-sunk);
+  border: 1px solid var(--fs-line);
+}
+.privacy-note h2 {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-text-md);
+}
+.privacy-note ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.privacy-note li {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.privacy-note li svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--fs-aubergine);
+}
+
+/* Skill passport */
+.passport {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+.passport-entry {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  padding: var(--sp-4);
+}
+.passport-entry + .passport-entry {
+  border-top: 1px solid var(--fs-line);
+}
+.passport-body {
+  min-width: 0;
+  flex: 1;
+}
+.passport-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--fs-text-md);
+}
+.passport-kind {
+  margin: 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.passport-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 0;
+}
+.passport-desc {
+  margin: var(--sp-2) 0 0;
+}
+.passport-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-5);
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-text-sm);
+}
+.passport-facts dt {
+  color: var(--fs-ink-3);
+}
+.passport-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.passport-check {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-good);
+  font-weight: 600;
+}
+.passport-note {
+  margin: var(--sp-3) 0 0;
+  max-width: 70ch;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.passport-add {
+  margin-top: var(--sp-8);
+  max-width: 640px;
+}
+.rating-clear.btn-link {
+  padding-inline: 0;
+}

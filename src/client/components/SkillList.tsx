@@ -1,41 +1,67 @@
 // Skill passport entries and the add-entry form, shared by worker and admin views.
 import { useState, type FormEvent } from 'react';
+import { Award, GraduationCap, Wrench } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { api, ApiError } from '../lib/api';
 import { formatDate } from '../lib/format';
 import type { SkillDTO, SkillKind } from '../../shared/types';
 import { Badge, Button, Empty, ErrorBox, Field, Notice } from './ui';
 
+const KIND_ICON: Record<SkillKind, typeof Wrench> = { skill: Wrench, training: GraduationCap, certification: Award };
+
 export function SkillList({ skills, onVerify }: { skills: SkillDTO[]; onVerify?: (s: SkillDTO, verified: boolean) => void }) {
   const { t, locale } = useI18n();
   if (skills.length === 0) return <Empty>{t('sk.none')}</Empty>;
   return (
-    <ul className="list">
-      {skills.map((s) => (
-        <li key={s.id}>
-          <div className="row">
-            <span>
-              <strong>{s.name}</strong> <span className="muted small">· {t(`sk.kind.${s.kind}`)}</span>
+    <ul className="passport">
+      {skills.map((s) => {
+        const Icon = KIND_ICON[s.kind] ?? Wrench;
+        const checked = s.verification === 'employer_verified';
+        return (
+          <li key={s.id} className="passport-entry">
+            <span className={`row-icon${checked ? ' tone-good' : ''}`} aria-hidden="true">
+              <Icon className="icon" />
             </span>
-            <span className="row row-tight">
-              {s.verification === 'employer_verified' ? <Badge tone="good">{t('sk.verified')}</Badge> : <Badge tone="neutral">{t('sk.self')}</Badge>}
-              {s.expired ? <Badge tone="bad">{t('sk.expired')}</Badge> : null}
-            </span>
-          </div>
-          {s.description ? <p className="m-0">{s.description}</p> : null}
-          <p className="muted small m-0">
-            {s.issuer ? `${t('sk.issuer')}: ${s.issuer}. ` : ''}
-            {s.issuedOn ? `${t('sk.issuedOn')}: ${formatDate(s.issuedOn, locale)}. ` : ''}
-            {s.expiresOn ? `${t('sk.expiresOn')}: ${formatDate(s.expiresOn, locale)}. ` : ''}
-            {s.verifiedByName ? t('sk.verifiedBy', { name: s.verifiedByName }) : ''}
-          </p>
-          {onVerify ? (
-            <Button variant="link" onClick={() => onVerify(s, s.verification !== 'employer_verified')}>
-              {s.verification === 'employer_verified' ? 'Remove employer check' : 'Mark as checked by employer'}
-            </Button>
-          ) : null}
-        </li>
-      ))}
+            <div className="passport-body">
+              <p className="passport-name">{s.name}</p>
+              <p className="passport-kind">{t(`sk.kind.${s.kind}`)}</p>
+              <div className="passport-tags">
+                {checked ? <Badge tone="good">{t('sk.verified')}</Badge> : <Badge tone="neutral">{t('sk.self')}</Badge>}
+                {s.expired ? <Badge tone="bad">{t('sk.expired')}</Badge> : null}
+              </div>
+              {s.description ? <p className="passport-desc">{s.description}</p> : null}
+              {s.issuer || s.issuedOn || s.expiresOn ? (
+                <dl className="passport-facts">
+                  {s.issuer ? (
+                    <div>
+                      <dt>{t('sk.issuer')}</dt>
+                      <dd>{s.issuer}</dd>
+                    </div>
+                  ) : null}
+                  {s.issuedOn ? (
+                    <div>
+                      <dt>{t('sk.issuedOn')}</dt>
+                      <dd>{formatDate(s.issuedOn, locale)}</dd>
+                    </div>
+                  ) : null}
+                  {s.expiresOn ? (
+                    <div>
+                      <dt>{t('sk.expiresOn')}</dt>
+                      <dd>{formatDate(s.expiresOn, locale)}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              ) : null}
+              {s.verifiedByName ? <p className="passport-check">{t('sk.verifiedBy', { name: s.verifiedByName })}</p> : null}
+              {onVerify ? (
+                <Button variant="link" onClick={() => onVerify(s, !checked)}>
+                  {checked ? 'Remove employer check' : 'Mark as checked by employer'}
+                </Button>
+              ) : null}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }

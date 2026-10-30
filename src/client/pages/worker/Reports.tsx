@@ -133,12 +133,12 @@ export function WorkerReportNew() {
 
   return (
     <Page title={t('rep.new')} description={t('rep.formIntro')}>
-      <form className="report-form" onSubmit={submit} noValidate>
+      <form className="step-form" onSubmit={submit} noValidate>
         <div ref={errorRef} tabIndex={-1} className="form-error-anchor">
           {error ? <ErrorBox error={error} /> : null}
         </div>
 
-        <fieldset className={`report-step${f['category'] ? ' has-error' : ''}`}>
+        <fieldset className={`form-step${f['category'] ? ' has-error' : ''}`}>
           <legend id="category-legend">{t('rep.category')}</legend>
           <div
             className="hazard-grid"
@@ -165,7 +165,7 @@ export function WorkerReportNew() {
           ) : null}
         </fieldset>
 
-        <fieldset className={`report-step${f['severity'] ? ' has-error' : ''}`}>
+        <fieldset className={`form-step${f['severity'] ? ' has-error' : ''}`}>
           <legend id="severity-legend">{t('rep.severity')}</legend>
           <div
             className="severity-list"
@@ -188,7 +188,7 @@ export function WorkerReportNew() {
           ) : null}
         </fieldset>
 
-        <div className="report-step">
+        <div className="form-step">
           <Field label={t('rep.titleField')} hint={t('rep.titleHint')} error={f['title']}>
             <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} maxLength={120} />
           </Field>
@@ -201,7 +201,7 @@ export function WorkerReportNew() {
           <DictateButton onText={(text) => setForm((p) => ({ ...p, description: `${p.description}${p.description ? ' ' : ''}${text}`.slice(0, 2000) }))} />
         </div>
 
-        <fieldset className="report-step">
+        <fieldset className="form-step">
           <legend>{t('rep.identity')}</legend>
           <label className="check identity-tile">
             <input type="radio" name="identity" value="named" checked={identity === 'named'} onChange={() => setIdentity('named')} />
@@ -221,7 +221,7 @@ export function WorkerReportNew() {
           </label>
         </fieldset>
 
-        <div className="form-actions report-actions">
+        <div className="form-actions step-actions">
           <Button type="submit" busy={busy} className="btn btn-primary btn-big">
             {t('rep.send')}
           </Button>

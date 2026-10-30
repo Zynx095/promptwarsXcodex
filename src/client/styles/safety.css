@@ -1,21 +1,4 @@
-/* Safety reports: the reporting form, report rows and the accountability lifecycle */
-
-.report-form {
-  max-width: 640px;
-}
-.form-error-anchor:focus {
-  outline: none;
-}
-.report-step {
-  margin: 0 0 var(--sp-7);
-}
-.report-step > legend {
-  margin-bottom: var(--sp-3);
-  font-family: var(--fs-font-display);
-  font-size: var(--fs-text-lg);
-  font-weight: 650;
-  color: var(--fs-aubergine);
-}
+/* Safety reports: hazard and severity tiles, report rows and the accountability lifecycle */
 
 .hazard-grid {
   display: grid;
@@ -90,19 +73,6 @@
 .identity-tile strong {
   display: block;
 }
-.tile-hint {
-  display: block;
-  margin-top: 2px;
-  font-size: var(--fs-text-sm);
-  color: var(--fs-ink-2);
-}
-.report-actions {
-  align-items: center;
-}
-.report-actions .btn-big {
-  flex: 1 1 260px;
-}
-
 /* Report rows */
 .report-row {
   align-items: flex-start;

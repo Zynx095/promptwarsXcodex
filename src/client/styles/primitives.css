@@ -236,6 +236,53 @@ legend {
   padding: 0;
   margin-bottom: var(--sp-2);
 }
+/* Stepped form: one question per fieldset, a display-face legend, actions at the end */
+.step-form {
+  max-width: 640px;
+}
+.form-error-anchor:focus {
+  outline: none;
+}
+.form-step {
+  margin: 0 0 var(--sp-7);
+}
+.form-step > legend {
+  margin-bottom: var(--sp-3);
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+  color: var(--fs-aubergine);
+}
+.form-step > legend .optional {
+  font-family: var(--fs-font-text);
+  font-size: var(--fs-text-sm);
+  font-weight: 400;
+  color: var(--fs-ink-3);
+}
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--sp-2);
+}
+.choice-grid .check {
+  margin: 0;
+  align-items: center;
+  font-weight: 600;
+}
+.tile-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-text-sm);
+  font-weight: 400;
+  color: var(--fs-ink-2);
+}
+.step-actions {
+  align-items: center;
+}
+.step-actions .btn-big {
+  flex: 1 1 260px;
+}
+
 fieldset.has-error .check {
   border-color: var(--fs-danger);
 }

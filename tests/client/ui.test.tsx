@@ -179,10 +179,13 @@ describe('web client', () => {
 
     await nav('Feedback');
     await waitForText('How your privacy is protected');
-    await type(fieldByLabel('Topic'), 'facilities');
-    await type(fieldByLabel('Rating'), '2');
-    await submit('Submit');
+    await click(container.querySelector<HTMLInputElement>('input[name="topic"][value="facilities"]')!);
+    await click(container.querySelector<HTMLInputElement>('input[name="rating"][value="2"]')!);
+    expect(container.querySelector<HTMLInputElement>('input[name="topic"][value="facilities"]')!.checked).toBe(true);
+    expect(container.querySelector<HTMLInputElement>('input[name="rating"][value="2"]')!.checked).toBe(true);
+    await submit('Send feedback');
     await waitForText('sent without your name');
+    expect(container.querySelector<HTMLInputElement>('input[name="topic"]:checked')).toBeNull();
 
     await nav('Skill passport');
     await waitForText('Self-reported');
