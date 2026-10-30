@@ -1,12 +1,13 @@
-// Signed, HttpOnly cookie sessions. The cookie carries only the user ID and expiry; role and
-// organisation are re-read from the database on every request.
+// Signed, HttpOnly cookie sessions. The cookie carries only the user ID, a session version and
+// expiry; role, organisation, active status and the current session version are re-read from the
+// database on every request, so bumping the version (logout, deactivation) revokes issued cookies.
 import { randomBytes } from 'node:crypto';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { hmac, safeEqual } from './crypto';
 import { HttpError } from '../http';
 import type { AppContext } from '../context';
 import type { Role } from '../../shared/types';
-import { findSessionUser, type SessionUserRow } from '../repositories/users';
+import { bumpSessionVersion, findSessionUser, getSessionVersion, type SessionUserRow } from '../repositories/users';
 
 export const SESSION_COOKIE = 'fs_session';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -17,22 +18,29 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export function createToken(secret: string, userId: string, now: Date): string {
+export function createToken(secret: string, userId: string, now: Date, version = 0): string {
   const sid = randomBytes(16).toString('hex');
-  const payload = Buffer.from(JSON.stringify({ sub: userId, sid, exp: now.getTime() + SESSION_TTL_MS })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub: userId, sid, ver: version, exp: now.getTime() + SESSION_TTL_MS })).toString('base64url');
   return `${payload}.${hmac(secret, payload)}`;
 }
 
-export function verifyToken(secret: string, token: string, now: Date): string | null {
+/** Returns the signed claims of a valid, unexpired token. Tokens issued before versioning count as version 0. */
+export function verifyTokenClaims(secret: string, token: string, now: Date): { sub: string; ver: number } | null {
   const [payload, sig] = token.split('.');
   if (!payload || !sig || !safeEqual(sig, hmac(secret, payload))) return null;
   try {
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { sub?: unknown; exp?: unknown };
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { sub?: unknown; exp?: unknown; ver?: unknown };
     if (typeof data.sub !== 'string' || typeof data.exp !== 'number' || data.exp <= now.getTime()) return null;
-    return data.sub;
+    const ver = data.ver === undefined ? 0 : data.ver;
+    if (typeof ver !== 'number' || !Number.isSafeInteger(ver)) return null;
+    return { sub: data.sub, ver };
   } catch {
     return null;
   }
+}
+
+export function verifyToken(secret: string, token: string, now: Date): string | null {
+  return verifyTokenClaims(secret, token, now)?.sub ?? null;
 }
 
 function readCookie(req: Request, name: string): string | null {
@@ -46,13 +54,18 @@ function readCookie(req: Request, name: string): string | null {
 }
 
 export function setSessionCookie(ctx: AppContext, res: Response, userId: string): void {
-  res.cookie(SESSION_COOKIE, createToken(ctx.config.sessionSecret, userId, ctx.now()), {
+  res.cookie(SESSION_COOKIE, createToken(ctx.config.sessionSecret, userId, ctx.now(), getSessionVersion(ctx.db, userId)), {
     httpOnly: true,
     sameSite: 'lax',
     secure: ctx.config.production,
     maxAge: SESSION_TTL_MS,
     path: '/',
   });
+}
+
+/** Revokes every cookie issued to the user so far (all devices). */
+export function revokeSessions(ctx: AppContext, userId: string): void {
+  bumpSessionVersion(ctx.db, userId);
 }
 
 export function clearSessionCookie(ctx: AppContext, res: Response): void {
@@ -65,10 +78,10 @@ export function sessionMiddleware(ctx: AppContext): RequestHandler {
   return (req, _res, next) => {
     const token = readCookie(req, SESSION_COOKIE);
     if (token) {
-      const userId = verifyToken(ctx.config.sessionSecret, token, ctx.now());
-      if (userId) {
-        const user = findSessionUser(ctx.db, userId);
-        if (user && user.active) req.user = user;
+      const claims = verifyTokenClaims(ctx.config.sessionSecret, token, ctx.now());
+      if (claims) {
+        const user = findSessionUser(ctx.db, claims.sub);
+        if (user && user.active && getSessionVersion(ctx.db, user.id) === claims.ver) req.user = user;
       }
     }
     next();

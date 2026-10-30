@@ -96,6 +96,10 @@ function migrate(raw: DatabaseSync): void {
   if (!reportCols.some((c) => c.name === 'verification_note')) {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN verification_note TEXT`);
   }
+  const userCols = raw.prepare(`SELECT name FROM pragma_table_info('users')`).all() as { name: string }[];
+  if (!userCols.some((c) => c.name === 'session_version')) {
+    raw.exec(`ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0`);
+  }
   const receiptCols = raw.prepare(`SELECT name FROM pragma_table_info('work_receipts')`).all() as { name: string }[];
   if (!receiptCols.some((c) => c.name === 'key_id')) {
     raw.exec(`ALTER TABLE work_receipts ADD COLUMN key_id TEXT NOT NULL DEFAULT 'v1'`);

@@ -30,6 +30,15 @@ export function findSessionUser(db: Db, id: string): SessionUserRow | undefined 
   return toBool(db.get<SessionUserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = @id`, { id }));
 }
 
+export function getSessionVersion(db: Db, id: string): number {
+  return db.get<{ v: number }>(`SELECT session_version AS v FROM users WHERE id = @id`, { id })?.v ?? 0;
+}
+
+/** Invalidates every session cookie issued to the user before this call. */
+export function bumpSessionVersion(db: Db, id: string): void {
+  db.run(`UPDATE users SET session_version = session_version + 1 WHERE id = @id`, { id });
+}
+
 export function findLoginByPhone(db: Db, phone: string) {
   return db.get<{ id: string; pinHash: string; active: number }>(`SELECT id, pin_hash AS pinHash, active FROM users WHERE phone = @phone`, { phone });
 }
@@ -50,8 +59,10 @@ export function countActiveWorkers(db: Db, orgId: string): number {
 }
 
 export function updateWorker(db: Db, orgId: string, id: string, patch: { hourlyRateMinor?: number; active?: boolean }): void {
+  // Deactivation also revokes existing sessions, so reactivating later does not revive old cookies.
   db.run(
-    `UPDATE users SET hourly_rate_minor = COALESCE(@rate, hourly_rate_minor), active = COALESCE(@active, active)
+    `UPDATE users SET hourly_rate_minor = COALESCE(@rate, hourly_rate_minor), active = COALESCE(@active, active),
+       session_version = session_version + CASE WHEN @active = 0 THEN 1 ELSE 0 END
      WHERE id = @id AND org_id = @orgId AND role = 'worker'`,
     { id, orgId, rate: patch.hourlyRateMinor ?? null, active: patch.active ?? null },
   );

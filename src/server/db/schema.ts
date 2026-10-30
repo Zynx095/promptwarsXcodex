@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   hourly_rate_minor INTEGER NOT NULL DEFAULT 0 CHECK (hourly_rate_minor >= 0),
   active INTEGER NOT NULL DEFAULT 1,
   is_synthetic INTEGER NOT NULL DEFAULT 0,
+  session_version INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_users_org ON users(org_id, role);

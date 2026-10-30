@@ -4,7 +4,7 @@ import type { AuthConfigResponse, DemoAccount, MeResponse } from '../../shared/t
 import type { IndustryKey } from '../../shared/industries';
 import type { AppContext } from '../context';
 import { HttpError, parse } from '../http';
-import { clearSessionCookie, requireUser, setSessionCookie } from '../auth/session';
+import { clearSessionCookie, requireUser, revokeSessions, setSessionCookie } from '../auth/session';
 import { verifyPin } from '../auth/crypto';
 import { findLoginByPhone } from '../repositories/users';
 import { requireOrg, toSummary } from '../repositories/orgs';
@@ -111,7 +111,9 @@ export function authRoutes(ctx: AppContext): Router {
   });
 
   // ---- Session Management & Current Identity ----
-  r.post('/auth/logout', (_req, res) => {
+  r.post('/auth/logout', (req, res) => {
+    // Revoke server-side too: a copied cookie must stop working after sign-out.
+    if (req.user) revokeSessions(ctx, req.user.id);
     clearSessionCookie(ctx, res);
     res.json({ ok: true });
   });
