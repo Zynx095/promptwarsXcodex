@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, ShieldAlert, ShieldCheck, History, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, ShieldCheck, History, ArrowRight, Download, Link2 } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { useApi } from '../lib/useApi';
 import { api } from '../lib/api';
 import { formatDate, formatDateTime, formatMinutes } from '../lib/format';
 import { formatMoney } from '../../shared/money';
 import { useMe } from '../lib/session';
-import type { WorkReceiptDTO } from '../../shared/types';
+import type { IndependentVerificationBundle, WorkReceiptDTO } from '../../shared/types';
 import { Badge, Button, Card, Loading, Notice } from './ui';
 
 export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: () => void }) {
@@ -16,6 +16,8 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<boolean | null>(null);
+  const [anchoredState, setAnchoredState] = useState<boolean | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,12 +33,35 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
   async function handleVerify(receiptId: string) {
     setVerifying(true);
     try {
-      const res = await api<{ verified: boolean }>(`/receipts/${receiptId}/verify`);
+      const endpoint = me.user.role === 'admin' ? `/admin/receipts/${receiptId}/verify` : `/receipts/${receiptId}/verify`;
+      const res = await api<{ verified: boolean; anchored?: boolean; trustStatus?: string }>(endpoint);
       setVerifyResult(res.verified);
+      setAnchoredState(res.anchored ?? null);
     } catch {
       setVerifyResult(false);
     } finally {
       setVerifying(false);
+    }
+  }
+
+  async function handleExportBundle(receiptId: string) {
+    setExporting(true);
+    try {
+      const endpoint = me.user.role === 'admin' ? `/admin/receipts/${receiptId}/bundle` : `/receipts/${receiptId}/bundle`;
+      const bundle = await api<IndependentVerificationBundle>(endpoint);
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fairshift-receipt-${receiptId}-proof-bundle.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Proof bundle is not yet anchored in a finalized checkpoint batch.');
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -177,27 +202,53 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
 
             {/* Cryptographic Digest & Tamper Verification */}
             <div className="card p-3 m-0 bg-aubergine/5">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted">{t('receipt.digest')}</span>
-                {verifyResult === true || (verifyResult === null && activeReceipt.verified) ? (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-emerald-800">
-                    <ShieldCheck style={{ width: 14, height: 14 }} aria-hidden="true" />
-                    {t('receipt.verified')}
-                  </span>
-                ) : verifyResult === false ? (
-                  <span className="flex items-center gap-1 text-xs font-bold text-ruby-700">
-                    <ShieldAlert style={{ width: 14, height: 14 }} aria-hidden="true" />
-                    {t('receipt.tampered')}
-                  </span>
-                ) : null}
-              </div>
-              <code className="block p-2 rounded bg-black/5 font-mono text-xs break-all mb-2">{activeReceipt.canonicalDigest}</code>
-              <div className="flex justify-end">
-                <Button variant="secondary" className="btn btn-secondary btn-sm" busy={verifying} onClick={() => handleVerify(activeReceipt.id)}>
-                  <CheckCircle2 className="icon" aria-hidden="true" style={{ width: 14, height: 14 }} />
-                  {verifying ? t('receipt.verifying') : t('receipt.verifyAction')}
-                </Button>
-              </div>
+              {(() => {
+                const isAnchored = anchoredState !== null ? anchoredState : Boolean(activeReceipt.anchored);
+                return (
+                  <>
+                    <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted">{t('receipt.digest')}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge tone={isAnchored ? 'good' : 'info'}>
+                          <Link2 style={{ width: 12, height: 12, marginRight: 4 }} aria-hidden="true" />
+                          {isAnchored ? 'Merkle Anchored' : 'Pending Checkpoint'}
+                        </Badge>
+                        {verifyResult === true || (verifyResult === null && activeReceipt.verified) ? (
+                          <span className="flex items-center gap-1 text-xs font-semibold text-emerald-800">
+                            <ShieldCheck style={{ width: 14, height: 14 }} aria-hidden="true" />
+                            {isAnchored ? 'Sealed & Anchored' : t('receipt.verified')}
+                          </span>
+                        ) : verifyResult === false ? (
+                          <span className="flex items-center gap-1 text-xs font-bold text-ruby-700">
+                            <ShieldAlert style={{ width: 14, height: 14 }} aria-hidden="true" />
+                            {t('receipt.tampered')}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className="text-xs muted m-0 mb-2">
+                      {isAnchored
+                        ? 'This receipt is sealed in an immutable Merkle checkpoint log. It can be independently verified without server access.'
+                        : 'This receipt is cryptographically sealed with the organization key. It will be batched into the next checkpoint.'}
+                    </p>
+                    <code className="block p-2 rounded bg-black/5 font-mono text-xs break-all mb-3">{activeReceipt.canonicalDigest}</code>
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      {isAnchored ? (
+                        <Button variant="secondary" className="btn btn-secondary btn-sm" busy={exporting} onClick={() => handleExportBundle(activeReceipt.id)}>
+                          <Download className="icon" aria-hidden="true" style={{ width: 14, height: 14 }} />
+                          Export Proof Bundle
+                        </Button>
+                      ) : (
+                        <span />
+                      )}
+                      <Button variant="secondary" className="btn btn-secondary btn-sm" busy={verifying} onClick={() => handleVerify(activeReceipt.id)}>
+                        <CheckCircle2 className="icon" aria-hidden="true" style={{ width: 14, height: 14 }} />
+                        {verifying ? t('receipt.verifying') : t('receipt.verifyAction')}
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         ) : null}
