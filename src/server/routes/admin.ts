@@ -41,7 +41,7 @@ import { getAccountabilityMetrics, getReport, listOrgReports, transitionReport }
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
-import { getShiftReceipts, verifyReceipt } from '../services/receipts';
+import { getSecretForKey, getShiftReceipts, verifyReceipt } from '../services/receipts';
 import { generateCheckpointForOrg, getCheckpointSecretForKey, getIndependentVerificationBundle } from '../services/checkpoints';
 import { listCheckpoints } from '../repositories/checkpoints';
 import { verifyIndependentBundle } from '../../domain/proof';
@@ -550,13 +550,24 @@ export function adminRoutes(ctx: AppContext): Router {
   });
 
   r.post('/checkpoints/verify-bundle', (req, res) => {
+    const { org } = session(req);
     const bundle = req.body as IndependentVerificationBundle;
-    if (!bundle || typeof bundle !== 'object') {
+    if (!bundle || typeof bundle !== 'object' || Array.isArray(bundle)) {
       res.status(400).json({ error: { code: 'INVALID_BUNDLE', message: 'Valid verification bundle object required.' } });
       return;
     }
-    const chkSecret = getCheckpointSecretForKey(ctx, bundle.checkpoint?.keyId);
-    const result = verifyIndependentBundle(bundle, chkSecret);
+    // Only this organisation's keys may be used as an oracle, and only for this organisation's bundles.
+    if (bundle.checkpoint?.orgId !== org.id || bundle.receipt?.orgId !== org.id) {
+      res.json({ valid: false, trustStatus: 'wrong_organization', authenticated: false, reason: 'Bundle does not belong to this organisation' });
+      return;
+    }
+    const checkpointKeyId = bundle.checkpoint.keyId;
+    if (typeof checkpointKeyId !== 'string' || !Object.hasOwn(ctx.config.checkpointSigningKeys, checkpointKeyId)) {
+      res.json({ valid: false, trustStatus: 'unknown_key', authenticated: false, reason: 'Checkpoint key is not recognised' });
+      return;
+    }
+    const receiptKeyId = typeof bundle.receipt.keyId === 'string' ? bundle.receipt.keyId : 'v1';
+    const result = verifyIndependentBundle(bundle, getCheckpointSecretForKey(ctx, checkpointKeyId), getSecretForKey(ctx, receiptKeyId));
     res.json(result);
   });
 

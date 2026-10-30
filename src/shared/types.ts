@@ -490,6 +490,8 @@ export interface IndependentVerificationBundle {
 export type VerificationTrustStatus =
   | 'valid_and_anchored'
   | 'valid_unanchored'
+  | 'unauthenticated_inclusion'
+  | 'wrong_organization'
   | 'invalid_digest'
   | 'invalid_proof'
   | 'invalid_checkpoint_signature'

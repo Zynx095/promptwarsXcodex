@@ -87,15 +87,70 @@ describe('Proof Checkpoints and Independent Bundle Verification', () => {
       checkpoint,
     };
 
-    // Independent verification without secret (validates Merkle proof and canonical structure)
+    // Without the HMAC checkpoint key only internal Merkle consistency can be shown — never "anchored".
     const resultNoSecret = verifyIndependentBundle(bundle);
     expect(resultNoSecret.valid).toBe(true);
-    expect(resultNoSecret.trustStatus).toBe('valid_and_anchored');
+    expect(resultNoSecret.authenticated).toBe(false);
+    expect(resultNoSecret.trustStatus).toBe('unauthenticated_inclusion');
 
-    // Independent verification with public checkpoint verification secret
+    // With the organisation's checkpoint key the signed root is authenticated
     const resultWithSecret = verifyIndependentBundle(bundle, checkpointSecret);
     expect(resultWithSecret.valid).toBe(true);
+    expect(resultWithSecret.authenticated).toBe(true);
     expect(resultWithSecret.trustStatus).toBe('valid_and_anchored');
+
+    // With both keys the receipt contents are bound to the digest as well
+    expect(verifyIndependentBundle(bundle, checkpointSecret, receiptSecret).trustStatus).toBe('valid_and_anchored');
+  });
+
+  it('rejects a bundle whose receipt contents were altered after export when the receipt key is supplied', () => {
+    const bundle: IndependentVerificationBundle = {
+      version: '1.0',
+      receipt: { ...sampleReceipt, earnings: { ...sampleReceipt.earnings, grossPayMinor: 1 } },
+      canonicalDigest: digest,
+      leafHash,
+      leafIndex: 0,
+      auditPath,
+      checkpoint,
+    };
+    const res = verifyIndependentBundle(bundle, checkpointSecret, receiptSecret);
+    expect(res.valid).toBe(false);
+    expect(res.trustStatus).toBe('invalid_digest');
+  });
+
+  it('reports a self-consistent forged bundle as unauthenticated rather than anchored', () => {
+    const forgedDigest = 'ab'.repeat(32);
+    const forgedLeaf = computeReceiptLeafHash(forgedDigest);
+    const forgedTree = buildMerkleTree([forgedLeaf]);
+    const forged: IndependentVerificationBundle = {
+      version: '1.0',
+      receipt: sampleReceipt,
+      canonicalDigest: forgedDigest,
+      leafHash: forgedLeaf,
+      leafIndex: 0,
+      auditPath: generateMerkleProof(forgedTree, 0),
+      checkpoint: { ...checkpoint, merkleRoot: forgedTree.root },
+    };
+    expect(verifyIndependentBundle(forged).trustStatus).toBe('unauthenticated_inclusion');
+    expect(verifyIndependentBundle(forged, checkpointSecret).trustStatus).toBe('invalid_checkpoint_signature');
+  });
+
+  it('returns a structured failure instead of throwing for malformed bundles', () => {
+    const malformed: unknown[] = [
+      null,
+      'bundle',
+      { version: '1.0' },
+      { version: '1.0', receipt: sampleReceipt, canonicalDigest: 'not-hex', leafHash, auditPath, checkpoint },
+      { version: '1.0', receipt: sampleReceipt, canonicalDigest: digest, auditPath, checkpoint },
+      { version: '1.0', receipt: sampleReceipt, canonicalDigest: digest, leafHash, auditPath: 'x', checkpoint },
+      { version: '1.0', receipt: sampleReceipt, canonicalDigest: digest, leafHash, auditPath: [{ position: 'up', hash: leafHash }], checkpoint },
+      { version: '1.0', receipt: sampleReceipt, canonicalDigest: digest, leafHash, auditPath, checkpoint: { ...checkpoint, merkleRoot: 42 } },
+    ];
+    for (const b of malformed) {
+      const res = verifyIndependentBundle(b as IndependentVerificationBundle, checkpointSecret, receiptSecret);
+      expect(res.valid).toBe(false);
+      expect(res.authenticated).toBe(false);
+    }
   });
 
   it('rejects bundle with corrupted leaf hash or canonical digest', () => {

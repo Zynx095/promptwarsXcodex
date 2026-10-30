@@ -109,6 +109,39 @@ describe('FairShift Proof — Checkpoints, Merkle Trees & Independent Anchoring'
     expect(tamperedRes.body.valid).toBe(false);
     expect(tamperedRes.body.trustStatus).toBe('invalid_digest');
 
+    // Altering the receipt contents while keeping the digest is detected server-side
+    const alteredReceipt = {
+      ...bundle,
+      receipt: { ...bundle.receipt, earnings: { ...bundle.receipt.earnings, grossPayMinor: bundle.receipt.earnings.grossPayMinor + 100000 } },
+    };
+    const alteredRes = await adminSession.post('/api/admin/checkpoints/verify-bundle').send(alteredReceipt);
+    expect(alteredRes.status).toBe(200);
+    expect(alteredRes.body.valid).toBe(false);
+    expect(alteredRes.body.trustStatus).toBe('invalid_digest');
+
+    // Malformed bundles are rejected without a server error
+    for (const body of [
+      { ...bundle, leafHash: undefined },
+      { ...bundle, canonicalDigest: 'zz' },
+      { ...bundle, auditPath: null },
+    ]) {
+      const res = await adminSession.post('/api/admin/checkpoints/verify-bundle').send(body);
+      expect(res.status).toBe(200);
+      expect(res.body.valid).toBe(false);
+    }
+
+    // Unknown checkpoint key identifiers are reported rather than silently using the active key
+    const unknownKey = await adminSession
+      .post('/api/admin/checkpoints/verify-bundle')
+      .send({ ...bundle, checkpoint: { ...bundle.checkpoint, keyId: 'chk_missing' } });
+    expect(unknownKey.body.trustStatus).toBe('unknown_key');
+
+    // Another organisation's admin cannot use this server as a verification oracle for foreign bundles
+    const foreign = await eduAdminSession.post('/api/admin/checkpoints/verify-bundle').send(bundle);
+    expect(foreign.status).toBe(200);
+    expect(foreign.body.valid).toBe(false);
+    expect(foreign.body.trustStatus).toBe('wrong_organization');
+
     // Tenant isolation: Education admin cannot access Construction receipt bundle
     const crossTenantBundle = await eduAdminSession.get(`/api/admin/receipts/${constructionReceipt.id}/bundle`);
     expect(crossTenantBundle.status).toBe(404);

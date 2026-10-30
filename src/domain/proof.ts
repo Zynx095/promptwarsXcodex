@@ -219,39 +219,92 @@ export function verifyCheckpointSignature(secret: string, checkpoint: ProofCheck
   }
 }
 
+export interface BundleVerificationResult {
+  valid: boolean;
+  trustStatus: VerificationTrustStatus;
+  /** True only when the checkpoint signature was checked with the organisation's checkpoint key. */
+  authenticated: boolean;
+  reason?: string;
+}
+
+const HEX64 = /^[0-9a-fA-F]{64}$/;
+
+function isWellFormedBundle(bundle: unknown): bundle is IndependentVerificationBundle {
+  if (!bundle || typeof bundle !== 'object') return false;
+  const b = bundle as Partial<IndependentVerificationBundle>;
+  const c = b.checkpoint as Partial<ProofCheckpointDTO> | undefined;
+  return (
+    b.version === '1.0' &&
+    !!b.receipt &&
+    typeof b.receipt === 'object' &&
+    typeof b.canonicalDigest === 'string' &&
+    HEX64.test(b.canonicalDigest) &&
+    typeof b.leafHash === 'string' &&
+    HEX64.test(b.leafHash) &&
+    Array.isArray(b.auditPath) &&
+    b.auditPath.length <= 64 &&
+    !!c &&
+    typeof c === 'object' &&
+    typeof c.merkleRoot === 'string' &&
+    HEX64.test(c.merkleRoot)
+  );
+}
+
 /**
- * Independently verifies a complete verification bundle containing receipt, Merkle proof, and checkpoint.
- * Does NOT require database access or receipt signing secrets.
+ * Verifies a verification bundle containing receipt, Merkle proof, and checkpoint. Never throws.
+ *
+ * Without secrets this only proves internal consistency: the leaf and audit path evaluate to the
+ * checkpoint root stated in the same bundle. Checkpoints and receipt digests are HMAC-SHA256, so
+ * authenticity can only be established by a holder of the organisation's keys (`checkpointSecret`
+ * for the checkpoint signature, `receiptSecret` to bind the receipt contents to the digest).
+ * Integrity is relative to the recorded inputs; it does not prove the original record was truthful.
  */
-export function verifyIndependentBundle(
-  bundle: IndependentVerificationBundle,
-  checkpointSecret?: string,
-): { valid: boolean; trustStatus: VerificationTrustStatus; reason?: string } {
-  if (!bundle || bundle.version !== '1.0' || !bundle.receipt || !bundle.checkpoint) {
-    return { valid: false, trustStatus: 'invalid_digest', reason: 'Malformed verification bundle structure' };
+export function verifyIndependentBundle(bundle: IndependentVerificationBundle, checkpointSecret?: string, receiptSecret?: string): BundleVerificationResult {
+  if (!isWellFormedBundle(bundle)) {
+    return { valid: false, trustStatus: 'invalid_digest', authenticated: false, reason: 'Malformed verification bundle structure' };
   }
 
-  // 1. Verify canonical digest against leaf data
-  const leafHash = computeReceiptLeafHash(bundle.canonicalDigest);
-  if (!safeEqual(leafHash.toLowerCase(), bundle.leafHash.toLowerCase())) {
-    return { valid: false, trustStatus: 'invalid_digest', reason: 'Leaf hash does not match canonical digest' };
-  }
-
-  // 2. Verify Merkle inclusion proof against checkpoint root
-  const proofValid = verifyMerkleProof(bundle.leafHash, bundle.auditPath, bundle.checkpoint.merkleRoot);
-  if (!proofValid) {
-    return { valid: false, trustStatus: 'invalid_proof', reason: 'Merkle inclusion proof does not evaluate to checkpoint root' };
-  }
-
-  // 3. Verify checkpoint signature if secret is provided
-  if (checkpointSecret) {
-    const sigValid = verifyCheckpointSignature(checkpointSecret, bundle.checkpoint);
-    if (!sigValid) {
-      return { valid: false, trustStatus: 'invalid_checkpoint_signature', reason: 'Checkpoint signature verification failed' };
+  try {
+    // 1. Bind the receipt contents to the canonical digest (requires the receipt signing key)
+    if (receiptSecret && !verifyReceiptDigest(receiptSecret, bundle.receipt, bundle.canonicalDigest)) {
+      return { valid: false, trustStatus: 'invalid_digest', authenticated: false, reason: 'Receipt contents do not match the canonical digest' };
     }
+
+    // 2. Verify canonical digest against leaf data
+    const leafHash = computeReceiptLeafHash(bundle.canonicalDigest);
+    if (!safeEqual(leafHash.toLowerCase(), bundle.leafHash.toLowerCase())) {
+      return { valid: false, trustStatus: 'invalid_digest', authenticated: false, reason: 'Leaf hash does not match canonical digest' };
+    }
+
+    // 3. Verify Merkle inclusion proof against checkpoint root
+    const proofValid = verifyMerkleProof(bundle.leafHash, bundle.auditPath, bundle.checkpoint.merkleRoot);
+    if (!proofValid) {
+      return {
+        valid: false,
+        trustStatus: 'invalid_proof',
+        authenticated: false,
+        reason: 'Merkle inclusion proof does not evaluate to checkpoint root',
+      };
+    }
+
+    // 4. Without the checkpoint key the root itself is unauthenticated: anyone can build a consistent bundle.
+    if (!checkpointSecret) {
+      return {
+        valid: true,
+        trustStatus: 'unauthenticated_inclusion',
+        authenticated: false,
+        reason: 'Merkle inclusion is internally consistent, but the checkpoint signature was not checked (HMAC key required)',
+      };
+    }
+
+    if (!verifyCheckpointSignature(checkpointSecret, bundle.checkpoint)) {
+      return { valid: false, trustStatus: 'invalid_checkpoint_signature', authenticated: false, reason: 'Checkpoint signature verification failed' };
+    }
+  } catch {
+    return { valid: false, trustStatus: 'invalid_digest', authenticated: false, reason: 'Malformed verification bundle structure' };
   }
 
-  return { valid: true, trustStatus: 'valid_and_anchored' };
+  return { valid: true, trustStatus: 'valid_and_anchored', authenticated: true };
 }
 
 /**
