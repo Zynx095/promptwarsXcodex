@@ -376,10 +376,14 @@ export function analyzeSafeSignals(reports: SignalReportInput[], categories: { k
   const categoryMap = new Map(categories.map((c) => [c.key, c.label]));
   const deduplicated = deduplicateReports(reports);
 
-  const clusters = detectCategoryClusters(deduplicated, categoryMap, now);
-  const persistent = detectPersistentUnresolved(deduplicated, categoryMap, now);
-  const escalations = detectSeverityEscalations(deduplicated, categoryMap, now);
-  const reopened = detectReopenedClusters(deduplicated, categoryMap, now);
+  // Every rule needs both the report cohort and reporter diversity, so one worker cannot create
+  // (or be singled out by) a pattern on their own.
+  const k = SAFE_SIGNAL_MIN_COHORT;
+  const d = SAFE_SIGNAL_MIN_DISTINCT_REPORTERS;
+  const clusters = detectCategoryClusters(deduplicated, categoryMap, now, 14, k, d);
+  const persistent = detectPersistentUnresolved(deduplicated, categoryMap, now, 7, k, d);
+  const escalations = detectSeverityEscalations(deduplicated, categoryMap, now, 30, k, d);
+  const reopened = detectReopenedClusters(deduplicated, categoryMap, now, 30, k, d);
 
   // Return combined signals sorted by severity weight descending, then report count descending
   return [...clusters, ...persistent, ...escalations, ...reopened].sort((a, b) => {

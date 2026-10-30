@@ -24,8 +24,9 @@ Safe Signal resolves this tension by providing **cohort-level pattern visibility
 ### 3.1 Minimum Cohort Suppression ($k \ge 3$)
 
 - Safe Signal enforces a strict cohort threshold: `SAFE_SIGNAL_MIN_COHORT = 3`.
-- Any category, cluster, or potential pattern with fewer than 3 distinct reports is automatically suppressed from the signals view.
-- This prevents "singling-out" attacks where a supervisor deduces who reported an issue based on team shifts or narrow timing.
+- Any category, cluster, or potential pattern with fewer than 3 reports (after 15-minute duplicate removal) **or** fewer than 2 distinct reporter pseudonyms (`SAFE_SIGNAL_MIN_DISTINCT_REPORTERS`) is suppressed. Both thresholds are applied by every rule in `analyzeSafeSignals`.
+- This reduces, but does not eliminate, "singling-out" risk. k ≥ 3 is a suppression threshold, not an anonymity guarantee: a supervisor who already knows who works in an area, or who compares the signal list before and after a single new report, can still narrow down a reporter using context outside FairShift.
+- Signals only aggregate reports that administrators can already open individually in the report list; they never add reporter identity. The privacy protection for confidential reporters is that no reporter identifier is stored for them at all (see 3.2), not the cohort threshold.
 
 ### 3.2 Identifier Isolation
 

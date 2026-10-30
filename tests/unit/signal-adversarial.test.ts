@@ -89,6 +89,58 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
       expect(clusters).toHaveLength(0);
     });
 
+    it('applies the distinct-reporter requirement in the full analysis pipeline, not only in isolated rules', () => {
+      // One worker files 4 distinct fall reports over several days: enough reports for every rule,
+      // persistent (older than 7 days, unresolved) and escalating in severity.
+      const soloReports: SignalReportInput[] = [
+        {
+          id: 's1',
+          category: 'fall',
+          severity: 'low',
+          status: 'submitted',
+          createdAt: '2026-10-15T08:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'solo',
+          title: 'A',
+        },
+        {
+          id: 's2',
+          category: 'fall',
+          severity: 'low',
+          status: 'submitted',
+          createdAt: '2026-10-16T08:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'solo',
+          title: 'B',
+        },
+        {
+          id: 's3',
+          category: 'fall',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-17T08:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'solo',
+          title: 'C',
+        },
+        {
+          id: 's4',
+          category: 'fall',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-18T08:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'solo',
+          title: 'D',
+        },
+      ];
+      expect(analyzeSafeSignals(soloReports, categories, now)).toHaveLength(0);
+
+      // A second, distinct reporter makes the same pattern reportable.
+      const withSecond = [...soloReports.slice(0, 3), { ...soloReports[3]!, reporterKey: 'other' }];
+      expect(analyzeSafeSignals(withSecond, categories, now).length).toBeGreaterThan(0);
+    });
+
     it('emits signal when at least 2 distinct workers contribute to the cohort', () => {
       const multiWorkerCohort: SignalReportInput[] = [
         { id: 'rep_1', category: 'fall', severity: 'high', status: 'submitted', createdAt: '2026-10-25T08:00:00Z', resolvedAt: null, reporterKey: 'user_a' },

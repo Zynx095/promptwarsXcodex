@@ -72,13 +72,14 @@ describe('Safe Signal Integration — Recurring Hazard Detection & Privacy Prote
 
   it('enforces tenant isolation — signals in one organization do not leak to another', async () => {
     const env = await setup();
-    const constructionWorker = await env.login(PHONES.lakshmi);
+    const lakshmi = await env.login(PHONES.lakshmi);
+    const irfan = await env.login(PHONES.irfan);
     const constructionAdmin = await env.login(PHONES.constructionAdmin);
     const campusAdmin = await env.login(PHONES.campusAdmin);
 
-    // Create 3 reports in construction for 'machinery' category
+    // Create 3 reports in construction for 'machinery' category from two distinct workers
     for (let i = 0; i < 3; i++) {
-      const res = await constructionWorker.post('/api/reports').send({
+      const res = await (i === 2 ? irfan : lakshmi).post('/api/reports').send({
         category: 'machinery',
         severity: 'high',
         title: `Heavy machinery hydraulic leak #${i + 1}`,
