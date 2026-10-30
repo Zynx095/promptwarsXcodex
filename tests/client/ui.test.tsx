@@ -164,15 +164,16 @@ describe('web client', () => {
     await nav('Safety reports');
     await click(findByText<HTMLAnchorElement>('a', 'Report a hazard'));
     await waitForText('What kind of hazard?');
-    await submit('Submit');
+    await submit('Send report');
     await waitForText('Some fields need attention.');
-    expect(container.querySelector('[aria-invalid="true"]')).not.toBeNull();
-    await type(fieldByLabel('What kind of hazard?'), 'electrical');
+    expect(container.querySelectorAll('[role=radiogroup][aria-invalid="true"]')).toHaveLength(2);
+    expect(container.querySelector('input[aria-invalid="true"]')).not.toBeNull();
+    await click(container.querySelector<HTMLInputElement>('input[name=category][value=electrical]')!);
     await click(container.querySelector<HTMLInputElement>('input[name=severity][value=high]')!);
     await type(fieldByLabel('Short title'), 'Broken switchboard cover');
     await type(fieldByLabel('Where is it?'), 'Tower A ground floor');
     await type(fieldByLabel('Describe the hazard'), 'The switchboard cover is cracked and live parts are exposed.');
-    await submit('Submit');
+    await submit('Send report');
     await waitForText('Report sent');
     await waitForText('Reported – not yet reviewed');
 

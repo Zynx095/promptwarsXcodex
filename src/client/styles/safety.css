@@ -1,0 +1,203 @@
+/* Safety reports: the reporting form, report rows and the accountability lifecycle */
+
+.report-form {
+  max-width: 640px;
+}
+.form-error-anchor:focus {
+  outline: none;
+}
+.report-step {
+  margin: 0 0 var(--sp-7);
+}
+.report-step > legend {
+  margin-bottom: var(--sp-3);
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+  color: var(--fs-aubergine);
+}
+
+.hazard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: var(--sp-2);
+}
+.hazard-tile {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-height: 104px;
+  margin: 0;
+  position: relative;
+}
+.hazard-tile input {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.hazard-tile span {
+  padding-right: var(--sp-6);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.hazard-tile svg.hazard-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--fs-aubergine);
+}
+
+.severity-list {
+  display: grid;
+  gap: var(--sp-2);
+}
+.severity-tile {
+  position: relative;
+  align-items: center;
+  margin: 0;
+  padding-left: calc(var(--sp-4) + 6px);
+  overflow: hidden;
+  font-weight: 600;
+}
+.severity-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: var(--fs-line-strong);
+}
+.severity-medium::before {
+  background: var(--fs-marigold);
+}
+.severity-high::before {
+  background: var(--fs-danger);
+}
+.severity-critical::before {
+  width: 10px;
+  background: var(--fs-hazard);
+}
+.severity-critical {
+  padding-left: calc(var(--sp-4) + 10px);
+}
+
+.identity-tile {
+  align-items: flex-start;
+}
+.identity-icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--fs-aubergine);
+}
+.identity-tile strong {
+  display: block;
+}
+.tile-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.report-actions {
+  align-items: center;
+}
+.report-actions .btn-big {
+  flex: 1 1 260px;
+}
+
+/* Report rows */
+.report-row {
+  align-items: flex-start;
+}
+.report-row-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 4px 0 2px;
+}
+.safety-tools {
+  margin-top: var(--sp-8);
+}
+
+/* Lifecycle bar: five segments, filled up to the stage reached */
+.lifebar {
+  display: inline-grid;
+  grid-template-columns: repeat(5, 14px);
+  gap: 3px;
+}
+.lifebar span {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--fs-line);
+}
+.lifebar span.is-done {
+  background: var(--fs-aubergine);
+}
+.lifebar.is-reopened span.is-done {
+  background: var(--fs-danger);
+}
+
+/* Lifecycle steps on a report: a numbered path from reported to verified */
+.lifesteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  counter-reset: life;
+}
+.lifesteps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  text-align: center;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.lifesteps li::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: -50%;
+  width: 100%;
+  height: 3px;
+  background: var(--fs-line);
+}
+.lifesteps li:first-child::before {
+  display: none;
+}
+.lifesteps li.is-done::before,
+.lifesteps li.is-current::before {
+  background: var(--fs-aubergine);
+}
+.lifestep-dot {
+  position: relative;
+  z-index: 1;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--fs-line-strong);
+  background: var(--fs-paper);
+}
+.lifesteps li.is-done .lifestep-dot {
+  border-color: var(--fs-aubergine);
+  background: var(--fs-aubergine);
+  box-shadow: inset 0 0 0 4px var(--fs-paper);
+}
+.lifesteps li.is-current .lifestep-dot {
+  border-color: var(--fs-aubergine);
+  background: var(--fs-marigold);
+}
+.lifesteps li.is-current {
+  color: var(--fs-ink);
+  font-weight: 700;
+}
+.lifesteps li.is-done {
+  color: var(--fs-ink-2);
+}
+.lifestep-note {
+  font-weight: 600;
+  color: var(--fs-caution);
+}

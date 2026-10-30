@@ -360,5 +360,21 @@
   "receipt.hoursChange": "घंटे: {before} → {after}",
   "receipt.payChange": "शिफ्ट का वेतन: {before} → {after}",
   "receipt.versionOriginal": "{date} को पहली बार दर्ज किया गया",
-  "receipt.viewingOld": "आप संस्करण {version} देख रहे हैं, जो बाद में बदल गया।"
+  "receipt.viewingOld": "आप संस्करण {version} देख रहे हैं, जो बाद में बदल गया।",
+  "rep.formIntro": "अपने नियोक्ता को बताएँ कि क्या असुरक्षित है। उनसे उम्मीद है कि वे जो करें उसे दर्ज करें, और आप हर कदम यहाँ देख सकते हैं।",
+  "rep.identity": "आपका नाम कौन देख सकता है?",
+  "rep.named": "मेरा नाम मेरे नियोक्ता को दिखाएँ",
+  "rep.namedHint": "आपका नियोक्ता आपसे और जानकारी माँग सकता है।",
+  "rep.send": "रिपोर्ट भेजें",
+  "rep.confidentialShort": "गोपनीय",
+  "life.label": "इस रिपोर्ट की प्रगति",
+  "life.reported": "रिपोर्ट हुई",
+  "life.seen": "देखा गया",
+  "life.fixing": "ठीक हो रहा है",
+  "life.fixed": "ठीक हुआ",
+  "life.verified": "जाँचा गया",
+  "life.followUpOn": "{date} को दोबारा जाँच",
+  "life.done": "पूरा",
+  "life.now": "मौजूदा कदम",
+  "life.notYet": "अभी नहीं"
 }

@@ -359,5 +359,21 @@
   "receipt.hoursChange": "ಗಂಟೆಗಳು: {before} → {after}",
   "receipt.payChange": "ಶಿಫ್ಟ್‌ನ ವೇತನ: {before} → {after}",
   "receipt.versionOriginal": "{date} ರಂದು ಮೊದಲು ದಾಖಲಾದಂತೆ",
-  "receipt.viewingOld": "ನೀವು ಆವೃತ್ತಿ {version} ಅನ್ನು ನೋಡುತ್ತಿದ್ದೀರಿ, ಅದು ನಂತರ ಬದಲಾಗಿದೆ."
+  "receipt.viewingOld": "ನೀವು ಆವೃತ್ತಿ {version} ಅನ್ನು ನೋಡುತ್ತಿದ್ದೀರಿ, ಅದು ನಂತರ ಬದಲಾಗಿದೆ.",
+  "rep.formIntro": "ಏನು ಅಸುರಕ್ಷಿತವಾಗಿದೆ ಎಂದು ನಿಮ್ಮ ಉದ್ಯೋಗದಾತರಿಗೆ ತಿಳಿಸಿ. ಅದರ ಬಗ್ಗೆ ಅವರು ಏನು ಮಾಡುತ್ತಾರೆ ಎಂಬುದನ್ನು ದಾಖಲಿಸಬೇಕು, ಮತ್ತು ಪ್ರತಿ ಹಂತವನ್ನು ನೀವು ಇಲ್ಲಿ ನೋಡಬಹುದು.",
+  "rep.identity": "ನಿಮ್ಮ ಹೆಸರನ್ನು ಯಾರು ನೋಡಬಹುದು?",
+  "rep.named": "ನನ್ನ ಹೆಸರನ್ನು ನನ್ನ ಉದ್ಯೋಗದಾತರಿಗೆ ತೋರಿಸಿ",
+  "rep.namedHint": "ನಿಮ್ಮ ಉದ್ಯೋಗದಾತರು ನಿಮ್ಮಿಂದ ಹೆಚ್ಚಿನ ವಿವರಗಳನ್ನು ಕೇಳಬಹುದು.",
+  "rep.send": "ವರದಿ ಕಳುಹಿಸಿ",
+  "rep.confidentialShort": "ಗೋಪ್ಯ",
+  "life.label": "ಈ ವರದಿಯ ಪ್ರಗತಿ",
+  "life.reported": "ವರದಿಯಾಗಿದೆ",
+  "life.seen": "ನೋಡಲಾಗಿದೆ",
+  "life.fixing": "ಸರಿಪಡಿಸಲಾಗುತ್ತಿದೆ",
+  "life.fixed": "ಸರಿಪಡಿಸಲಾಗಿದೆ",
+  "life.verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "life.followUpOn": "{date} ರಂದು ಮರುಪರಿಶೀಲನೆ",
+  "life.done": "ಪೂರ್ಣಗೊಂಡಿದೆ",
+  "life.now": "ಈಗಿನ ಹಂತ",
+  "life.notYet": "ಇನ್ನೂ ಇಲ್ಲ"
 }

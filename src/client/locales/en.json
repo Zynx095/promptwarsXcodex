@@ -360,5 +360,21 @@
   "receipt.hoursChange": "Hours: {before} → {after}",
   "receipt.payChange": "Pay for the shift: {before} → {after}",
   "receipt.versionOriginal": "As first recorded on {date}",
-  "receipt.viewingOld": "You are looking at version {version}, which has since been changed."
+  "receipt.viewingOld": "You are looking at version {version}, which has since been changed.",
+  "rep.formIntro": "Tell your employer what is unsafe. They are expected to record what they do about it, and you can follow each step here.",
+  "rep.identity": "Who can see your name?",
+  "rep.named": "Show my name to my employer",
+  "rep.namedHint": "Your employer can ask you for more details.",
+  "rep.send": "Send report",
+  "rep.confidentialShort": "confidential",
+  "life.label": "Progress of this report",
+  "life.reported": "Reported",
+  "life.seen": "Seen",
+  "life.fixing": "Being fixed",
+  "life.fixed": "Fixed",
+  "life.verified": "Checked",
+  "life.followUpOn": "Follow-up check on {date}",
+  "life.done": "done",
+  "life.now": "current step",
+  "life.notYet": "not yet"
 }

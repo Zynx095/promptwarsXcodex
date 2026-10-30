@@ -360,5 +360,21 @@
   "receipt.hoursChange": "ঘণ্টা: {before} → {after}",
   "receipt.payChange": "শিফটের বেতন: {before} → {after}",
   "receipt.versionOriginal": "{date} তারিখে প্রথম যেমন রেকর্ড হয়েছিল",
-  "receipt.viewingOld": "আপনি সংস্করণ {version} দেখছেন, যা পরে বদলানো হয়েছে।"
+  "receipt.viewingOld": "আপনি সংস্করণ {version} দেখছেন, যা পরে বদলানো হয়েছে।",
+  "rep.formIntro": "কী অনিরাপদ তা আপনার নিয়োগকর্তাকে জানান। তাঁরা এ নিয়ে কী করেন তা রেকর্ড করার কথা, আর প্রতিটি ধাপ আপনি এখানে দেখতে পাবেন।",
+  "rep.identity": "আপনার নাম কে দেখতে পাবে?",
+  "rep.named": "আমার নাম আমার নিয়োগকর্তাকে দেখান",
+  "rep.namedHint": "আপনার নিয়োগকর্তা আপনার কাছে আরও তথ্য চাইতে পারেন।",
+  "rep.send": "রিপোর্ট পাঠান",
+  "rep.confidentialShort": "গোপনীয়",
+  "life.label": "এই রিপোর্টের অগ্রগতি",
+  "life.reported": "জানানো হয়েছে",
+  "life.seen": "দেখা হয়েছে",
+  "life.fixing": "ঠিক করা হচ্ছে",
+  "life.fixed": "ঠিক হয়েছে",
+  "life.verified": "যাচাই হয়েছে",
+  "life.followUpOn": "{date} তারিখে আবার যাচাই",
+  "life.done": "সম্পন্ন",
+  "life.now": "বর্তমান ধাপ",
+  "life.notYet": "এখনও নয়"
 }
