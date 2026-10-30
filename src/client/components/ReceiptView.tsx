@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, ShieldAlert, ShieldCheck, History, ArrowRight, Download, Link2 } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, ShieldCheck, History, ArrowRight, Download, Link2, Printer } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+
 import { useApi } from '../lib/useApi';
 import { api } from '../lib/api';
 import { formatDate, formatDateTime, formatMinutes } from '../lib/format';
@@ -200,7 +201,22 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
               </ul>
             </Card>
 
+            {/* Plain-Language Worker Guarantee */}
+            <div className="card p-3 m-0" style={{ background: 'rgba(234, 170, 0, 0.08)', borderColor: 'rgba(234, 170, 0, 0.3)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldCheck style={{ width: 16, height: 16, color: 'var(--c-navy)' }} aria-hidden="true" />
+                <strong className="text-xs uppercase tracking-wider" style={{ color: 'var(--c-navy)' }}>
+                  {t('receipt.guaranteeTitle') || 'FairShift Worker Guarantee'}
+                </strong>
+              </div>
+              <p className="text-xs m-0" style={{ color: 'var(--c-heading)', lineHeight: 1.4 }}>
+                {t('receipt.guaranteeText') ||
+                  'This receipt is sealed with cryptographic math. Once issued, your employer cannot alter your hours, overtime, or pay calculation without creating a visible versioned trail.'}
+              </p>
+            </div>
+
             {/* Cryptographic Digest & Tamper Verification */}
+
             <div className="card p-3 m-0 bg-aubergine/5">
               {(() => {
                 const isAnchored = anchoredState !== null ? anchoredState : Boolean(activeReceipt.anchored);
@@ -253,7 +269,11 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
           </div>
         ) : null}
 
-        <div className="dialog-actions mt-4">
+        <div className="dialog-actions mt-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Button variant="secondary" onClick={() => window.print()}>
+            <Printer style={{ width: 14, height: 14, marginRight: 4 }} aria-hidden="true" />
+            <span>{t('pay.print') || 'Print'}</span>
+          </Button>
           <Button variant="primary" onClick={onClose}>
             {t('receipt.close')}
           </Button>

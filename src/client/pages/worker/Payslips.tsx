@@ -5,6 +5,7 @@ import { formatDate } from '../../lib/format';
 import type { Paged, PayslipDTO, PayslipListItem } from '../../../shared/types';
 import { Async, Card, Empty, Money, Page } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
+import { Printer } from 'lucide-react';
 
 export function WorkerPayslips() {
   const { t, locale } = useI18n();
@@ -56,9 +57,15 @@ export function WorkerPayslipView({ id }: { id: string }) {
     <Page
       title={t('pay.title')}
       actions={
-        <button type="button" className="btn btn-secondary" onClick={() => navigate('/worker/payslips')}>
-          {t('action.back')}
-        </button>
+        <div className="btn-group">
+          <button type="button" className="btn btn-secondary" onClick={() => window.print()}>
+            <Printer className="icon-sm" aria-hidden="true" />
+            <span>{t('pay.print') || 'Print'}</span>
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate('/worker/payslips')}>
+            {t('action.back')}
+          </button>
+        </div>
       }
     >
       <Card>

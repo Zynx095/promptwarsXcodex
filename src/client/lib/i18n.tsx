@@ -240,6 +240,17 @@ const en = {
   'err.notAllowed': 'You do not have access to this page.',
   'err.notFound': 'Page not found.',
   'err.goHome': 'Go to home',
+  'notifications.title': 'Notifications',
+  'notifications.markAllRead': 'Mark all read',
+  'notifications.empty': 'No notifications yet.',
+  'sites.title': 'Sites & Locations',
+  'sites.subtitle': 'Manage physical worksites, job yards, and campus facilities across your organization.',
+  'sites.addSite': 'Add Site',
+  'sites.searchPlaceholder': 'Search by site name, code or address...',
+  'receipt.guaranteeTitle': 'FairShift Worker Guarantee',
+  'receipt.guaranteeText':
+    'This receipt is sealed with cryptographic math. Once issued, your employer cannot alter your hours, overtime, or pay calculation without creating a visible versioned trail.',
+  'pay.print': 'Print',
 };
 
 export type MessageKey = keyof typeof en;
@@ -482,6 +493,17 @@ const kn: Dictionary = {
   'err.notAllowed': 'ಈ ಪುಟಕ್ಕೆ ನಿಮಗೆ ಪ್ರವೇಶವಿಲ್ಲ.',
   'err.notFound': 'ಪುಟ ಸಿಗಲಿಲ್ಲ.',
   'err.goHome': 'ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ',
+  'notifications.title': 'ಸೂಚನೆಗಳು',
+  'notifications.markAllRead': 'ಎಲ್ಲವನ್ನೂ ಓದಿದಂತೆ ಗುರುತಿಸಿ',
+  'notifications.empty': 'ಇನ್ನೂ ಯಾವುದೇ ಸೂಚನೆಗಳಿಲ್ಲ.',
+  'sites.title': 'ಕೆಲಸದ ಸ್ಥಳಗಳು ಮತ್ತು ಸೈಟ್‌ಗಳು',
+  'sites.subtitle': 'ನಿಮ್ಮ ಸಂಸ್ಥೆಯಾದ್ಯಂತ ಕೆಲಸದ ಸ್ಥಳಗಳು, ಯಾರ್ಡ್‌ಗಳು ಮತ್ತು ಆವರಣದ ಸೌಲಭ್ಯಗಳನ್ನು ನಿರ್ವಹಿಸಿ.',
+  'sites.addSite': 'ಸೈಟ್ ಸೇರಿಸಿ',
+  'sites.searchPlaceholder': 'ಸೈಟ್ ಹೆಸರು, ಕೋಡ್ ಅಥವಾ ವಿಳಾಸದ ಮೂಲಕ ಹುಡುಕಿ...',
+  'receipt.guaranteeTitle': 'ಫೇರ್‌ಶಿಫ್ಟ್ ಕಾರ್ಮಿಕ ಭರವಸೆ',
+  'receipt.guaranteeText':
+    'ಈ ರಶೀದಿಯು ಕ್ರಿಪ್ಟೋಗ್ರಾಫಿಕ್ ಸಹಿಯೊಂದಿಗೆ ಭದ್ರವಾಗಿದೆ. ಒಮ್ಮೆ ನೀಡಿದ ನಂತರ, ನಿಮ್ಮ ಉದ್ಯೋಗದಾತರು ನಿಮ್ಮ ಕೆಲಸದ ಸಮಯ, ಓವರ್‌ಟೈಮ್ ಅಥವಾ ವೇತನ ಲೆಕ್ಕಾಚಾರವನ್ನು ಸಾಕ್ಷ್ಯವಿಲ್ಲದೆ ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.',
+  'pay.print': 'ಮುದ್ರಿಸಿ',
 };
 
 /** Translations for industry category keys, looked up as "hazard.<key>" / "topic.<key>". */
