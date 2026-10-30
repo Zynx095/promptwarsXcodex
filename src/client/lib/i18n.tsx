@@ -4,6 +4,7 @@
 // and cached in memory.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import enRaw from '../locales/en.json';
+import { formatMoney } from '../../shared/money';
 
 export const en = enRaw;
 export type MessageKey = keyof typeof en;
@@ -119,6 +120,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang, setLang, version]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+/** Formats integer minor units (paise) as currency in the active language's conventions. */
+export function useMoney(): (minor: number, currency?: string) => string {
+  const { locale } = useI18n();
+  return useCallback((minor: number, currency = 'INR') => formatMoney(minor, currency, locale), [locale]);
 }
 
 export function useI18n(): I18n {

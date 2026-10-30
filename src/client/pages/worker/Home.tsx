@@ -2,13 +2,12 @@
 // "what is recorded?", "does anything need me?" and "where are my records?".
 import type { ReactNode } from 'react';
 import { BellRing, ChevronRight, CircleCheck, Clock, IndianRupee, ShieldAlert, TriangleAlert } from 'lucide-react';
-import { useI18n } from '../../lib/i18n';
+import { useI18n, useMoney } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { useApi, type ApiState } from '../../lib/useApi';
 import { Link, useRouter } from '../../lib/router';
 import { useNotifications } from '../../lib/notifications';
 import { formatDateTime, formatMinutes, formatPeriod } from '../../lib/format';
-import { formatMoney } from '../../../shared/money';
 import type { AlertDTO, Paged, PayslipDTO, PayslipListItem, SafetyReportDTO } from '../../../shared/types';
 import { ErrorBox, Skeleton } from '../../components/ui';
 import { ShiftCard } from '../../components/ShiftCard';
@@ -33,6 +32,7 @@ function Pending<T>({ state, children }: { state: ApiState<T>; children: (data: 
 
 function WeekSection({ preview }: { preview: ApiState<PayslipDTO> }) {
   const { t } = useI18n();
+  const money = useMoney();
   return (
     <section className="home-section" aria-labelledby="home-week">
       <div className="section-head">
@@ -45,7 +45,7 @@ function WeekSection({ preview }: { preview: ApiState<PayslipDTO> }) {
           return (
             <div className="week-record">
               <p className="week-amount">
-                <span className="figure">{formatMoney(b.netPayMinor, p.currency)}</span>
+                <span className="figure">{money(b.netPayMinor, p.currency)}</span>
                 <span className="week-amount-label">{t('pay.net')}</span>
               </p>
               <p className="week-hours">
@@ -142,6 +142,7 @@ function RecordsSection({
   reports: ApiState<{ items: SafetyReportDTO[] }>;
 }) {
   const { t, locale } = useI18n();
+  const money = useMoney();
   const shiftsThisWeek = preview.data?.breakdown.days.reduce((n, d) => n + d.shiftCount, 0);
   const last = latest.data?.items[0];
   const openReports = reports.data?.items.filter((r) => !RESOLVED.has(r.status)).length;
@@ -176,7 +177,7 @@ function RecordsSection({
                   {last
                     ? t('home.latestPayslip', {
                         period: formatPeriod(last.periodStart, last.periodEnd, locale),
-                        amount: formatMoney(last.netPayMinor),
+                        amount: money(last.netPayMinor),
                       })
                     : t('pay.none')}
                 </span>

@@ -1,8 +1,7 @@
 // Reusable presentational building blocks. Styling lives in styles.css.
 import { useId, useRef, type ButtonHTMLAttributes, type ReactElement, type ReactNode, type Ref, cloneElement } from 'react';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert } from 'lucide-react';
-import { useI18n } from '../lib/i18n';
-import { formatMoney } from '../../shared/money';
+import { useI18n, useMoney } from '../lib/i18n';
 import type { ApiError } from '../lib/api';
 import type { ReportStatus, Severity } from '../../shared/types';
 import { Sheet } from './Sheet';
@@ -209,7 +208,8 @@ export function Async<T>({
 }
 
 export function Money({ minor, currency = 'INR' }: { minor: number; currency?: string }) {
-  return <span className="money">{formatMoney(minor, currency)}</span>;
+  const money = useMoney();
+  return <span className="money">{money(minor, currency)}</span>;
 }
 
 export function Badge({ tone, children }: { tone: 'neutral' | 'good' | 'warn' | 'bad' | 'info'; children: ReactNode }) {
