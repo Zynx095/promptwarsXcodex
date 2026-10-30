@@ -16,9 +16,8 @@ export function DisputeNoticeModal({ slip, isOpen, onClose }: { slip: PayslipDTO
   const statementId = useId();
 
   const [category, setCategory] = useState<DiscrepancyCategory>('unpaid_overtime');
-  const [statement, setStatement] = useState(
-    'My recorded overtime hours for this pay period were not paid according to our agreed terms. I request reconciliation and disbursement of the outstanding amount.',
-  );
+  // Starts empty: the statement must be the worker's own account, not a pre-written claim.
+  const [statement, setStatement] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -53,8 +52,8 @@ export function DisputeNoticeModal({ slip, isOpen, onClose }: { slip: PayslipDTO
       grossPayMinor: slip.breakdown.grossPayMinor,
       totalDeductionsMinor: slip.breakdown.totalDeductionsMinor,
       netPayMinor: slip.breakdown.netPayMinor,
-      outstandingMinor: slip.breakdown.netPayMinor,
-      receiptId: slip.id ? `rcpt_${slip.id.slice(0, 12)}` : undefined,
+      payslipId: slip.id || undefined,
+      payslipStatus: slip.status,
       discrepancyCategory: category,
       workerStatement: statement,
       generatedAt: new Date().toISOString(),
@@ -101,21 +100,21 @@ RECORDED ATTENDANCE & HOURS:
 - Daily Scheduled Hours: ${notice.attendanceSummary.scheduledDailyText}
 
 FINANCIAL RECORD SUMMARY:
-- Contracted Hourly Rate: ${notice.financialSummary.hourlyRateText}
+- Recorded Hourly Rate: ${notice.financialSummary.hourlyRateText}
 - Base Pay: ${notice.financialSummary.basePayText}
 - Overtime Earnings: ${notice.financialSummary.overtimePayText}
 - Gross Earnings: ${notice.financialSummary.grossPayText}
-- Authorized Deductions: ${notice.financialSummary.totalDeductionsText}
+- Recorded Deductions: ${notice.financialSummary.totalDeductionsText}
 - Net Payable: ${notice.financialSummary.netPayText}
-- Outstanding Amount Claimed: ${notice.financialSummary.outstandingText}
+- Amount in Dispute: ${notice.financialSummary.outstandingText}
 
 WORKER'S FACTUAL STATEMENT:
 "${notice.workerStatement}"
 
-CRYPTOGRAPHIC WORK RECEIPT ANCHOR:
-- Receipt Identifier: ${notice.cryptographicProof.receiptId}
-- Canonical Digest: ${notice.cryptographicProof.canonicalDigest}
-- Ledger Sealed: ${notice.cryptographicProof.isSealed ? 'YES' : 'PENDING'}
+RECORD REFERENCES:
+- Payslip Reference: ${notice.recordReference.payslipId}
+- Payslip Status: ${notice.recordReference.payslipStatusText}
+- Sealed Work Receipt: ${notice.cryptographicProof.isSealed ? `${notice.cryptographicProof.receiptId} (${notice.cryptographicProof.canonicalDigest})` : notice.cryptographicProof.receiptId}
 
 ------------------------------------------------------------
 ${notice.disclaimer}
@@ -288,7 +287,7 @@ ${notice.statutoryContext}
                     <table className="notice-table">
                       <tbody>
                         <tr>
-                          <td>Contracted Hourly Rate:</td>
+                          <td>Recorded Hourly Rate:</td>
                           <td>
                             <strong>{notice.financialSummary.hourlyRateText}</strong>
                           </td>
@@ -322,7 +321,7 @@ ${notice.statutoryContext}
                           <td>
                             <strong>{notice.financialSummary.grossPayText}</strong>
                           </td>
-                          <td>Authorized Deductions:</td>
+                          <td>Recorded Deductions:</td>
                           <td>
                             <strong>{notice.financialSummary.totalDeductionsText}</strong>
                           </td>
@@ -332,7 +331,7 @@ ${notice.statutoryContext}
                           <td>
                             <strong>{notice.financialSummary.netPayText}</strong>
                           </td>
-                          <td>Outstanding Wage Claimed:</td>
+                          <td>Amount in Dispute:</td>
                           <td>
                             <strong className="text-good">{notice.financialSummary.outstandingText}</strong>
                           </td>
@@ -347,14 +346,19 @@ ${notice.statutoryContext}
                   </div>
 
                   <div className="notice-section">
-                    <span className="notice-subhead">CRYPTOGRAPHIC PROOF & INTEGRITY ANCHOR</span>
+                    <span className="notice-subhead">RECORD REFERENCES</span>
                     <div className="notice-crypto-box">
                       <div>
-                        <strong>Receipt ID:</strong> <code>{notice.cryptographicProof.receiptId}</code>
+                        <strong>Payslip Reference:</strong> <code>{notice.recordReference.payslipId}</code> ({notice.recordReference.payslipStatusText})
                       </div>
                       <div>
-                        <strong>HMAC Canonical Digest:</strong> <code className="text-break">{notice.cryptographicProof.canonicalDigest}</code>
+                        <strong>Sealed Work Receipt:</strong> <code className="text-break">{notice.cryptographicProof.receiptId}</code>
                       </div>
+                      {notice.cryptographicProof.isSealed && (
+                        <div>
+                          <strong>HMAC Canonical Digest:</strong> <code className="text-break">{notice.cryptographicProof.canonicalDigest}</code>
+                        </div>
+                      )}
                     </div>
                   </div>
 

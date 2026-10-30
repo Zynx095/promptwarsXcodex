@@ -19,8 +19,15 @@ export const DISCREPANCY_LABELS: Record<DiscrepancyCategory, string> = {
 export const LEGAL_DISCLAIMER =
   'IMPORTANT NOTICE: This document is a worker-generated factual wage discrepancy statement derived from recorded timecard entries and FairShift cryptographic work receipts. It does not constitute formal legal representation, statutory certification, or legal advice. In the event of unresolved wage disputes, workers are advised to approach relevant labor conciliation authorities or legal aid institutions.';
 
+/**
+ * General legal context only. Verified against the Ministry of Labour and Employment notification
+ * S.O. 5322(E) (21 Nov 2025) bringing the principal provisions of the Code on Wages, 2019 into force,
+ * and section 69 of the Code (repeal and savings). It deliberately states no rates, deadlines or
+ * entitlements: applicability depends on the employment, establishment and the appropriate
+ * Government's rules, which this tool cannot determine.
+ */
 export const STATUTORY_CONTEXT_NOTE =
-  'Factual Context: In India, timely payment of wages and restrictions on unauthorized deductions are governed by the Payment of Wages Act, 1936, the Minimum Wages Act, 1948, and the Code on Wages, 2019. Overtime for eligible workers in factories and construction establishments is typically compensated at overtime rates (commonly 1.5× to 2× standard rates under applicable state and central provisions). This document summarizes verifiable recorded attendance against issued amounts.';
+  'General context (not a legal conclusion): The principal provisions of the Code on Wages, 2019 came into force on 21 November 2025 (Ministry of Labour and Employment notification S.O. 5322(E)). Under section 69 of the Code, the Payment of Wages Act, 1936 and the Minimum Wages Act, 1948 are repealed, subject to its savings provisions, so matters arising earlier may still fall under those Acts. Whether and how any of these laws applies depends on the type of employment, the establishment and the rules of the appropriate Government. This notice records factual discrepancies between recorded attendance and recorded pay; it does not determine any legal entitlement, rate or time limit. Help is available from the local Labour Department (Inspector-cum-Facilitator) or a District Legal Services Authority.';
 
 export interface WageDisputeNoticeInput {
   workerName: string;
@@ -40,7 +47,10 @@ export interface WageDisputeNoticeInput {
   grossPayMinor: number;
   totalDeductionsMinor: number;
   netPayMinor: number;
-  outstandingMinor: number;
+  /** Amount the worker states is in dispute. Never inferred: omitted means "see statement". */
+  outstandingMinor?: number;
+  payslipId?: string;
+  payslipStatus?: 'preview' | 'issued';
   receiptId?: string;
   receiptDigest?: string;
   discrepancyCategory: DiscrepancyCategory;
@@ -82,6 +92,10 @@ export interface FormattedDisputeNotice {
     netPayText: string;
     outstandingText: string;
   };
+  recordReference: {
+    payslipId: string;
+    payslipStatusText: string;
+  };
   cryptographicProof: {
     receiptId: string;
     canonicalDigest: string;
@@ -108,9 +122,10 @@ export function buildWageDisputeNotice(input: WageDisputeNoticeInput): Formatted
   const currency = input.currency || 'INR';
   const m = (minor: number) => formatMoney(minor, currency);
 
-  // Generate unique notice reference based on period and timestamp
+  // Reference from the generation timestamp (it must not encode pay amounts)
   const dateStr = input.generatedAt.slice(0, 10).replace(/-/g, '');
-  const noticeReference = `FS-DISPUTE-${dateStr}-${Math.abs(input.netPayMinor).toString(16).toUpperCase()}`;
+  const timeStr = input.generatedAt.slice(11, 19).replace(/:/g, '');
+  const noticeReference = `FS-DISPUTE-${dateStr}-${timeStr || '000000'}`;
 
   return {
     noticeReference,
@@ -120,8 +135,8 @@ export function buildWageDisputeNotice(input: WageDisputeNoticeInput): Formatted
     statutoryContext: STATUTORY_CONTEXT_NOTE,
     worker: {
       name: input.workerName.trim(),
-      phone: (input.workerPhone || 'On Record (Verified)').trim(),
-      jobTitle: (input.workerJobTitle || 'Frontline Worker').trim(),
+      phone: (input.workerPhone || 'Not provided').trim(),
+      jobTitle: (input.workerJobTitle || 'Not provided').trim(),
     },
     employer: {
       name: input.employerName.trim(),
@@ -144,12 +159,20 @@ export function buildWageDisputeNotice(input: WageDisputeNoticeInput): Formatted
       grossPayText: m(input.grossPayMinor),
       totalDeductionsText: m(input.totalDeductionsMinor),
       netPayText: m(input.netPayMinor),
-      outstandingText: m(input.outstandingMinor),
+      outstandingText:
+        typeof input.outstandingMinor === 'number' && Number.isSafeInteger(input.outstandingMinor) && input.outstandingMinor >= 0
+          ? m(input.outstandingMinor)
+          : 'Not specified (see worker statement)',
+    },
+    recordReference: {
+      payslipId: input.payslipId || 'Not available',
+      payslipStatusText:
+        input.payslipStatus === 'issued' ? 'Issued payslip' : input.payslipStatus === 'preview' ? 'Estimate only (payslip not yet issued)' : 'Unknown',
     },
     cryptographicProof: {
-      receiptId: input.receiptId || 'PENDING_FINALIZATION',
-      canonicalDigest: input.receiptDigest || 'AUTHENTICATED_BY_FAIRSHIFT_LEDGER',
-      isSealed: Boolean(input.receiptDigest),
+      receiptId: input.receiptId || 'Not linked to a sealed work receipt',
+      canonicalDigest: input.receiptDigest || 'Not available',
+      isSealed: Boolean(input.receiptId && input.receiptDigest),
     },
     workerStatement: input.workerStatement.trim(),
   };

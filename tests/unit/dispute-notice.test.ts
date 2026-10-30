@@ -94,4 +94,45 @@ describe('FairShift Worker Labour Dispute Notice — Domain & Privacy Verificati
     expect(serialized).not.toContain('pin_hash');
     expect(serialized).not.toContain('sessionSecret');
   });
+
+  it('states the Code on Wages, 2019 commencement and repeal without asserting rates, deadlines or entitlements', () => {
+    const ctx = STATUTORY_CONTEXT_NOTE;
+    expect(ctx).toContain('Code on Wages, 2019');
+    expect(ctx).toContain('21 November 2025');
+    expect(ctx).toContain('S.O. 5322(E)');
+    expect(ctx).toMatch(/section 69/i);
+    expect(ctx).toMatch(/repealed/);
+    expect(ctx).toMatch(/not a legal conclusion/i);
+    // The earlier note claimed overtime is "commonly 1.5× to 2×"; no rate or multiplier may be asserted.
+    expect(ctx).not.toMatch(/\d(\.\d+)?\s*[×x]/);
+    expect(ctx).not.toMatch(/within \d+ days/i);
+  });
+
+  it('never infers a claimed amount or a receipt seal that was not supplied', () => {
+    const { outstandingMinor: _o, receiptId: _r, receiptDigest: _d, ...rest } = sampleInput;
+    const notice = buildWageDisputeNotice({ ...rest, payslipId: 'ps_123', payslipStatus: 'preview' });
+    expect(notice.financialSummary.outstandingText).toBe('Not specified (see worker statement)');
+    expect(notice.cryptographicProof.isSealed).toBe(false);
+    expect(notice.cryptographicProof.receiptId).toBe('Not linked to a sealed work receipt');
+    expect(JSON.stringify(notice)).not.toContain('AUTHENTICATED_BY_FAIRSHIFT_LEDGER');
+    expect(notice.recordReference).toEqual({ payslipId: 'ps_123', payslipStatusText: 'Estimate only (payslip not yet issued)' });
+    // A digest alone, without the receipt it belongs to, is not presented as a seal
+    expect(buildWageDisputeNotice({ ...rest, receiptDigest: 'ab'.repeat(32) }).cryptographicProof.isSealed).toBe(false);
+  });
+
+  it('does not mark unknown contact details as verified or encode pay in the reference', () => {
+    const { workerPhone: _p, workerJobTitle: _j, ...rest } = sampleInput;
+    const notice = buildWageDisputeNotice(rest);
+    expect(notice.worker.phone).toBe('Not provided');
+    expect(notice.worker.jobTitle).toBe('Not provided');
+    expect(notice.noticeReference).toBe('FS-DISPUTE-20261028-100000');
+    expect(notice.noticeReference).not.toContain(sampleInput.netPayMinor.toString(16).toUpperCase());
+  });
+
+  it('keeps Kannada, Hindi, Tamil, Telugu and Bengali text intact in names and statements', () => {
+    const statement = 'ಓವರ್‌ಟೈಮ್ ವೇತನ ಬಾಕಿ ಇದೆ — ओवरटाइम बकाया — கூடுதல் நேரம் — ఓవర్‌టైమ్ — ওভারটাইম বকেয়া';
+    const notice = buildWageDisputeNotice({ ...sampleInput, workerName: 'ರವಿ ಕುಮಾರ್', workerStatement: statement });
+    expect(notice.worker.name).toBe('ರವಿ ಕುಮಾರ್');
+    expect(notice.workerStatement).toBe(statement);
+  });
 });
