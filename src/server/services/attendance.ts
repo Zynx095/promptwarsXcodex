@@ -11,7 +11,8 @@ import { recordAudit } from '../repositories/audit';
 import * as shifts from '../repositories/shifts';
 import { evaluateWorkerFatigue } from './fatigue';
 import { generateCorrectedReceiptForShift, generateReceiptForShift, isShiftInFinalizedPeriod } from './receipts';
-import { findSessionUser } from '../repositories/users';
+import { findSessionUser, getWorker } from '../repositories/users';
+import { createNotification } from '../repositories/notifications';
 import { notFound } from '../http';
 
 import { isUniqueViolation } from '../db/db';
@@ -54,10 +55,15 @@ function checkInMethod(ctx: AppContext, org: OrgRow, siteCode: string | undefine
 
 export function checkIn(ctx: AppContext, org: OrgRow, workerId: string, siteCode?: string): ShiftDTO {
   const at = nowIso(ctx);
+  const worker = getWorker(ctx.db, org.id, workerId);
+  if (worker && !worker.active) {
+    throw new DomainError('INACTIVE_ACCOUNT', 'This account has been deactivated. Contact your supervisor.');
+  }
   const method = checkInMethod(ctx, org, siteCode);
   try {
     return ctx.db.tx(() => {
       assertCanCheckIn(shifts.getOpenShift(ctx.db, workerId) ?? null);
+
       const id = shifts.insertShift(ctx.db, { orgId: org.id, workerId, checkInAt: at, source: 'app', method, at });
       recordAudit(ctx.db, { orgId: org.id, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_in', after: { checkInAt: at, method }, at });
       return shifts.toShiftDTO(shifts.getShift(ctx.db, org.id, id)!, org.timezone);
@@ -138,6 +144,15 @@ export function correctShift(ctx: AppContext, org: OrgRow, actorId: string, shif
       const actor = findSessionUser(ctx.db, actorId);
       generateCorrectedReceiptForShift(ctx, org, shiftId, { id: actorId, name: actor?.name ?? 'Admin' }, input.reason);
     }
+    createNotification(ctx.db, {
+      orgId: org.id,
+      userId: existing.workerId,
+      type: 'shift_correction',
+      title: 'Shift Record Adjusted',
+      body: `Your shift on ${existing.checkInAt.slice(0, 10)} was updated by administration. Reason: ${input.reason}`,
+      link: '/worker/attendance',
+      nowIso: at,
+    });
     return shifts.getShift(ctx.db, org.id, shiftId)!;
   });
   return shifts.toShiftDTO(updated, org.timezone);

@@ -15,6 +15,7 @@ import { reporterRef, scopedReporterRef } from '../auth/crypto';
 import { recordAudit } from '../repositories/audit';
 import { findSessionUser } from '../repositories/users';
 import { invalidateSignalCache } from './signal';
+import { createNotification, notifyAdmins } from '../repositories/notifications';
 import { notFound } from '../http';
 
 interface ReportRow {
@@ -145,7 +146,18 @@ export function createReport(ctx: AppContext, org: OrgRow, actor: Actor, input: 
       after: { severity: input.severity, category: input.category, confidential: input.confidential },
       at,
     });
+    if (input.severity === 'critical' || input.severity === 'high') {
+      notifyAdmins(ctx.db, {
+        orgId: org.id,
+        type: 'safety_alert',
+        title: `High-Severity Safety Report (${input.severity.toUpperCase()})`,
+        body: `A ${input.severity} severity report was filed: "${input.title}" at ${input.location || 'worksite'}.`,
+        link: `/admin/reports`,
+        nowIso: at,
+      });
+    }
   });
+
   invalidateSignalCache(actor.orgId);
   return getReport(ctx, actor, id)!;
 }
@@ -323,7 +335,23 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
       reason: input.note || null,
       at,
     });
+    const reportRow = ctx.db.get<{ reporter_id: string | null; title: string }>(
+      `SELECT reporter_id, title FROM safety_reports WHERE id = @id AND org_id = @orgId`,
+      { id, orgId: actor.orgId },
+    );
+    if (reportRow?.reporter_id) {
+      createNotification(ctx.db, {
+        orgId: actor.orgId,
+        userId: reportRow.reporter_id,
+        type: 'safety_update',
+        title: `Safety Report Status: ${input.to.replace(/_/g, ' ')}`,
+        body: `Your safety report "${reportRow.title}" status changed to ${input.to.replace(/_/g, ' ')}.${input.note ? ` Note: ${input.note}` : ''}`,
+        link: '/worker/reports',
+        nowIso: at,
+      });
+    }
   });
+
   invalidateSignalCache(actor.orgId);
   return getReport(ctx, actor, id)!;
 }

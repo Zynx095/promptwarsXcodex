@@ -241,4 +241,30 @@ CREATE TABLE IF NOT EXISTS receipt_checkpoint_entries (
 );
 CREATE INDEX IF NOT EXISTS idx_chk_entries_receipt ON receipt_checkpoint_entries(receipt_id);
 CREATE INDEX IF NOT EXISTS idx_reports_org_cat_status ON safety_reports(org_id, category, status);
+
+CREATE TABLE IF NOT EXISTS sites (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  name TEXT NOT NULL,
+  code TEXT NOT NULL,
+  address TEXT NOT NULL DEFAULT '',
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  UNIQUE (org_id, code)
+);
+CREATE INDEX IF NOT EXISTS idx_sites_org ON sites(org_id, active);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  user_id TEXT NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  link TEXT,
+  read INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read, created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_org ON notifications(org_id, created_at);
 `;

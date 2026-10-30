@@ -5,6 +5,7 @@ import { errorHandler, HttpError } from './http';
 import { authRoutes } from './routes/auth';
 import { workerRoutes } from './routes/worker';
 import { adminRoutes } from './routes/admin';
+import { notificationRoutes } from './routes/notifications';
 
 function securityHeaders(production: boolean): RequestHandler {
   return (_req, res, next) => {
@@ -48,9 +49,12 @@ export async function createApp(ctx: AppContext, frontend?: (app: Express) => Pr
   app.use('/api', authRoutes(ctx));
   app.use('/api/admin', adminRoutes(ctx));
   app.use('/api', workerRoutes(ctx));
-  app.use('/api', () => {
-    throw new HttpError(404, 'NOT_FOUND', 'Unknown API endpoint.');
+  app.use('/api', notificationRoutes(ctx));
+
+  app.use('/api', (_req, _res, next) => {
+    next(new HttpError(404, 'NOT_FOUND', 'Unknown API endpoint.'));
   });
+
 
   if (frontend) await frontend(app);
   app.use(errorHandler);

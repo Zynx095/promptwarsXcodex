@@ -11,6 +11,7 @@ import { getWorker } from '../repositories/users';
 import { listWorkerShifts } from '../repositories/shifts';
 import { recordAudit } from '../repositories/audit';
 import { markReceiptsFinalizedForPeriod } from '../repositories/receipts';
+import { createNotification } from '../repositories/notifications';
 import { notFound } from '../http';
 
 export function previewPayslip(ctx: AppContext, org: OrgRow, workerId: string, from: string, to: string): PayslipDTO {
@@ -77,6 +78,15 @@ export function issuePayslip(
     recordAudit(ctx.db, { orgId: org.id, actorId, entityType: 'payslip', entityId: id, action: 'issue', after: { workerId, from, to }, at });
     const { start: startUtc, end: endUtc } = localRangeToUtc(from, to, org.timezone);
     markReceiptsFinalizedForPeriod(ctx.db, org.id, workerId, startUtc, endUtc);
+    createNotification(ctx.db, {
+      orgId: org.id,
+      userId: workerId,
+      type: 'payslip_issued',
+      title: 'New Payslip Issued',
+      body: `Your payslip for ${from} to ${to} has been issued. Net pay: ${org.currency} ${(preview.breakdown.netPayMinor / 100).toFixed(2)}`,
+      link: `/worker/payslips/${id}`,
+      nowIso: at,
+    });
     return { ...preview, id, status: 'issued' as const, issuedAt: at, synthetic: opts.synthetic ?? org.synthetic };
   });
 }
