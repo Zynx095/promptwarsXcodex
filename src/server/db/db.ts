@@ -136,3 +136,22 @@ function migrate(raw: DatabaseSync): void {
 export function isUniqueViolation(err: unknown): boolean {
   return err instanceof Error && /UNIQUE constraint failed/.test(err.message);
 }
+
+/**
+ * Creates an atomic point-in-time backup snapshot of a live SQLite database
+ * using SQLite's built-in VACUUM INTO command without exclusive locks.
+ */
+export function backupDb(db: Db, destinationPath: string): void {
+  mkdirSync(dirname(destinationPath), { recursive: true });
+  const escapedPath = destinationPath.replace(/'/g, "''");
+  db.raw.exec(`VACUUM INTO '${escapedPath}'`);
+}
+
+/**
+ * Runs PRAGMA integrity_check to verify that a database file is structurally sound and uncorrupted.
+ */
+export function verifyDbIntegrity(db: Db): { ok: boolean; message: string } {
+  const row = db.raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string } | undefined;
+  const result = row?.integrity_check ?? 'unknown';
+  return { ok: result === 'ok', message: result };
+}

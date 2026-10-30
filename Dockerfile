@@ -12,8 +12,9 @@ RUN npm run build:client && npm run build:server && npm prune --omit=dev
 FROM node:24-slim
 ENV NODE_ENV=production \
     PORT=8080 \
-    DATABASE_PATH=/tmp/fairshift/fairshift.db
+    DATABASE_PATH=/data/fairshift.db
 WORKDIR /app
+RUN mkdir -p /data && chown -R node:node /data
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
