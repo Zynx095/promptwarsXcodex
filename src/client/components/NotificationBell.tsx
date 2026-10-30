@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bell, CheckCheck, Clock, ShieldAlert, Wallet, Info, ExternalLink } from 'lucide-react';
-import { useApi } from '../lib/useApi';
-import { api } from '../lib/api';
+import { useNotifications } from '../lib/notifications';
 import { useRouter } from '../lib/router';
 import { useI18n } from '../lib/i18n';
-import type { NotificationDTO, NotificationsResponse } from '../../shared/types';
+import type { NotificationDTO } from '../../shared/types';
 
 function relativeTime(iso: string): string {
   try {
@@ -37,7 +36,7 @@ function getIcon(type: NotificationDTO['type']) {
 }
 
 export function NotificationBell() {
-  const { data, reload } = useApi<NotificationsResponse>('/notifications/mine');
+  const { items, unreadCount, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { navigate } = useRouter();
@@ -56,31 +55,14 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
-  const items = data?.items ?? [];
-  const unreadCount = data?.unreadCount ?? 0;
-
   async function handleItemClick(item: NotificationDTO) {
-    if (!item.read) {
-      try {
-        await api(`/notifications/${item.id}/read`, { method: 'POST' });
-        reload();
-      } catch {
-        // Continue navigation even if read sync fails
-      }
-    }
+    if (!item.read) await markRead(item.id).catch(() => undefined);
     setOpen(false);
-    if (item.link) {
-      navigate(item.link);
-    }
+    if (item.link) navigate(item.link);
   }
 
   async function handleMarkAllRead() {
-    try {
-      await api('/notifications/read-all', { method: 'POST' });
-      reload();
-    } catch {
-      // Ignore
-    }
+    await markAllRead().catch(() => undefined);
   }
 
   return (

@@ -23,6 +23,7 @@ import {
 import { Link, useRouter } from '../lib/router';
 import { useI18n, type MessageKey } from '../lib/i18n';
 import { useSession } from '../lib/session';
+import { NotificationsProvider } from '../lib/notifications';
 import { getIndustry } from '../../shared/industries';
 import { NotificationBell } from './NotificationBell';
 import { Sheet } from './Sheet';
@@ -314,5 +315,7 @@ function AdminShell({ children }: { children: ReactNode }) {
 export function Layout({ children }: { children: ReactNode }) {
   const { me } = useSession();
   if (!me) return <>{children}</>;
-  return me.user.role === 'admin' ? <AdminShell>{children}</AdminShell> : <WorkerShell>{children}</WorkerShell>;
+  return (
+    <NotificationsProvider>{me.user.role === 'admin' ? <AdminShell>{children}</AdminShell> : <WorkerShell>{children}</WorkerShell>}</NotificationsProvider>
+  );
 }

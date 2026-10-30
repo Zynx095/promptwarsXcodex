@@ -219,6 +219,14 @@
   .worker-shell {
     display: grid;
     grid-template-columns: var(--rail-w) minmax(0, 1fr);
+    /* The rail column stays white for the full page height, in print and long captures too. */
+    background: linear-gradient(
+      to right,
+      var(--fs-paper) calc(var(--rail-w) - 1px),
+      var(--fs-line) calc(var(--rail-w) - 1px),
+      var(--fs-line) var(--rail-w),
+      transparent var(--rail-w)
+    );
   }
   .ws-rail {
     display: flex;

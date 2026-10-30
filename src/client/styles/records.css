@@ -1,0 +1,168 @@
+/* Record rows and the week strip, shared by the worker screens. */
+
+/* ---------- Row lists: one white record holding plain rows, not a grid of cards ---------- */
+.row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+  overflow: hidden;
+}
+.row-list > li + li {
+  border-top: 1px solid var(--fs-line);
+}
+.row-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  background: none;
+  color: var(--fs-ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.row-item:hover,
+button.row-item:hover {
+  background: #fafbfc;
+  color: var(--fs-ink);
+}
+.row-item:focus-visible {
+  outline-offset: -3px;
+}
+.row-static {
+  cursor: default;
+  align-items: flex-start;
+}
+.row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fs-aubergine-tint);
+  color: var(--fs-aubergine);
+}
+.row-icon.tone-caution {
+  background: var(--fs-caution-bg);
+  color: var(--fs-caution);
+}
+.row-icon.tone-danger {
+  background: var(--fs-danger-bg);
+  color: var(--fs-danger);
+}
+.row-icon.tone-info {
+  background: var(--fs-info-bg);
+  color: var(--fs-info);
+}
+.row-icon.tone-good {
+  background: var(--fs-good-bg);
+  color: var(--fs-good);
+}
+.row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.row-text strong {
+  font-size: var(--fs-text-md);
+  color: var(--fs-ink);
+  font-weight: 650;
+}
+.row-meta {
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.row-item .chevron {
+  flex: none;
+  color: var(--fs-ink-3);
+}
+.row-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--tap);
+  color: var(--fs-aubergine);
+  font-weight: 650;
+  text-decoration: none;
+}
+.row-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Week strip (muster roll) ---------- */
+.weekstrip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.weekday {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.weekday-name {
+  font-size: var(--fs-text-xs);
+  font-weight: 600;
+  color: var(--fs-ink-3);
+}
+.weekday-bar {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  max-width: 36px;
+  height: 72px;
+  border-radius: 8px;
+  background: var(--fs-sunk);
+  box-shadow: inset 0 0 0 1px var(--fs-line);
+  overflow: hidden;
+}
+.weekday-fill {
+  background: var(--fs-aubergine);
+  flex: none;
+}
+.weekday-ot {
+  background: var(--fs-marigold);
+  flex: none;
+}
+.weekday-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px dashed rgba(36, 8, 31, 0.32);
+}
+.weekday-hours {
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+  color: var(--fs-ink);
+}
+.weekday.is-empty .weekday-hours {
+  color: var(--fs-ink-3);
+}
+.weekday.is-today .weekday-name {
+  color: var(--fs-aubergine);
+  font-weight: 800;
+}
+.weekday.is-today .weekday-bar {
+  box-shadow: inset 0 0 0 2px var(--fs-aubergine);
+}

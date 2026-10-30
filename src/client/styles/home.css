@@ -1,0 +1,88 @@
+/* Worker home */
+
+.home-greeting {
+  margin-bottom: var(--sp-5);
+}
+.home-greeting h1 {
+  margin: 0;
+}
+.home-greeting p {
+  margin: var(--sp-1) 0 0;
+  color: var(--fs-ink-2);
+}
+
+.home-section {
+  margin-top: var(--sp-7);
+}
+.home-section .section-head {
+  margin-top: 0;
+}
+.home-skeleton {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+
+.week-record {
+  padding: var(--sp-5);
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+.week-amount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px var(--sp-3);
+  margin: 0;
+}
+.week-amount .figure {
+  font-size: var(--fs-text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fs-aubergine);
+  line-height: 1.1;
+}
+.week-amount-label {
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+.week-hours {
+  margin: var(--sp-1) 0 var(--sp-5);
+  color: var(--fs-ink);
+}
+.week-note {
+  margin: var(--sp-4) 0 var(--sp-1);
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+
+.home-clear {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-4);
+  border-radius: var(--r-record);
+  background: var(--fs-paper);
+  box-shadow: var(--e-record);
+  color: var(--fs-ink-2);
+}
+.home-clear svg {
+  color: var(--fs-good);
+}
+.home-footnote {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.home-report {
+  width: 100%;
+  margin-top: var(--sp-3);
+}
+.home-report svg {
+  color: var(--fs-danger);
+}
