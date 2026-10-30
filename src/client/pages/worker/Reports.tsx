@@ -95,7 +95,7 @@ export function WorkerReports() {
         </Async>
       </section>
 
-      <section className="safety-tools" aria-label={t('heat.title')}>
+      <section className="safety-tools">
         <HeatSafetyWidget />
       </section>
     </Page>
