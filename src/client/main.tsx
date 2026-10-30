@@ -1,7 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@fontsource-variable/inter';
+import '@fontsource-variable/bricolage-grotesque/wght.css';
 import './styles.css';
+import './styles/tokens.css';
+import './styles/fonts.css';
+import './styles/base.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';

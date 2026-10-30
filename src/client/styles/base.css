@@ -1,0 +1,443 @@
+/* Base: reset, typography, focus, accessibility helpers and a small utility layer. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--topbar-h) + var(--sp-4));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--fs-canvas);
+  color: var(--fs-ink);
+  font-family: var(--fs-font-text);
+  font-size: var(--fs-text-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Indic scripts need more vertical room for stacked vowel signs and conjuncts. */
+:lang(kn),
+:lang(hi),
+:lang(ta),
+:lang(te),
+:lang(bn) {
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fs-font-display);
+  color: var(--fs-aubergine);
+  line-height: 1.2;
+  margin: 0 0 var(--sp-3);
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--fs-text-2xl);
+  font-weight: 700;
+}
+h2 {
+  font-size: var(--fs-text-xl);
+  font-weight: 650;
+}
+h3 {
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+}
+h4 {
+  font-size: var(--fs-text-md);
+  font-weight: 650;
+}
+:lang(kn) :is(h1, h2, h3, h4),
+:lang(hi) :is(h1, h2, h3, h4),
+:lang(ta) :is(h1, h2, h3, h4),
+:lang(te) :is(h1, h2, h3, h4),
+:lang(bn) :is(h1, h2, h3, h4) {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+@media (min-width: 960px) {
+  h1 {
+    font-size: var(--fs-text-3xl);
+  }
+}
+
+p {
+  margin: 0 0 var(--sp-3);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--fs-aubergine);
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color var(--m-fast) ease;
+}
+a:hover {
+  color: var(--fs-aubergine-700);
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+code,
+.code {
+  font-family: var(--fs-font-code);
+  font-size: 0.8125em;
+  word-break: break-all;
+}
+
+::selection {
+  background: var(--fs-marigold-tint);
+  color: var(--fs-aubergine-deep);
+}
+
+/* Focus: a thick aubergine ring on light surfaces, marigold on dark ones. */
+:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.on-dark {
+  --focus-color: var(--fs-marigold);
+}
+main:focus,
+main:focus-visible {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: var(--sp-2);
+  z-index: 200;
+  background: var(--fs-paper);
+  color: var(--fs-aubergine);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  font-weight: 700;
+  box-shadow: var(--e-float);
+}
+.skip-link:focus {
+  left: var(--sp-2);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+svg.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+svg.icon[data-size='sm'],
+svg.icon-sm,
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+svg.icon-xs,
+.icon-xs {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+svg.icon[data-size='lg'] {
+  width: 28px;
+  height: 28px;
+}
+
+/* Figures: money, hours, times and counts share one tabular face. */
+.figure,
+.money {
+  font-family: var(--fs-font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  white-space: nowrap;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Utility layer ----------
+   Several components were written with Tailwind-style class names although Tailwind is not
+   part of the build, so those classes silently did nothing. This small layer defines the
+   ones still in use; redesigned components use semantic classes instead. */
+.flex {
+  display: flex;
+}
+.inline-flex {
+  display: inline-flex;
+}
+.block {
+  display: block;
+}
+.inline {
+  display: inline;
+}
+.flex-col {
+  flex-direction: column;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-1 {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.shrink-0 {
+  flex-shrink: 0;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gap-1 {
+  gap: var(--sp-1);
+}
+.gap-1\.5 {
+  gap: 6px;
+}
+.gap-2 {
+  gap: var(--sp-2);
+}
+.gap-3 {
+  gap: var(--sp-3);
+}
+.gap-4 {
+  gap: var(--sp-4);
+}
+.m-0 {
+  margin: 0;
+}
+.mt-0\.5 {
+  margin-top: 2px;
+}
+.mt-1 {
+  margin-top: var(--sp-1);
+}
+.mt-2 {
+  margin-top: var(--sp-2);
+}
+.mt-3 {
+  margin-top: var(--sp-3);
+}
+.mt-4 {
+  margin-top: var(--sp-4);
+}
+.mb-0\.5 {
+  margin-bottom: 2px;
+}
+.mb-1 {
+  margin-bottom: var(--sp-1);
+}
+.mb-2 {
+  margin-bottom: var(--sp-2);
+}
+.mb-3 {
+  margin-bottom: var(--sp-3);
+}
+.mb-4 {
+  margin-bottom: var(--sp-4);
+}
+.my-1 {
+  margin-block: var(--sp-1);
+}
+.my-3 {
+  margin-block: var(--sp-3);
+}
+.mr-1 {
+  margin-right: var(--sp-1);
+}
+.p-0 {
+  padding: 0;
+}
+.p-2 {
+  padding: var(--sp-2);
+}
+.p-3 {
+  padding: var(--sp-3);
+}
+.p-4 {
+  padding: var(--sp-4);
+}
+.px-1 {
+  padding-inline: var(--sp-1);
+}
+.px-2 {
+  padding-inline: var(--sp-2);
+}
+.py-1 {
+  padding-block: var(--sp-1);
+}
+.py-2 {
+  padding-block: var(--sp-2);
+}
+.pt-1 {
+  padding-top: var(--sp-1);
+}
+.pt-2 {
+  padding-top: var(--sp-2);
+}
+.pl-4 {
+  padding-left: var(--sp-4);
+}
+.w-full {
+  width: 100%;
+}
+.w-auto {
+  width: auto;
+}
+.min-w-0 {
+  min-width: 0;
+}
+.max-w-sm {
+  max-width: 24rem;
+}
+.rounded {
+  border-radius: var(--r-control);
+}
+.border {
+  border: 1px solid var(--fs-line);
+}
+.border-t {
+  border-top: 1px solid var(--fs-line);
+}
+.border-b {
+  border-bottom: 1px solid var(--fs-line);
+}
+.list-none {
+  list-style: none;
+}
+.list-disc {
+  list-style: disc;
+}
+.text-xs {
+  font-size: var(--fs-text-xs);
+}
+.text-sm {
+  font-size: var(--fs-text-sm);
+}
+.text-base {
+  font-size: var(--fs-text-md);
+}
+.text-lg {
+  font-size: var(--fs-text-lg);
+}
+.text-right {
+  text-align: right;
+}
+.text-center {
+  text-align: center;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
+.italic {
+  font-style: italic;
+}
+.font-mono {
+  font-family: var(--fs-font-code);
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.break-all,
+.text-break {
+  word-break: break-all;
+}
+.pre-wrap {
+  white-space: pre-wrap;
+}
+.muted,
+.text-muted {
+  color: var(--fs-ink-2);
+}
+.small {
+  font-size: var(--fs-text-sm);
+}
+.text-aubergine {
+  color: var(--fs-aubergine);
+}
+.text-good,
+.text-success {
+  color: var(--fs-good);
+}
+.text-bad,
+.text-danger {
+  color: var(--fs-danger);
+}
+.text-info {
+  color: var(--fs-info);
+}
+.text-amber,
+.text-marigold {
+  color: var(--fs-marigold-ink);
+}

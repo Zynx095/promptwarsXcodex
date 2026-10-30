@@ -1,0 +1,188 @@
+/* FairShift design tokens.
+   Brand: Deep Aubergine #3A0F34 (structure), Ice Silver #DDE3E8 (neutral surfaces), Marigold #EAAA00 (action).
+   Contrast notes (WCAG 2.2): ink on canvas > 12:1; ink-3 on canvas 5.0:1; aubergine-deep on marigold 9.1:1;
+   tone text on tone backgrounds 5.7–7.1:1; input borders on paper 3.3:1. */
+
+:root {
+  /* Brand */
+  --fs-aubergine: #3a0f34;
+  --fs-aubergine-deep: #24081f;
+  --fs-aubergine-700: #5b2452;
+  --fs-aubergine-300: #b49aae;
+  --fs-aubergine-tint: #f4ecf2;
+  --fs-silver: #dde3e8;
+  --fs-marigold: #eaaa00;
+  --fs-marigold-hover: #d89c00;
+  --fs-marigold-ink: #8a5a00;
+  --fs-marigold-tint: #fff3cf;
+
+  /* Surfaces and lines */
+  --fs-canvas: #eef1f4;
+  --fs-paper: #ffffff;
+  --fs-sunk: #f4f6f8;
+  --fs-line: #dde3e8;
+  --fs-line-strong: #c3ccd4;
+  --fs-line-input: #858f99;
+
+  /* Text */
+  --fs-ink: #2b1027;
+  --fs-ink-2: #5e4659;
+  --fs-ink-3: #77606f;
+  --fs-on-dark: #fbf5fa;
+  --fs-on-dark-2: #d8c3d3;
+  --fs-on-dark-3: #b49aae;
+
+  /* States (text / background / line) */
+  --fs-good: #0d6b43;
+  --fs-good-bg: #e2f3ea;
+  --fs-good-line: #a9d8bf;
+  --fs-caution: #7a4a00;
+  --fs-caution-bg: #fff3cf;
+  --fs-caution-line: #edcd75;
+  --fs-danger: #a3122f;
+  --fs-danger-bg: #fce8ec;
+  --fs-danger-line: #f0b3c0;
+  --fs-info: #1f4e8c;
+  --fs-info-bg: #e5eef9;
+  --fs-info-line: #b4c9e7;
+  /* Hazard tape: reserved for critical safety states only. */
+  --fs-hazard: repeating-linear-gradient(-45deg, var(--fs-marigold) 0 8px, var(--fs-aubergine-deep) 8px 16px);
+
+  /* Type. Digits in the text face come from the display face (see fonts.css), so every
+     amount and time uses the same figures. Indic scripts fall back to the platform fonts. */
+  --fs-font-text:
+    'FairShift Text', 'Atkinson Hyperlegible Next Variable', 'Nirmala UI', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu',
+    'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-font-display:
+    'Bricolage Grotesque Variable', 'Nirmala UI', 'Noto Sans Kannada', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali',
+    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-font-code: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
+  --fs-text-xs: 0.8125rem; /* 13 */
+  --fs-text-sm: 0.875rem; /* 14 */
+  --fs-text-md: 1rem; /* 16 */
+  --fs-text-lg: 1.125rem; /* 18 */
+  --fs-text-xl: 1.3125rem; /* 21 */
+  --fs-text-2xl: 1.625rem; /* 26 */
+  --fs-text-3xl: 2.125rem; /* 34 */
+  --fs-text-4xl: 2.75rem; /* 44 */
+  --fs-text-hero: 3.5rem; /* 56 */
+
+  /* Space (4-pt) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --sp-9: 56px;
+  --gutter: 16px;
+
+  /* Shape: radius follows hierarchy, not one value for everything. */
+  --r-chip: 999px;
+  --r-control: 12px;
+  --r-record: 14px;
+  --r-slab: 20px;
+  --r-sheet: 24px;
+
+  /* Elevation */
+  --e-record: 0 1px 2px rgba(36, 8, 31, 0.05), 0 0 0 1px rgba(36, 8, 31, 0.06);
+  --e-float: 0 16px 40px rgba(36, 8, 31, 0.18), 0 0 0 1px rgba(36, 8, 31, 0.06);
+  --e-sheet: 0 -16px 48px rgba(36, 8, 31, 0.24);
+
+  /* Motion */
+  --m-fast: 120ms;
+  --m-base: 200ms;
+  --m-slow: 420ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Layout */
+  --tap: 48px;
+  --topbar-h: 56px;
+  --bottom-bar-h: 64px;
+  --rail-w: 248px;
+  --focus-color: var(--fs-aubergine);
+
+  /* Legacy names still used by feature styles that have not been redesigned yet. */
+  --brand-ice-silver: var(--fs-silver);
+  --brand-deep-aubergine: var(--fs-aubergine);
+  --brand-marigold: var(--fs-marigold);
+  --c-bg: var(--fs-canvas);
+  --c-surface: var(--fs-paper);
+  --c-surface-hover: var(--fs-paper);
+  --c-surface-2: var(--fs-sunk);
+  --c-surface-solid: var(--fs-paper);
+  --glass-blur: none;
+  --glass-blur-sm: none;
+  --c-heading: var(--fs-aubergine);
+  --c-aubergine: var(--fs-aubergine);
+  --c-text: var(--fs-ink);
+  --c-muted: var(--fs-ink-2);
+  --c-subtle: var(--fs-ink-3);
+  --c-border: var(--fs-line);
+  --c-border-subtle: var(--fs-line);
+  --c-border-strong: var(--fs-line-strong);
+  --c-border-focus: var(--fs-marigold);
+  --c-navy: var(--fs-aubergine-deep);
+  --c-navy-2: var(--fs-aubergine-deep);
+  --c-navy-border: rgba(234, 170, 0, 0.22);
+  --c-accent: var(--fs-aubergine);
+  --c-accent-hover: var(--fs-aubergine-700);
+  --c-accent-bright: var(--fs-marigold);
+  --c-accent-soft: var(--fs-aubergine-tint);
+  --c-accent-line: rgba(58, 15, 52, 0.16);
+  --c-gold: var(--fs-marigold);
+  --c-gold-hover: var(--fs-marigold-hover);
+  --c-gold-active: #bf8800;
+  --c-gold-text: var(--fs-aubergine-deep);
+  --c-gold-soft: var(--fs-marigold-tint);
+  --c-gold-line: var(--fs-caution-line);
+  --c-good: var(--fs-good);
+  --c-good-soft: var(--fs-good-bg);
+  --c-good-line: var(--fs-good-line);
+  --c-warn: var(--fs-caution);
+  --c-warn-soft: var(--fs-caution-bg);
+  --c-warn-line: var(--fs-caution-line);
+  --c-warn-bar: var(--fs-marigold);
+  --c-bad: var(--fs-danger);
+  --c-bad-strong: var(--fs-danger);
+  --c-bad-soft: var(--fs-danger-bg);
+  --c-bad-line: var(--fs-danger-line);
+  --c-info: var(--fs-info);
+  --c-info-soft: var(--fs-info-bg);
+  --c-info-line: var(--fs-info-line);
+  --c-focus: var(--fs-aubergine);
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius: var(--r-control);
+  --radius-md: var(--r-control);
+  --radius-lg: var(--r-record);
+  --radius-xl: var(--r-slab);
+  --shadow: var(--e-record);
+  --shadow-raised: var(--e-float);
+  --shadow-dark: none;
+  --space-1: var(--sp-1);
+  --space-2: var(--sp-2);
+  --space-3: var(--sp-3);
+  --space-4: var(--sp-4);
+  --space-5: var(--sp-6);
+  --space-6: var(--sp-7);
+  --sidebar: var(--rail-w);
+  --bottom-nav: var(--bottom-bar-h);
+  --font: var(--fs-font-text);
+
+  color-scheme: light;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+@media (min-width: 1200px) {
+  :root {
+    --gutter: 32px;
+  }
+}
