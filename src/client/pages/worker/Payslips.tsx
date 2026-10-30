@@ -5,6 +5,7 @@ import { formatDate } from '../../lib/format';
 import type { Paged, PayslipDTO, PayslipListItem } from '../../../shared/types';
 import { Async, Card, Empty, Money, Page } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
+import { MoneyJar } from '../../components/MoneyJar';
 import { Printer } from 'lucide-react';
 
 export function WorkerPayslips() {
@@ -43,7 +44,14 @@ export function WorkerPayslips() {
       </Card>
       <Card title={t('pay.current')}>
         <p className="muted small">{t('pay.currentHint')}</p>
-        <Async state={preview}>{(slip) => <PayslipBreakdown slip={slip} />}</Async>
+        <Async state={preview}>
+          {(slip) => (
+            <>
+              <MoneyJar slip={slip} />
+              <PayslipBreakdown slip={slip} />
+            </>
+          )}
+        </Async>
       </Card>
     </Page>
   );
@@ -69,7 +77,14 @@ export function WorkerPayslipView({ id }: { id: string }) {
       }
     >
       <Card>
-        <Async state={slip}>{(s) => <PayslipBreakdown slip={s} />}</Async>
+        <Async state={slip}>
+          {(s) => (
+            <>
+              <MoneyJar slip={s} />
+              <PayslipBreakdown slip={s} />
+            </>
+          )}
+        </Async>
       </Card>
     </Page>
   );

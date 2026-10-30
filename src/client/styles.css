@@ -2285,6 +2285,408 @@ svg.icon[data-size='lg'] {
   }
 }
 
+/* ---------- FairShift Money Jar & Earnings Visualization ---------- */
+.money-jar-card {
+  background: var(--c-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 20px rgba(58, 15, 52, 0.05);
+}
+
+.money-jar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--c-border-subtle);
+}
+
+.money-jar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--c-heading);
+  margin: 0;
+}
+
+.jar-sparkle-icon {
+  font-size: 1.35rem;
+}
+
+.money-jar-subtitle {
+  font-size: 0.875rem;
+  color: var(--c-muted);
+  margin: 0.25rem 0 0 0;
+}
+
+.money-jar-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+/* Glass Jar Visual Container */
+.jar-visual-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(245, 248, 251, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 1.25rem 1rem 1rem 1rem;
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(58, 15, 52, 0.06);
+}
+
+.jar-pattern-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.jar-glass-body {
+  position: relative;
+  width: 170px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 3px solid rgba(58, 15, 52, 0.2);
+  border-top: none;
+  border-radius: 0 0 28px 28px;
+  box-shadow: inset -6px 0 12px rgba(255, 255, 255, 0.7), inset 6px 0 12px rgba(0, 0, 0, 0.05),
+    0 10px 20px rgba(58, 15, 52, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: visible;
+}
+
+.jar-lid {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  right: -8px;
+  height: 14px;
+  background: linear-gradient(180deg, #eaaa00 0%, #c48b00 100%);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(58, 15, 52, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.jar-lid-knob {
+  width: 24px;
+  height: 7px;
+  background: #bf8800;
+  border-radius: 3px;
+  margin-top: -6px;
+}
+
+.jar-interior {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 0 0 24px 24px;
+  overflow: hidden;
+  background: rgba(220, 230, 238, 0.35);
+}
+
+.jar-layer {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.4s ease;
+  min-height: 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jar-layer {
+    transition: none;
+  }
+}
+
+.layer-base {
+  background: linear-gradient(180deg, #0d8a54 0%, #0a6b40 100%);
+  color: #ffffff;
+}
+
+.layer-overtime {
+  background: linear-gradient(180deg, #eaaa00 0%, #d49500 100%);
+  color: #260822;
+}
+
+.jar-layer-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pattern-ot {
+  background-image: radial-gradient(#ffffff 25%, transparent 25%);
+  background-size: 8px 8px;
+  opacity: 0.35;
+}
+
+.pattern-base {
+  background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 100% 6px;
+  opacity: 0.35;
+}
+
+.jar-layer-badge {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  padding: 0 0.35rem;
+}
+
+.layer-overtime .jar-layer-badge {
+  text-shadow: none;
+  color: #260822;
+}
+
+.jar-deduction-callout {
+  position: absolute;
+  top: 15%;
+  right: -55px;
+  background: #ffffff;
+  border: 1px solid var(--c-bad-line);
+  box-shadow: 0 4px 12px rgba(186, 20, 53, 0.15);
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--c-bad-strong);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.jar-net-hero {
+  margin-top: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
+.jar-net-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+.jar-net-amount {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--c-heading);
+  letter-spacing: -0.02em;
+  margin: 0.2rem 0;
+}
+
+.jar-status-pill {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+/* Ledger List */
+.jar-ledger-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jar-section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c-heading);
+  margin: 0 0 0.5rem 0;
+}
+
+.jar-ledger-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.jar-ledger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-md, 10px);
+}
+
+.jar-ledger-item.highlight {
+  background: rgba(10, 107, 64, 0.08);
+  border-color: rgba(10, 107, 64, 0.25);
+}
+
+.jar-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.jar-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  shrink: 0;
+}
+
+.dot-base {
+  background: #0a6b40;
+}
+.dot-ot {
+  background: #eaaa00;
+}
+.dot-ded {
+  background: #ba1435;
+}
+
+.jar-item-val {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.text-amber {
+  color: #8f4700;
+}
+.text-bad {
+  color: #ba1435;
+}
+.text-good {
+  color: #0a6b40;
+}
+.text-lg {
+  font-size: 1.15rem;
+}
+
+.jar-trust-guarantee {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(58, 15, 52, 0.04);
+  border-radius: 8px;
+}
+
+/* Agreed vs Worked vs Paid 3-Part Comparison */
+.comparison-section {
+  border-top: 1px solid var(--c-border-subtle);
+  padding-top: 1.25rem;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.comparison-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.comparison-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.badge-agreed {
+  background: rgba(27, 69, 140, 0.12);
+  color: #1b458c;
+}
+.badge-worked {
+  background: rgba(234, 170, 0, 0.15);
+  color: #8f4700;
+}
+.badge-paid {
+  background: rgba(10, 107, 64, 0.12);
+  color: #0a6b40;
+}
+
+.comparison-subtitle {
+  font-size: 0.72rem;
+  color: var(--c-muted);
+}
+
+.comparison-figure {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--c-heading);
+  margin-bottom: 0.4rem;
+}
+
+.comparison-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--c-text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.badge-status-inline {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0a6b40;
+}
+
+@media (max-width: 768px) {
+  .money-jar-grid {
+    grid-template-columns: 1fr;
+  }
+  .jar-visual-container {
+    padding: 1rem 0.5rem;
+  }
+  .jar-deduction-callout {
+    right: -10px;
+  }
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Print Styles for Payslips & Receipts ---------- */
 @media print {
   body {
