@@ -3,6 +3,7 @@ import type { Express } from 'express';
 import { openDb } from '../../src/server/db/db';
 import { seedIfEmpty } from '../../src/server/db/seed';
 import { createApp } from '../../src/server/app';
+import { invalidateSignalCache } from '../../src/server/services/signal';
 import type { AppContext } from '../../src/server/context';
 
 export const PHONES = {
@@ -24,6 +25,7 @@ export interface TestEnv {
 
 /** Fresh in-memory database seeded at a fixed instant (Tuesday 27 Oct 2026, 09:00 IST). */
 export async function setup(start = '2026-10-27T03:30:00.000Z'): Promise<TestEnv> {
+  invalidateSignalCache();
   const clock = { now: new Date(start) };
   const ctx: AppContext = {
     db: openDb(':memory:'),

@@ -11,9 +11,10 @@ import type { ReportCreateInput } from '../../shared/schemas';
 import type { AccountabilityMetricsDTO, ReportEventDTO, ReportStatus, SafetyReportDTO, Severity } from '../../shared/types';
 import { nowIso, type AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';
-import { reporterRef } from '../auth/crypto';
+import { reporterRef, scopedReporterRef } from '../auth/crypto';
 import { recordAudit } from '../repositories/audit';
 import { findSessionUser } from '../repositories/users';
+import { invalidateSignalCache } from './signal';
 import { notFound } from '../http';
 
 interface ReportRow {
@@ -50,7 +51,14 @@ const SELECT = `SELECT r.id, r.org_id AS orgId, r.reporter_id AS reporterId, r.r
   FROM safety_reports r LEFT JOIN users u ON u.id = r.reporter_id`;
 
 function isMine(ctx: AppContext, actor: Actor, row: ReportRow): boolean {
-  return row.reporterId === actor.id || (row.reporterRef !== null && row.reporterRef === reporterRef(ctx.config.sessionSecret, actor.id));
+  if (row.reporterId === actor.id) return true;
+  if (!row.reporterRef) return false;
+  const currentRef = scopedReporterRef(ctx.config.signalPseudonymSecret, actor.orgId, actor.id);
+  if (row.reporterRef === currentRef) return true;
+  const legacyRef1 = reporterRef(ctx.config.signalPseudonymSecret, actor.id);
+  if (row.reporterRef === legacyRef1) return true;
+  const legacyRef2 = reporterRef(ctx.config.sessionSecret, actor.id);
+  return row.reporterRef === legacyRef2;
 }
 
 function toDTO(ctx: AppContext, actor: Actor, row: ReportRow): SafetyReportDTO {
@@ -112,7 +120,7 @@ export function createReport(ctx: AppContext, org: OrgRow, actor: Actor, input: 
         id,
         orgId: org.id,
         reporterId: input.confidential ? null : actor.id,
-        reporterRef: input.confidential ? reporterRef(ctx.config.sessionSecret, actor.id) : null,
+        reporterRef: input.confidential ? scopedReporterRef(ctx.config.signalPseudonymSecret, org.id, actor.id) : null,
         confidential: input.confidential,
         category: input.category,
         severity: input.severity,
@@ -138,6 +146,7 @@ export function createReport(ctx: AppContext, org: OrgRow, actor: Actor, input: 
       at,
     });
   });
+  invalidateSignalCache(actor.orgId);
   return getReport(ctx, actor, id)!;
 }
 
@@ -150,14 +159,21 @@ export function getReport(ctx: AppContext, actor: Actor, id: string): SafetyRepo
 }
 
 export function listMyReports(ctx: AppContext, actor: Actor, limit: number): SafetyReportDTO[] {
-  const ref = reporterRef(ctx.config.sessionSecret, actor.id);
+  const currentRef = scopedReporterRef(ctx.config.signalPseudonymSecret, actor.orgId, actor.id);
+  const legacyRef1 = reporterRef(ctx.config.signalPseudonymSecret, actor.id);
+  const legacyRef2 = reporterRef(ctx.config.sessionSecret, actor.id);
   return ctx.db
-    .all<ReportRow>(`${SELECT} WHERE r.org_id = @orgId AND (r.reporter_id = @id OR r.reporter_ref = @ref) ORDER BY r.created_at DESC LIMIT @limit`, {
-      orgId: actor.orgId,
-      id: actor.id,
-      ref,
-      limit,
-    })
+    .all<ReportRow>(
+      `${SELECT} WHERE r.org_id = @orgId AND (r.reporter_id = @id OR r.reporter_ref IN (@currentRef, @legacyRef1, @legacyRef2)) ORDER BY r.created_at DESC LIMIT @limit`,
+      {
+        orgId: actor.orgId,
+        id: actor.id,
+        currentRef,
+        legacyRef1,
+        legacyRef2,
+        limit,
+      },
+    )
     .map((r) => toDTO(ctx, actor, r));
 }
 
@@ -289,6 +305,7 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
       at,
     });
   });
+  invalidateSignalCache(actor.orgId);
   return getReport(ctx, actor, id)!;
 }
 

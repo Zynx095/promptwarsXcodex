@@ -26,7 +26,21 @@ export function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
-/** Keyed reference linking a confidential report to its reporter without storing their ID. */
+/** Legacy keyed reference linking a confidential report to its reporter without storing their ID. */
 export function reporterRef(secret: string, userId: string): string {
   return hmac(secret, `confidential-report:${userId}`);
+}
+
+/**
+ * Domain-separated keyed reference linking a confidential report to its reporter with organization isolation.
+ */
+export function scopedReporterRef(secret: string, orgId: string, userId: string): string {
+  return hmac(secret, `fairshift:confidential-report:${orgId}:${userId}`);
+}
+
+/**
+ * Generates an opaque one-way pseudonym for internal signal aggregation, eliminating raw user IDs from domain memory.
+ */
+export function signalAggregationKey(secret: string, orgId: string, rawKey: string): string {
+  return hmac(secret, `fairshift:signal-aggregation:${orgId}:${rawKey}`);
 }
