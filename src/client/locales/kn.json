@@ -385,5 +385,11 @@
   "heat.work": "ಕೆಲಸ",
   "heat.symptoms": "ಈ ಲಕ್ಷಣಗಳನ್ನು ಗಮನಿಸಿ",
   "heat.sourcesTitle": "ಮೂಲಗಳು ಮತ್ತು ಮಿತಿಗಳು",
-  "heat.reportHeat": "ಬಿಸಿಲಿನ ಅಪಾಯವನ್ನು ವರದಿ ಮಾಡಿ"
+  "heat.reportHeat": "ಬಿಸಿಲಿನ ಅಪಾಯವನ್ನು ವರದಿ ಮಾಡಿ",
+  "notifications.safetyAlert": "ಸುರಕ್ಷತಾ ಎಚ್ಚರಿಕೆ",
+  "notifications.unread": "ಓದಿಲ್ಲ",
+  "notifications.labelUnread": "ಅಧಿಸೂಚನೆಗಳು, {count} ಓದಿಲ್ಲ",
+  "notifications.emptyHint": "ನಿಮ್ಮ ವೇತನ, ಶಿಫ್ಟ್‌ಗಳು ಮತ್ತು ಸುರಕ್ಷತಾ ವರದಿಗಳ ಬಗ್ಗೆ ಅಪ್‌ಡೇಟ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
+  "notifications.new": "ಹೊಸದು",
+  "notifications.earlier": "ಹಿಂದಿನವು"
 }

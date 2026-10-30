@@ -386,5 +386,11 @@
   "heat.work": "வேலை",
   "heat.symptoms": "இவற்றைக் கவனியுங்கள்",
   "heat.sourcesTitle": "ஆதாரங்களும் வரம்புகளும்",
-  "heat.reportHeat": "வெப்ப அபாயத்தைத் தெரிவி"
+  "heat.reportHeat": "வெப்ப அபாயத்தைத் தெரிவி",
+  "notifications.safetyAlert": "பாதுகாப்பு எச்சரிக்கை",
+  "notifications.unread": "படிக்கவில்லை",
+  "notifications.labelUnread": "அறிவிப்புகள், {count} படிக்கவில்லை",
+  "notifications.emptyHint": "உங்கள் சம்பளம், பணிநேரங்கள், பாதுகாப்பு அறிக்கைகள் பற்றிய தகவல்கள் இங்கே தோன்றும்.",
+  "notifications.new": "புதியவை",
+  "notifications.earlier": "முந்தையவை"
 }

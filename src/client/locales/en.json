@@ -386,5 +386,11 @@
   "heat.work": "Work",
   "heat.symptoms": "Watch for",
   "heat.sourcesTitle": "Sources and limits",
-  "heat.reportHeat": "Report a heat hazard"
+  "heat.reportHeat": "Report a heat hazard",
+  "notifications.safetyAlert": "Safety alert",
+  "notifications.unread": "Unread",
+  "notifications.labelUnread": "Notifications, {count} unread",
+  "notifications.emptyHint": "Updates about your pay, shifts and safety reports will appear here.",
+  "notifications.new": "New",
+  "notifications.earlier": "Earlier"
 }

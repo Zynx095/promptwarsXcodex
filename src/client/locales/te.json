@@ -386,5 +386,11 @@
   "heat.work": "పని",
   "heat.symptoms": "వీటిని గమనించండి",
   "heat.sourcesTitle": "మూలాలు, పరిమితులు",
-  "heat.reportHeat": "వేడి ప్రమాదాన్ని నివేదించండి"
+  "heat.reportHeat": "వేడి ప్రమాదాన్ని నివేదించండి",
+  "notifications.safetyAlert": "భద్రతా హెచ్చరిక",
+  "notifications.unread": "చదవలేదు",
+  "notifications.labelUnread": "నోటిఫికేషన్లు, {count} చదవలేదు",
+  "notifications.emptyHint": "మీ జీతం, షిఫ్ట్‌లు, భద్రతా నివేదికల గురించి సమాచారం ఇక్కడ కనిపిస్తుంది.",
+  "notifications.new": "కొత్తవి",
+  "notifications.earlier": "ఇంతకుముందువి"
 }

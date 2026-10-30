@@ -386,5 +386,11 @@
   "heat.work": "কাজ",
   "heat.symptoms": "এগুলোর দিকে খেয়াল রাখুন",
   "heat.sourcesTitle": "উৎস ও সীমাবদ্ধতা",
-  "heat.reportHeat": "গরমের বিপদ জানান"
+  "heat.reportHeat": "গরমের বিপদ জানান",
+  "notifications.safetyAlert": "নিরাপত্তা সতর্কতা",
+  "notifications.unread": "পড়া হয়নি",
+  "notifications.labelUnread": "বিজ্ঞপ্তি, {count}টি পড়া হয়নি",
+  "notifications.emptyHint": "আপনার বেতন, শিফট ও নিরাপত্তা রিপোর্টের খবর এখানে দেখা যাবে।",
+  "notifications.new": "নতুন",
+  "notifications.earlier": "আগের"
 }

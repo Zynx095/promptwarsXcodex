@@ -386,5 +386,11 @@
   "heat.work": "काम",
   "heat.symptoms": "इन पर ध्यान दें",
   "heat.sourcesTitle": "स्रोत और सीमाएँ",
-  "heat.reportHeat": "गर्मी के खतरे की रिपोर्ट करें"
+  "heat.reportHeat": "गर्मी के खतरे की रिपोर्ट करें",
+  "notifications.safetyAlert": "सुरक्षा चेतावनी",
+  "notifications.unread": "नहीं पढ़ा",
+  "notifications.labelUnread": "सूचनाएँ, {count} नहीं पढ़ीं",
+  "notifications.emptyHint": "आपके वेतन, शिफ्ट और सुरक्षा रिपोर्ट से जुड़ी जानकारी यहाँ दिखेगी।",
+  "notifications.new": "नई",
+  "notifications.earlier": "पहले की"
 }
