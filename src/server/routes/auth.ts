@@ -14,13 +14,18 @@ import { handleGithubCallback, isGithubConfigured, startGithubAuth } from '../au
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 10;
+/**
+ * Failures allowed per phone number across all client IPs. A 4-digit PIN has only 10,000 values,
+ * so the per-IP limit alone would let an attacker rotating addresses guess it quickly.
+ */
+export const MAX_FAILURES_PER_PHONE = 30;
 
 /** In-memory login throttle per client IP and phone number (per server instance). */
 class LoginThrottle {
   private failures = new Map<string, { count: number; resetAt: number }>();
-  check(key: string, now: number): void {
+  check(key: string, now: number, max = MAX_FAILURES): void {
     const f = this.failures.get(key);
-    if (f && f.resetAt > now && f.count >= MAX_FAILURES) {
+    if (f && f.resetAt > now && f.count >= max) {
       throw new HttpError(429, 'TOO_MANY_ATTEMPTS', 'Too many failed sign-in attempts. Wait 15 minutes and try again.');
     }
   }
@@ -65,16 +70,20 @@ export function authRoutes(ctx: AppContext): Router {
   r.post('/auth/login', (req, res) => {
     const input = parse(loginSchema, req.body);
     const key = `${req.ip}|${input.phone}`;
+    const phoneKey = `phone|${input.phone}`;
     const now = ctx.now().getTime();
     throttle.check(key, now);
+    throttle.check(phoneKey, now, MAX_FAILURES_PER_PHONE);
     const login = findLoginByPhone(ctx.db, input.phone);
     // Verify against a dummy hash when the account is unknown to keep timing similar.
     const ok = verifyPin(input.pin, login?.pinHash ?? 'scrypt$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA') && !!login?.active;
     if (!login || !ok) {
       throttle.fail(key, now);
+      throttle.fail(phoneKey, now);
       throw new HttpError(401, 'INVALID_LOGIN', 'Phone number or PIN is incorrect.');
     }
     throttle.succeed(key);
+    throttle.succeed(phoneKey);
     setSessionCookie(ctx, res, login.id);
     res.json({ ok: true });
   });
