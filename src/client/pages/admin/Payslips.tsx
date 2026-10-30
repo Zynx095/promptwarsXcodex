@@ -6,6 +6,7 @@ import { formatDate } from '../../lib/format';
 import type { Paged, PayslipDTO, PayslipListItem, WorkerDTO } from '../../../shared/types';
 import { Async, Button, Card, Empty, ErrorBox, Field, Money, Notice, Page, Pager } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
+import { Download, Printer } from 'lucide-react';
 
 const LIMIT = 25;
 
@@ -54,7 +55,15 @@ export function AdminPayslips() {
   }
 
   return (
-    <Page title="Payslips">
+    <Page
+      title="Payslips"
+      actions={
+        <a href="/api/admin/payslips/export.csv" download="fairshift_payroll.csv" className="btn btn-secondary">
+          <Download className="icon-sm" aria-hidden="true" />
+          <span>Export Payroll CSV</span>
+        </a>
+      }
+    >
       <Card title="Calculate and issue a payslip">
         <p className="muted small">
           Pay is calculated from recorded shifts, the worker&apos;s hourly rate and your pay rules. Issued payslips are fixed snapshots; later corrections do
@@ -179,9 +188,15 @@ export function AdminPayslipView({ id }: { id: string }) {
     <Page
       title="Payslip"
       actions={
-        <Link to="/admin/payslips" className="btn btn-secondary">
-          Back to payslips
-        </Link>
+        <div className="btn-group">
+          <Button variant="secondary" onClick={() => window.print()}>
+            <Printer className="icon-sm" aria-hidden="true" />
+            <span>Print</span>
+          </Button>
+          <Link to="/admin/payslips" className="btn btn-secondary">
+            Back to payslips
+          </Link>
+        </div>
       }
     >
       <Card>

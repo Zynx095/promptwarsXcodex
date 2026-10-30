@@ -15,7 +15,9 @@ import { WorkerFeedback } from './pages/worker/Feedback';
 import { WorkerSkills } from './pages/worker/Skills';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminWorkers, AdminWorkerSkills } from './pages/admin/Workers';
+import { AdminSites } from './pages/admin/Sites';
 import { AdminShifts } from './pages/admin/Shifts';
+
 import { AdminReports, AdminReportView } from './pages/admin/Reports';
 import { AdminAlerts } from './pages/admin/Alerts';
 import { AdminPayslips, AdminPayslipView } from './pages/admin/Payslips';
@@ -42,7 +44,9 @@ const ROUTES: Route[] = [
   { path: '/admin', role: 'admin', render: () => <AdminDashboard /> },
   { path: '/admin/workers', role: 'admin', render: () => <AdminWorkers /> },
   { path: '/admin/workers/:id/skills', role: 'admin', render: (p) => <AdminWorkerSkills id={p.id!} /> },
+  { path: '/admin/sites', role: 'admin', render: () => <AdminSites /> },
   { path: '/admin/shifts', role: 'admin', render: () => <AdminShifts /> },
+
   { path: '/admin/reports', role: 'admin', render: () => <AdminReports /> },
   { path: '/admin/reports/:id', role: 'admin', render: (p) => <AdminReportView id={p.id!} /> },
   { path: '/admin/alerts', role: 'admin', render: () => <AdminAlerts /> },

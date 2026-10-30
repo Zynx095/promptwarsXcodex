@@ -139,7 +139,14 @@ export function AdminReports() {
                           </td>
                           <td>
                             <ReportStatusBadge status={r.status} />
+                            {r.followUpDate && r.status === 'follow_up_pending' && r.followUpDate < new Date().toISOString().slice(0, 10) ? (
+                              <div className="mt-1">
+                                <Badge tone="warn">Overdue Follow-up</Badge>
+                              </div>
+                            ) : null}
+                            {r.verifiedBy ? <div className="muted small mt-1">Verified: {r.verifiedBy}</div> : null}
                           </td>
+
                           <td>{r.assignee ?? <span className="muted">—</span>}</td>
                           <td className="small">{formatDateTime(r.createdAt, me.org.timezone)}</td>
                         </tr>
