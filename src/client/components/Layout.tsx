@@ -150,7 +150,10 @@ function WorkerShell({ children }: { children: ReactNode }) {
 
       <aside className="ws-rail">
         <Wordmark />
-        <p className="ws-rail-org">{me.org.name}</p>
+        <p className="ws-rail-org">
+          {me.org.name}
+          <span>{getIndustry(me.org.industry).label}</span>
+        </p>
         <nav className="ws-rail-nav" aria-label={t('nav.main')}>
           <ul>
             {[...WORKER_PRIMARY, ...WORKER_SECONDARY].map((d) => (
@@ -179,8 +182,9 @@ function WorkerShell({ children }: { children: ReactNode }) {
           </span>
           <span className="ws-topbar-org">{me.org.name}</span>
           {demo ? (
-            <span className="demo-chip" title={t('demo.banner')}>
-              {t('demo.chip')}
+            <span className="demo-chip">
+              <span aria-hidden="true">{t('demo.chip')}</span>
+              <span className="visually-hidden">{t('demo.banner')}</span>
             </span>
           ) : null}
           <div className="ws-topbar-tools">

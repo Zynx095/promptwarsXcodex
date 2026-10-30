@@ -144,6 +144,12 @@
 .ws-rail-org {
   margin: var(--sp-3) 0 var(--sp-6);
   font-size: var(--fs-text-sm);
+  font-weight: 600;
+  color: var(--fs-ink);
+}
+.ws-rail-org span {
+  display: block;
+  font-weight: 400;
   color: var(--fs-ink-2);
 }
 .ws-rail-nav ul {
