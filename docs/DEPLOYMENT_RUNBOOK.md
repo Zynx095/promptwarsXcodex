@@ -9,6 +9,7 @@ This guide covers deploying, operating, backing up, and maintaining FairShift V4
 FairShift runs as a single cohesive full-stack Node.js 22 LTS container serving both the static Vite frontend and the high-performance Express/SQLite backend.
 
 ### Storage Architecture
+
 - **Database Engine**: Node 22 built-in SQLite (`DatabaseSync`) in Write-Ahead Log (`WAL`) mode.
 - **Persistent Volume Mount**: The default database path is `/data/fairshift.db`.
 - **User Permissions**: Hardened to run as non-root user `node` (`UID 1000:GID 1000`). The `/data` directory must be owned by `node:node`.
@@ -20,6 +21,7 @@ FairShift runs as a single cohesive full-stack Node.js 22 LTS container serving 
 Google Cloud Run provides serverless container execution with second-generation Cloud Storage volume mounts.
 
 ### Step 1: Create a Cloud Storage Bucket for SQLite Persistence
+
 ```bash
 gcloud storage buckets create gs://fairshift-data-prod \
   --location=asia-south1 \
@@ -27,6 +29,7 @@ gcloud storage buckets create gs://fairshift-data-prod \
 ```
 
 ### Step 2: Build and Push Container Image to Artifact Registry
+
 ```bash
 # Configure Docker authentication
 gcloud auth configure-docker asia-south1-docker.pkg.dev
@@ -39,6 +42,7 @@ docker push asia-south1-docker.pkg.dev/PROJECT_ID/fairshift-repo/fairshift:v4.0.
 ```
 
 ### Step 3: Deploy to Cloud Run with Persistent Volume Mount
+
 ```bash
 gcloud run deploy fairshift-prod \
   --image=asia-south1-docker.pkg.dev/PROJECT_ID/fairshift-repo/fairshift:v4.0.0 \
@@ -69,6 +73,7 @@ SIGNAL_PSEUDONYM_SECRET=fairshift-signal-key:latest \
 For self-hosted Linux virtual machines or on-premise infrastructure using Docker Compose:
 
 ### Sample `docker-compose.yml`
+
 ```yaml
 version: '3.8'
 
@@ -80,7 +85,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -93,9 +98,9 @@ services:
       - ACTIVE_CHECKPOINT_KEY_ID=chk_v1
     volumes:
       - fairshift_data:/data
-    user: "1000:1000"
+    user: '1000:1000'
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/healthz').then(r => r.ok ? process.exit(0) : process.exit(1))"]
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:3000/healthz').then(r => r.ok ? process.exit(0) : process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -113,7 +118,9 @@ volumes:
 FairShift utilizes SQLite's non-blocking `VACUUM INTO` command for atomic point-in-time snapshots without pausing live shift check-ins or writes.
 
 ### Performing an On-Demand Backup
+
 Run inside the container or via scheduled cron:
+
 ```bash
 # Execute backup snapshot inside live container
 docker exec -t fairshift-prod node -e "
@@ -130,13 +137,16 @@ docker exec -t fairshift-prod node -e "
 ```
 
 ### Verifying Backup Integrity
+
 To verify any offline backup file before restoring:
+
 ```bash
 sqlite3 /data/backups/fairshift_snapshot.db "PRAGMA integrity_check;"
 # Output must be: ok
 ```
 
 ### Restoring from Backup
+
 1. Stop the application container: `docker stop fairshift-prod`
 2. Archive the current corrupted database:
    ```bash
@@ -155,7 +165,9 @@ sqlite3 /data/backups/fairshift_snapshot.db "PRAGMA integrity_check;"
 ## 5. Security & Operational Runbook
 
 ### Handling Key Rotation
+
 When rotating receipt or checkpoint keys:
+
 1. Generate new 64-character secrets.
 2. In Secret Manager or environment variables, keep historical keys in `RECEIPT_SIGNING_KEYS` JSON dictionary:
    ```bash
@@ -165,5 +177,6 @@ When rotating receipt or checkpoint keys:
 3. Existing receipts signed under `v1` continue to verify seamlessly; new receipts are signed under `v2`.
 
 ### Monitoring Metrics & Health Checks
+
 - **Health Endpoint**: `GET /healthz` (Returns HTTP 200 `{"status":"ok"}` after executing an active SQLite ping).
 - **Audit Logs**: All sensitive operations are queryable by administrators at `/api/admin/audit` and `/admin/audit`.

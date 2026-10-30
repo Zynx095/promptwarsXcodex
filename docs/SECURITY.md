@@ -15,6 +15,8 @@ This document describes the controls FairShift implements and the gaps that rema
 - **Credentials:** phone number + PIN. PINs are hashed with scrypt and a per-user salt. Unknown accounts are checked against a dummy hash so response timing is similar.
 - **Session cookie:** HttpOnly, `SameSite=Lax`, `Secure` in production. It contains user ID, a random 128-bit session identifier (`sid`) ensuring session rotation on every authentication event, and expiry, signed with HMAC-SHA256 (`SESSION_SECRET`) and checked in constant time, with a 12-hour lifetime.
 - **Per-request reload:** role, organisation and active status are re-read from the database on every request; nothing in the cookie or request body is trusted for authorisation.
+- **Instant Session Revocation:** Deactivating a worker (`active: false`) immediately invalidates their active session cookie across all endpoints on their next request via per-request user state reload. Deactivated accounts are rejected with `401 UNAUTHORIZED` or `INACTIVE_ACCOUNT` check-in guards.
+- **Workforce Provisioning Controls:** Administrators can provision workers (`POST /api/admin/workers`) with uniqueness checks on phone numbers within the organisation. Worker initial PINs are salted and scrypt-hashed immediately.
 - **Login throttling:** 10 failed attempts per client IP + phone number per 15 minutes, held in memory per instance.
 
 **Authorisation and data boundaries**
@@ -46,10 +48,11 @@ This document describes the controls FairShift implements and the gaps that rema
 - **HMAC-SHA256 cryptographic digests:** receipts are sealed with `HMAC-SHA256(RECEIPT_SIGNING_SECRET, canonicalJson)` upon shift check-out. Any direct database tampering with hours, overtime, or pay rates causes immediate verification failure.
 - **Multi-key management & rotation:** receipts carry explicit `key_id` attributes, decoupling receipt verification from session secret rotation and allowing zero-downtime key rotation with historical key maps (`RECEIPT_SIGNING_KEYS`).
 - **Independent Merkle checkpoint anchoring:** receipts are batched into append-only cryptographic commitment logs. Domain-separated binary Merkle trees (`fairshift:leaf:v1:`) produce signed checkpoints linked via hash chains (`previousCheckpointRoot`).
-- **Self-contained verification bundles:** workers and external auditors can export and verify independent proof bundles completely offline without requiring access to application databases or server signing secrets.
+- **Symmetric vs Asymmetric Checkpoint Trust & Offline Bundles:** Checkpoints are signed using server secrets while public/regulator verification is facilitated via exported proof bundles (`GET /api/receipts/:id/bundle`) containing canonical receipt data, Merkle leaf hashes, and inclusion sibling paths verified against published checkpoint roots without exposing symmetric keys.
 - **Constant-time verification:** digest verification uses `crypto.timingSafeEqual` with strict 64-char hex format validation to eliminate timing side-channel attacks and malformed signature exceptions.
 - **Append-only version chaining:** administrator shift corrections do not overwrite historical receipts; they insert an incremented receipt version referencing `previous_version_id` with mandatory reason audit trails.
 - **Lifecycle status transition:** receipts transition from `estimated` to `finalized` when the employer issues the period payslip, cementing immutable payroll records.
+- **Worker Plain-Language Guarantee:** Workers can access an inline plain-language explanation of their cryptographic guarantee directly on the receipt modal, explaining what HMAC seals and tamper-evidence mean without cryptographic jargon.
 
 **Privacy and hazard aggregation (Safe Signal)**
 
@@ -67,6 +70,18 @@ This document describes the controls FairShift implements and the gaps that rema
 - **Verification authority & separation of duties:** detects and flags when the resolver self-verifies their own corrective action versus independent third-party auditor sign-off (`verified_by`, `verification_note`, `verified_at`). When `requireIndependentVerification` policy is active, self-verification is strictly rejected.
 - **Worker outcome transparency:** workers can view exact corrective actions and verification results without exposing administrator identity or internal notes.
 
+**In-App Notification Hub & System Alerts**
+
+- **Tenant and user scoping:** All notifications are stored in `notifications` with compound indexing on `(org_id, user_id, read, created_at)`. Querying `/api/notifications/mine` strictly restricts results to the authenticated user's ID within their organization.
+- **Automated Event Triggers:** Shift corrections, payslip issuance, and hazard resolution transitions trigger targeted worker notifications. High-severity hazard reports trigger real-time administrator alerts without exposing confidential reporter identifiers.
+- **State mutation guard:** Marking notifications as read (`POST /api/notifications/:id/read`) enforces ownership checks, preventing cross-user status tampering.
+
+**Payroll Data Export Security & Auditing**
+
+- **Administrative isolation:** Payroll CSV export (`GET /api/admin/payslips/export.csv`) is strictly restricted to administrator sessions within the caller's organization.
+- **Immutable audit log:** Every export operation writes an audit event (`event: 'payslip.exported'`) with timestamp, administrator ID, and record count.
+- **Client-side print styling:** Print stylesheet (`@media print`) safely removes UI controls, session headers, navigation, and background fills, preventing accidental print leaks of administrative controls.
+
 **Production Storage Durability & Disaster Recovery**
 
 - **Persistent storage default:** runtime container specifies `/data/fairshift.db` with non-root ownership (`node:node`) designed for Google Cloud Run volume mounts (Cloud Storage FUSE or Filestore).
@@ -83,7 +98,7 @@ This document describes the controls FairShift implements and the gaps that rema
 
 ## Known limitations
 
-- **Authentication strength:** PIN-only. There is no MFA, account lockout beyond the in-memory throttle, PIN reset or administrator account management. The throttle resets on restart and is per instance.
+- **Authentication strength:** PIN-only for phone accounts. There is no automated self-service password reset or MFA (though OAuth and SMS OTP flows are supported). The throttle resets on restart and is per instance.
 - **Demo credentials:** all demo accounts share the published PIN `1234`. Never enable `DEMO_MODE` with real data.
 - **Linkable confidential reports:** two confidential reports from the same worker share the same keyed reference. Someone with database access can tell they came from the same person, though not who. Anyone holding both the database and `SESSION_SECRET` could recompute every worker's reference and identify reporters.
 - **Secret rotation:** rotating `SESSION_SECRET` signs everyone out and breaks the link between workers and their earlier confidential reports.

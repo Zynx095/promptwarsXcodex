@@ -216,7 +216,6 @@ describe('web client', () => {
       await waitForText(heading);
     }
 
-
     await nav('Shifts');
     await type(fieldByLabel('Status'), 'completed');
     await submit('Filter');

@@ -7,6 +7,7 @@ This document records reproducible evidence for the complete end-to-end integrat
 ## 1. Verified Workflows
 
 ### A. The Complete Work-to-Earnings Workflow
+
 ```
 [Worker Check-In] ──(Site Code Validated)──► [Open Shift Locked]
        │
@@ -22,7 +23,8 @@ This document records reproducible evidence for the complete end-to-end integrat
  • Worker in-app notification delivered                                 • Print-friendly payslip available
                                                                         • Admin payroll CSV export generated
 ```
-* **Test Verification**:
+
+- **Test Verification**:
   - `tests/integration/workflows.test.ts`:
     - `check-in/out -> overtime -> payslip -> hazard report -> admin resolves -> dashboard updates` (**PASS**, 981ms).
     - `issues an immutable payslip once per worker and period` (**PASS**, 707ms).
@@ -36,6 +38,7 @@ This document records reproducible evidence for the complete end-to-end integrat
 ---
 
 ### B. The Safety, Safe Signal & Accountability Loop
+
 ```
 [Worker Hazard Report] ──► [Safe Signal Evaluates]
                                │ • k-anonymity cohort check (k >= 3)
@@ -53,7 +56,8 @@ This document records reproducible evidence for the complete end-to-end integrat
 [Worker Reopen Authority]
 Worker can reopen if hazard recurs; updates organization reopen rate.
 ```
-* **Test Verification**:
+
+- **Test Verification**:
   - `tests/integration/accountability.test.ts`:
     - `executes full accountability loop: submission -> acknowledgement -> resolution -> follow-up -> outcome verification` (**PASS**, 1124ms).
     - `allows reopening a verified report if the hazard reoccurs and updates reopen rate` (**PASS**, 715ms).
@@ -66,6 +70,7 @@ Worker can reopen if hazard recurs; updates organization reopen rate.
 ---
 
 ### C. Workforce & Multi-Site Administration
+
 ```
 [Admin Provisions Worker] ──► [Phone & Role Stored] ──► [Worker Authenticates (PIN / OTP)]
        │                                                         │
@@ -74,7 +79,8 @@ Worker can reopen if hazard recurs; updates organization reopen rate.
                                                          • Requests rejected (401)
                                                          • Check-in blocked (400)
 ```
-* **Test Verification**:
+
+- **Test Verification**:
   - `tests/integration/v4-workflows.test.ts`:
     - `allows administrators to provision new workers and rejects duplicate phone numbers` (**PASS**, 1107ms).
     - `enforces worker deactivation and prevents deactivated accounts from checking in` (**PASS**, 777ms).
@@ -84,11 +90,11 @@ Worker can reopen if hazard recurs; updates organization reopen rate.
 
 ## 2. Cross-Module In-App Notification Hub
 
-| Event Trigger | Recipient | Notification Type | Payload & Deep Link |
-| :--- | :--- | :--- | :--- |
-| **Shift Correction** | Worker | `shift_correction` | Contains adjustment reason and link to `/worker/attendance`. |
-| **Payslip Issued** | Worker | `payslip_issued` | Contains pay period, net pay amount, and link to `/worker/payslips/:id`. |
-| **High-Severity Hazard** | Admins | `safety_alert` | Contains hazard category, severity badge, and link to `/admin/reports`. |
-| **Safety Report Update** | Worker | `safety_update` | Contains new status, resolution notes, and link to `/worker/reports`. |
+| Event Trigger            | Recipient | Notification Type  | Payload & Deep Link                                                      |
+| :----------------------- | :-------- | :----------------- | :----------------------------------------------------------------------- |
+| **Shift Correction**     | Worker    | `shift_correction` | Contains adjustment reason and link to `/worker/attendance`.             |
+| **Payslip Issued**       | Worker    | `payslip_issued`   | Contains pay period, net pay amount, and link to `/worker/payslips/:id`. |
+| **High-Severity Hazard** | Admins    | `safety_alert`     | Contains hazard category, severity badge, and link to `/admin/reports`.  |
+| **Safety Report Update** | Worker    | `safety_update`    | Contains new status, resolution notes, and link to `/worker/reports`.    |
 
-* **Verification**: `tests/integration/v4-workflows.test.ts` verifies notification creation, unread count tracking, single-item read state transition, and bulk `read-all` functionality.
+- **Verification**: `tests/integration/v4-workflows.test.ts` verifies notification creation, unread count tracking, single-item read state transition, and bulk `read-all` functionality.
