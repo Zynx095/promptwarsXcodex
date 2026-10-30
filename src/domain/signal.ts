@@ -89,10 +89,7 @@ export function deduplicateReports(reports: SignalReportInput[]): SignalReportIn
 /**
  * Verifies diversity of reporters to prevent a single reporter from self-inflating a cluster or exposing themselves.
  */
-export function hasSufficientDistinctReporters(
-  items: SignalReportInput[],
-  minDistinct: number = 1,
-): boolean {
+export function hasSufficientDistinctReporters(items: SignalReportInput[], minDistinct: number = 1): boolean {
   const distinct = new Set(items.map((i) => i.reporterKey || i.id));
   return distinct.size >= minDistinct;
 }

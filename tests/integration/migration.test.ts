@@ -213,9 +213,12 @@ describe('FairShift Database Reliability — Migration Safety & Idempotency Audi
 
     // Verify inserting and updating records after second run
     const id = randomUUID();
-    db1.run(`INSERT INTO organizations VALUES (
+    db1.run(
+      `INSERT INTO organizations VALUES (
       @id, 'Test Org', 'construction', 'Asia/Kolkata', 'INR', '{}', 0, '2026-01-01T00:00:00Z'
-    )`, { id });
+    )`,
+      { id },
+    );
 
     const org = db1.get<{ id: string; name: string }>(`SELECT id, name FROM organizations WHERE id = @id`, { id });
     expect(org?.name).toBe('Test Org');

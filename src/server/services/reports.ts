@@ -236,7 +236,7 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
         const actorUser = findSessionUser(ctx.db, actor.id);
         const actorName = actorUser?.name || 'Admin';
         const isSelfVerification = lastResolver && lastResolver.actor_id === actor.id;
-        verifiedBy = isSelfVerification ? `${actorName} (Self-verification)` : (actorName || 'Safety Officer');
+        verifiedBy = isSelfVerification ? `${actorName} (Self-verification)` : actorName || 'Safety Officer';
       }
       verificationNote = input.verificationNote?.trim() || note.trim();
     }

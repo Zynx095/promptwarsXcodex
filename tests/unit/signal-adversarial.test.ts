@@ -49,7 +49,15 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
       const validCohort: SignalReportInput[] = [
         { id: 'rep_1', category: 'fall', severity: 'medium', status: 'submitted', createdAt: '2026-10-25T08:00:00Z', resolvedAt: null, reporterKey: 'user_1' },
         { id: 'rep_2', category: 'fall', severity: 'high', status: 'acknowledged', createdAt: '2026-10-26T09:00:00Z', resolvedAt: null, reporterKey: 'user_2' },
-        { id: 'rep_3', category: 'fall', severity: 'critical', status: 'submitted', createdAt: '2026-10-27T10:00:00Z', resolvedAt: null, reporterKey: 'user_3' },
+        {
+          id: 'rep_3',
+          category: 'fall',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-27T10:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_3',
+        },
       ];
 
       const signals = detectCategoryClusters(validCohort, categoryMap, now);
@@ -65,7 +73,15 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
       const singleWorkerSpam: SignalReportInput[] = [
         { id: 'rep_1', category: 'fall', severity: 'high', status: 'submitted', createdAt: '2026-10-25T08:00:00Z', resolvedAt: null, reporterKey: 'user_solo' },
         { id: 'rep_2', category: 'fall', severity: 'high', status: 'submitted', createdAt: '2026-10-26T09:00:00Z', resolvedAt: null, reporterKey: 'user_solo' },
-        { id: 'rep_3', category: 'fall', severity: 'critical', status: 'submitted', createdAt: '2026-10-27T10:00:00Z', resolvedAt: null, reporterKey: 'user_solo' },
+        {
+          id: 'rep_3',
+          category: 'fall',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-27T10:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_solo',
+        },
       ];
 
       expect(hasSufficientDistinctReporters(singleWorkerSpam, 2)).toBe(false);
@@ -77,7 +93,15 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
       const multiWorkerCohort: SignalReportInput[] = [
         { id: 'rep_1', category: 'fall', severity: 'high', status: 'submitted', createdAt: '2026-10-25T08:00:00Z', resolvedAt: null, reporterKey: 'user_a' },
         { id: 'rep_2', category: 'fall', severity: 'medium', status: 'submitted', createdAt: '2026-10-26T09:00:00Z', resolvedAt: null, reporterKey: 'user_a' },
-        { id: 'rep_3', category: 'fall', severity: 'critical', status: 'submitted', createdAt: '2026-10-27T10:00:00Z', resolvedAt: null, reporterKey: 'user_b' },
+        {
+          id: 'rep_3',
+          category: 'fall',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-27T10:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_b',
+        },
       ];
 
       expect(hasSufficientDistinctReporters(multiWorkerCohort, 2)).toBe(true);
@@ -89,9 +113,36 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
   describe('Adversarial Vector 3: Differencing & Immediate Resubmission Attacks', () => {
     it('deduplicates immediate repeat submissions within 15 minutes at the same location', () => {
       const immediateRepeats: SignalReportInput[] = [
-        { id: 'rep_1', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T09:00:00Z', resolvedAt: null, reporterKey: 'user_1', location: 'Storage Bay 3' },
-        { id: 'rep_2', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T09:05:00Z', resolvedAt: null, reporterKey: 'user_1', location: 'Storage Bay 3' },
-        { id: 'rep_3', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T09:10:00Z', resolvedAt: null, reporterKey: 'user_1', location: 'Storage Bay 3' },
+        {
+          id: 'rep_1',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T09:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_1',
+          location: 'Storage Bay 3',
+        },
+        {
+          id: 'rep_2',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T09:05:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_1',
+          location: 'Storage Bay 3',
+        },
+        {
+          id: 'rep_3',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T09:10:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_1',
+          location: 'Storage Bay 3',
+        },
       ];
 
       const deduplicated = deduplicateReports(immediateRepeats);
@@ -100,9 +151,36 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
 
     it('preserves reports separated in time or by different reporters', () => {
       const legitimateReports: SignalReportInput[] = [
-        { id: 'rep_1', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T09:00:00Z', resolvedAt: null, reporterKey: 'user_1', location: 'Storage Bay 3' },
-        { id: 'rep_2', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T09:05:00Z', resolvedAt: null, reporterKey: 'user_2', location: 'Storage Bay 3' },
-        { id: 'rep_3', category: 'chemical', severity: 'high', status: 'submitted', createdAt: '2026-10-28T10:30:00Z', resolvedAt: null, reporterKey: 'user_1', location: 'Storage Bay 3' },
+        {
+          id: 'rep_1',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T09:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_1',
+          location: 'Storage Bay 3',
+        },
+        {
+          id: 'rep_2',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T09:05:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_2',
+          location: 'Storage Bay 3',
+        },
+        {
+          id: 'rep_3',
+          category: 'chemical',
+          severity: 'high',
+          status: 'submitted',
+          createdAt: '2026-10-28T10:30:00Z',
+          resolvedAt: null,
+          reporterKey: 'user_1',
+          location: 'Storage Bay 3',
+        },
       ];
 
       const deduplicated = deduplicateReports(legitimateReports);
@@ -115,7 +193,15 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
       const malformedDates: SignalReportInput[] = [
         { id: 'rep_1', category: 'electrical', severity: 'high', status: 'submitted', createdAt: 'not-a-valid-date', resolvedAt: null, reporterKey: 'u1' },
         { id: 'rep_2', category: 'electrical', severity: 'high', status: 'submitted', createdAt: '2099-01-01T00:00:00Z', resolvedAt: null, reporterKey: 'u2' }, // far future
-        { id: 'rep_3', category: 'electrical', severity: 'critical', status: 'submitted', createdAt: '2026-10-28T10:00:00Z', resolvedAt: null, reporterKey: 'u3' },
+        {
+          id: 'rep_3',
+          category: 'electrical',
+          severity: 'critical',
+          status: 'submitted',
+          createdAt: '2026-10-28T10:00:00Z',
+          resolvedAt: null,
+          reporterKey: 'u3',
+        },
       ];
 
       // Should not throw and should not trigger cluster (only 1 valid report within window)
@@ -140,9 +226,33 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
 
     it('excludes outcome_verified reports from persistent_unresolved signals', () => {
       const verifiedReports: SignalReportInput[] = [
-        { id: 'rep_1', category: 'ppe', severity: 'high', status: 'outcome_verified', createdAt: '2026-10-10T08:00:00Z', resolvedAt: '2026-10-15T08:00:00Z', reporterKey: 'u1' },
-        { id: 'rep_2', category: 'ppe', severity: 'high', status: 'outcome_verified', createdAt: '2026-10-12T08:00:00Z', resolvedAt: '2026-10-15T08:00:00Z', reporterKey: 'u2' },
-        { id: 'rep_3', category: 'ppe', severity: 'medium', status: 'outcome_verified', createdAt: '2026-10-14T08:00:00Z', resolvedAt: '2026-10-15T08:00:00Z', reporterKey: 'u3' },
+        {
+          id: 'rep_1',
+          category: 'ppe',
+          severity: 'high',
+          status: 'outcome_verified',
+          createdAt: '2026-10-10T08:00:00Z',
+          resolvedAt: '2026-10-15T08:00:00Z',
+          reporterKey: 'u1',
+        },
+        {
+          id: 'rep_2',
+          category: 'ppe',
+          severity: 'high',
+          status: 'outcome_verified',
+          createdAt: '2026-10-12T08:00:00Z',
+          resolvedAt: '2026-10-15T08:00:00Z',
+          reporterKey: 'u2',
+        },
+        {
+          id: 'rep_3',
+          category: 'ppe',
+          severity: 'medium',
+          status: 'outcome_verified',
+          createdAt: '2026-10-14T08:00:00Z',
+          resolvedAt: '2026-10-15T08:00:00Z',
+          reporterKey: 'u3',
+        },
       ];
 
       const persistent = detectPersistentUnresolved(verifiedReports, categoryMap, now);

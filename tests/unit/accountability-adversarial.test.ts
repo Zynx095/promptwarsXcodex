@@ -11,15 +11,7 @@ import type { ReportStatus } from '../../src/shared/types';
 
 describe('FairShift Accountability Loop — Adversarial State Machine & Metrics Audit', () => {
   describe('Adversarial Vector 1: State Machine Exhaustive Boundary Testing', () => {
-    const allStatuses: ReportStatus[] = [
-      'submitted',
-      'acknowledged',
-      'in_progress',
-      'resolved',
-      'follow_up_pending',
-      'outcome_verified',
-      'reopened',
-    ];
+    const allStatuses: ReportStatus[] = ['submitted', 'acknowledged', 'in_progress', 'resolved', 'follow_up_pending', 'outcome_verified', 'reopened'];
 
     it('enforces allowed transitions precisely according to safety domain rules', () => {
       // Valid transitions with sufficient notes
@@ -292,7 +284,14 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
     it('accurately counts unique reports in reopen rate population even if reopened multiple times', () => {
       const reports: AccountabilityReportInput[] = [
         { id: 'rep_1', category: 'fall', severity: 'high', status: 'reopened', createdAt: '2026-10-20T10:00:00Z', resolvedAt: null },
-        { id: 'rep_2', category: 'fall', severity: 'medium', status: 'outcome_verified', createdAt: '2026-10-22T10:00:00Z', resolvedAt: '2026-10-23T10:00:00Z' },
+        {
+          id: 'rep_2',
+          category: 'fall',
+          severity: 'medium',
+          status: 'outcome_verified',
+          createdAt: '2026-10-22T10:00:00Z',
+          resolvedAt: '2026-10-23T10:00:00Z',
+        },
       ];
 
       // rep_1 was reopened 3 times
@@ -311,11 +310,36 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
     it('strictly isolates overdue follow-ups to currently pending reports with past date', () => {
       const reports: AccountabilityReportInput[] = [
         // Overdue pending follow-up (yesterday)
-        { id: 'r1', category: 'fall', severity: 'high', status: 'follow_up_pending', followUpDate: '2026-10-29', createdAt: '2026-10-20T00:00:00Z', resolvedAt: '2026-10-21T00:00:00Z' },
+        {
+          id: 'r1',
+          category: 'fall',
+          severity: 'high',
+          status: 'follow_up_pending',
+          followUpDate: '2026-10-29',
+          createdAt: '2026-10-20T00:00:00Z',
+          resolvedAt: '2026-10-21T00:00:00Z',
+        },
         // Future pending follow-up (tomorrow)
-        { id: 'r2', category: 'fall', severity: 'high', status: 'follow_up_pending', followUpDate: '2026-10-31', createdAt: '2026-10-20T00:00:00Z', resolvedAt: '2026-10-21T00:00:00Z' },
+        {
+          id: 'r2',
+          category: 'fall',
+          severity: 'high',
+          status: 'follow_up_pending',
+          followUpDate: '2026-10-31',
+          createdAt: '2026-10-20T00:00:00Z',
+          resolvedAt: '2026-10-21T00:00:00Z',
+        },
         // Past follow-up date, but already verified -> NOT overdue
-        { id: 'r3', category: 'fall', severity: 'high', status: 'outcome_verified', followUpDate: '2026-10-25', createdAt: '2026-10-20T00:00:00Z', resolvedAt: '2026-10-21T00:00:00Z', verifiedAt: '2026-10-26T00:00:00Z' },
+        {
+          id: 'r3',
+          category: 'fall',
+          severity: 'high',
+          status: 'outcome_verified',
+          followUpDate: '2026-10-25',
+          createdAt: '2026-10-20T00:00:00Z',
+          resolvedAt: '2026-10-21T00:00:00Z',
+          verifiedAt: '2026-10-26T00:00:00Z',
+        },
       ];
 
       const metrics = calculateAccountabilityMetrics(reports, [], today);

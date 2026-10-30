@@ -58,9 +58,7 @@ describe('FairShift Authentication & Authorization — Adversarial Security Audi
         }),
       } as unknown as globalThis.Response);
 
-      await expect(
-        verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now),
-      ).rejects.toThrowError(/audience mismatch/);
+      await expect(verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now)).rejects.toThrowError(/audience mismatch/);
     });
 
     it('rejects token with invalid issuer', async () => {
@@ -77,9 +75,7 @@ describe('FairShift Authentication & Authorization — Adversarial Security Audi
         }),
       } as unknown as globalThis.Response);
 
-      await expect(
-        verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now),
-      ).rejects.toThrowError(/Invalid Google token issuer/);
+      await expect(verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now)).rejects.toThrowError(/Invalid Google token issuer/);
     });
 
     it('rejects token that has expired', async () => {
@@ -97,9 +93,7 @@ describe('FairShift Authentication & Authorization — Adversarial Security Audi
         }),
       } as unknown as globalThis.Response);
 
-      await expect(
-        verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now),
-      ).rejects.toThrowError(/token has expired/);
+      await expect(verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now)).rejects.toThrowError(/token has expired/);
     });
 
     it('rejects token with unverified email address', async () => {
@@ -116,9 +110,7 @@ describe('FairShift Authentication & Authorization — Adversarial Security Audi
         }),
       } as unknown as globalThis.Response);
 
-      await expect(
-        verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now),
-      ).rejects.toThrowError(/email is not verified/);
+      await expect(verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now)).rejects.toThrowError(/email is not verified/);
     });
 
     it('rejects token with nonce mismatch (replay / session injection prevention)', async () => {
@@ -135,9 +127,7 @@ describe('FairShift Authentication & Authorization — Adversarial Security Audi
         }),
       } as unknown as globalThis.Response);
 
-      await expect(
-        verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now),
-      ).rejects.toThrowError(/nonce mismatch/);
+      await expect(verifyGoogleTokenInfo('fake_id_token', expectedClientId, expectedNonce, now)).rejects.toThrowError(/nonce mismatch/);
     });
   });
 

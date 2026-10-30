@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  computeReceiptDigest,
-  verifyReceiptDigest,
-  buildCorrectionDiff,
-  type CanonicalReceiptData,
-} from '../../src/domain/proof';
+import { computeReceiptDigest, verifyReceiptDigest, buildCorrectionDiff, type CanonicalReceiptData } from '../../src/domain/proof';
 import { DomainError } from '../../src/domain/errors';
 import { openDb } from '../../src/server/db/db';
 import { seedIfEmpty } from '../../src/server/db/seed';
@@ -12,13 +7,7 @@ import { getOrg } from '../../src/server/repositories/orgs';
 import { listWorkerShifts } from '../../src/server/repositories/shifts';
 import { issuePayslip } from '../../src/server/services/payslips';
 import { correctShift } from '../../src/server/services/attendance';
-import {
-  generateReceiptForShift,
-  getSecretForKey,
-  isShiftInFinalizedPeriod,
-  getShiftReceipts,
-  verifyReceipt,
-} from '../../src/server/services/receipts';
+import { generateReceiptForShift, getSecretForKey, isShiftInFinalizedPeriod, getShiftReceipts, verifyReceipt } from '../../src/server/services/receipts';
 import type { AppContext } from '../../src/server/context';
 
 describe('FairShift Proof — Adversarial Cryptographic & Version-Chain Audit', () => {
