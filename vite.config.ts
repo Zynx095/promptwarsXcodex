@@ -16,6 +16,8 @@ export default defineConfig({
     root: fileURLToPath(new URL('.', import.meta.url)),
     include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'node',
+    // Integration tests seed a database and hash PINs with scrypt; 5 s timed out on a loaded machine.
+    testTimeout: 20_000,
     environmentOptions: { happyDOM: { url: 'http://localhost/' } },
   },
 });
