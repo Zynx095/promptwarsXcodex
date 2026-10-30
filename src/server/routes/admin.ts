@@ -37,6 +37,7 @@ import { listAudit, recordAudit } from '../repositories/audit';
 import { correctShift, defaultRange } from '../services/attendance';
 import { buildDashboard } from '../services/dashboard';
 import { getPayslip, issuePayslip, listPayslips, previewPayslip } from '../services/payslips';
+import { buildPayrollCsv, type PayrollCsvRow } from '../services/payrollCsv';
 import { getAccountabilityMetrics, getReport, listOrgReports, transitionReport } from '../services/reports';
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
@@ -313,95 +314,22 @@ export function adminRoutes(ctx: AppContext): Router {
 
   r.get('/payslips/export.csv', (req, res) => {
     const { user, org } = session(req);
-    const from = req.query.from ? String(req.query.from).trim() : '2000-01-01';
-    const to = req.query.to ? String(req.query.to).trim() : '2099-12-31';
+    // Validated dates: they are also written into the Content-Disposition header.
+    const q = parse(dateRangeSchema, req.query);
+    const from = q.from ?? '2000-01-01';
+    const to = q.to ?? '2099-12-31';
 
-    const slips = ctx.db.all<{
-      id: string;
-      worker_id: string;
-      worker_name: string;
-      phone: string;
-      period_start: string;
-      period_end: string;
-      currency: string;
-      gross_pay_minor: number;
-      net_pay_minor: number;
-      issued_at: string;
-      breakdown_json: string;
-    }>(
+    const slips = ctx.db.all<PayrollCsvRow>(
       `SELECT p.id, p.worker_id, u.name AS worker_name, u.phone, p.period_start, p.period_end,
               p.currency, p.gross_pay_minor, p.net_pay_minor, p.issued_at, p.breakdown_json
        FROM payslips p
-       JOIN users u ON u.id = p.worker_id
+       JOIN users u ON u.id = p.worker_id AND u.org_id = p.org_id
        WHERE p.org_id = @orgId AND p.period_start >= @from AND p.period_end <= @to
        ORDER BY p.period_start DESC, u.name ASC`,
       { orgId: org.id, from, to },
     );
 
-    const headers = [
-      'Payslip ID',
-      'Worker ID',
-      'Worker Name',
-      'Phone',
-      'Period Start',
-      'Period End',
-      'Currency',
-      'Regular Hours',
-      'Overtime Hours',
-      'Base Pay',
-      'Overtime Pay',
-      'Gross Pay',
-      'Deductions',
-      'Net Pay',
-      'Issued At',
-    ];
-
-    const escapeCsvCell = (val: string | number | null | undefined): string => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val);
-      // CSV Formula Injection defense (OWASP CWE-1236): prefix cells starting with =, +, -, @, \t, \r with single quote (')
-      const safe = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
-      return `"${safe.replace(/"/g, '""')}"`;
-    };
-
-    const rows = slips.map((s) => {
-      let regHours = 0;
-      let otHours = 0;
-      let basePay = 0;
-      let otPay = 0;
-      let deductions = 0;
-      try {
-        const b = JSON.parse(s.breakdown_json);
-        regHours = Number(((b.regularMinutes || 0) / 60).toFixed(2));
-        otHours = Number(((b.overtimeMinutes || 0) / 60).toFixed(2));
-        basePay = Number(((b.basePayMinor || 0) / 100).toFixed(2));
-        otPay = Number(((b.overtimePayMinor || 0) / 100).toFixed(2));
-        deductions = Number(((b.totalDeductionsMinor || 0) / 100).toFixed(2));
-      } catch {
-        // Fallback to zero values if JSON parse fails
-        regHours = 0;
-      }
-
-      return [
-        s.id,
-        s.worker_id,
-        escapeCsvCell(s.worker_name),
-        s.phone,
-        s.period_start,
-        s.period_end,
-        s.currency,
-        regHours,
-        otHours,
-        basePay,
-        otPay,
-        (s.gross_pay_minor / 100).toFixed(2),
-        deductions,
-        (s.net_pay_minor / 100).toFixed(2),
-        s.issued_at,
-      ].join(',');
-    });
-
-    const csv = [headers.join(','), ...rows].join('\r\n');
+    const csv = buildPayrollCsv(slips);
 
     recordAudit(ctx.db, {
       orgId: org.id,
