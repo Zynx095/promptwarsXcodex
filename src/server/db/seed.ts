@@ -16,6 +16,8 @@ import { generateReceiptForShift } from '../services/receipts';
 import { createReport, transitionReport } from '../services/reports';
 import { submitFeedback } from '../services/feedback';
 import { addSkill } from '../services/skills';
+import { createSite } from '../repositories/sites';
+import { createNotification } from '../repositories/notifications';
 
 export const DEMO_PIN = '1234';
 const TZ = 'Asia/Kolkata';
@@ -427,6 +429,45 @@ function seedOrg(ctx: AppContext, spec: SeedOrg) {
       );
     }
   });
+
+  // ---- Organization Sites ----
+  const defaultSites =
+    spec.industry === 'construction'
+      ? [
+          { name: 'Pier 42 Casting Yard', code: 'P42CY', address: 'Outer Ring Road, Kadubeesanahalli, Bengaluru' },
+          { name: 'South Station Excavation', code: 'SSX01', address: 'Silk Board Junction, Bengaluru' },
+          { name: 'Depot Admin & Staging Block', code: 'DAB02', address: 'Baiyappanahalli Metro Depot, Bengaluru' },
+        ]
+      : [
+          { name: 'Science & Engineering Complex', code: 'SEC01', address: 'Block C, University Campus, Bengaluru' },
+          { name: 'Hostel Cluster Dining Facility', code: 'HCD04', address: 'North Campus Residential Zone, Bengaluru' },
+          { name: 'Main Administrative Building', code: 'MAB09', address: 'Central Avenue, University Campus, Bengaluru' },
+        ];
+  for (const s of defaultSites) {
+    createSite(ctx.db, { orgId: org.id, name: s.name, code: s.code, address: s.address, nowIso });
+  }
+
+  // ---- Initial Notifications for Workers ----
+  for (const w of spec.workers) {
+    createNotification(ctx.db, {
+      orgId: org.id,
+      userId: w.id,
+      type: 'system',
+      title: 'Welcome to FairShift',
+      body: 'Your verifiable work & earnings account is active. Check in each day to generate cryptographic receipts.',
+      link: '/worker',
+      nowIso,
+    });
+    createNotification(ctx.db, {
+      orgId: org.id,
+      userId: w.id,
+      type: 'payslip_issued',
+      title: 'Previous Period Payslip Available',
+      body: 'Your weekly payslip has been finalized. Review your hours, deductions, and verified net earnings.',
+      link: '/worker/payslips',
+      nowIso,
+    });
+  }
 }
 
 function insertSeedShift(ctx: AppContext, org: OrgRow, workerId: string, checkInAt: string, checkOutAt: string | null) {

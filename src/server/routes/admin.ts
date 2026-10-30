@@ -12,20 +12,26 @@ import {
   reportTransitionSchema,
   shiftCorrectionSchema,
   shiftQuerySchema,
+  siteCreateSchema,
   skillCreateSchema,
   skillVerifySchema,
+  workerCreateSchema,
   workerUpdateSchema,
 } from '../../shared/schemas';
 import { localDate, localRangeToUtc } from '../../shared/time';
-import type { SiteCodeDTO, WorkerDTO } from '../../shared/types';
+import type { SiteCodeDTO, SiteDTO, WorkerDTO } from '../../shared/types';
 import { currentSiteCode } from '../auth/siteCode';
 import { validatePayRules } from '../../domain/payroll';
 import { attendanceState } from '../../domain/attendance';
 import type { AppContext } from '../context';
-import { notFound, param, parse } from '../http';
+import { HttpError, notFound, param, parse } from '../http';
 import { requireRole, requireUser } from '../auth/session';
 import { requireOrg, updateOrgSettings } from '../repositories/orgs';
-import { getWorker, listWorkers, updateWorker } from '../repositories/users';
+import { createWorker, getWorker, listWorkers, updateWorker } from '../repositories/users';
+import { createSite, listSites, toggleSiteActive } from '../repositories/sites';
+import { hashPin } from '../auth/crypto';
+import { isUniqueViolation } from '../db/db';
+
 import { listOrgShiftsInRange, openShiftWorkerIds, searchOrgShifts, toShiftDTO } from '../repositories/shifts';
 import { listAudit, recordAudit } from '../repositories/audit';
 import { correctShift, defaultRange } from '../services/attendance';
@@ -103,11 +109,135 @@ export function adminRoutes(ctx: AppContext): Router {
     res.json({ ok: true });
   });
 
+  r.post('/workers', (req, res) => {
+    const { user, org } = session(req);
+    const input = parse(workerCreateSchema, req.body);
+    const nowIso = ctx.now().toISOString();
+
+    try {
+      const created = ctx.db.tx(() => {
+        const pinHash = hashPin(input.pin);
+        const worker = createWorker(ctx.db, {
+          orgId: org.id,
+          name: input.name,
+          phone: input.phone,
+          pinHash,
+          jobTitle: input.jobTitle,
+          team: input.team,
+          hourlyRateMinor: input.hourlyRateMinor,
+          nowIso,
+        });
+
+        recordAudit(ctx.db, {
+          orgId: org.id,
+          actorId: user.id,
+          entityType: 'worker',
+          entityId: worker.id,
+          action: 'create',
+          after: {
+            name: worker.name,
+            phone: worker.phone,
+            jobTitle: worker.jobTitle,
+            team: worker.team,
+            hourlyRateMinor: worker.hourlyRateMinor,
+          },
+          at: nowIso,
+        });
+
+        return worker;
+      });
+
+      const dto: WorkerDTO = {
+        id: created.id,
+        name: created.name,
+        phone: created.phone,
+        jobTitle: created.jobTitle,
+        team: created.team,
+        hourlyRateMinor: created.hourlyRateMinor,
+        active: created.active,
+        synthetic: created.synthetic,
+        attendanceState: 'not_started',
+      };
+
+      res.status(201).json(dto);
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new HttpError(409, 'PHONE_ALREADY_EXISTS', 'A user with this phone number already exists.');
+      }
+      throw err;
+    }
+  });
+
   // Current rotating site check-in code, for display at the workplace.
   r.get('/site-code', (req, res) => {
     const { org } = session(req);
     const body: SiteCodeDTO = { ...currentSiteCode(ctx.config.sessionSecret, org.id, ctx.now()), requireSiteCode: org.settings.attendance.requireSiteCode };
     res.json(body);
+  });
+
+  // ---- Sites ----
+  r.get('/sites', (req, res) => {
+    const { org } = session(req);
+    const items: SiteDTO[] = listSites(ctx.db, org.id);
+    res.json({ items });
+  });
+
+  r.post('/sites', (req, res) => {
+    const { user, org } = session(req);
+    const input = parse(siteCreateSchema, req.body);
+    const nowIso = ctx.now().toISOString();
+
+    try {
+      const site = ctx.db.tx(() => {
+        const created = createSite(ctx.db, {
+          orgId: org.id,
+          name: input.name,
+          code: input.code,
+          address: input.address,
+          nowIso,
+        });
+
+        recordAudit(ctx.db, {
+          orgId: org.id,
+          actorId: user.id,
+          entityType: 'site',
+          entityId: created.id,
+          action: 'create',
+          after: created,
+          at: nowIso,
+        });
+
+        return created;
+      });
+
+      res.status(201).json(site);
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new HttpError(409, 'DUPLICATE_SITE_CODE', 'A site with this code already exists in your organization.');
+      }
+      throw err;
+    }
+  });
+
+  r.patch('/sites/:id/status', (req, res) => {
+    const { user, org } = session(req);
+    const id = param(req, 'id');
+    const schema = z.object({ active: z.boolean() });
+    const { active } = parse(schema, req.body);
+    const ok = toggleSiteActive(ctx.db, org.id, id, active);
+    if (!ok) throw notFound('Site');
+
+    recordAudit(ctx.db, {
+      orgId: org.id,
+      actorId: user.id,
+      entityType: 'site',
+      entityId: id,
+      action: 'update_status',
+      after: { active },
+      at: ctx.now().toISOString(),
+    });
+
+    res.json({ ok: true, active });
   });
 
   // ---- Shifts ----
@@ -179,6 +309,105 @@ export function adminRoutes(ctx: AppContext): Router {
     const { user, org } = session(req);
     const q = parse(payslipIssueSchema, req.body);
     res.status(201).json(issuePayslip(ctx, org, user.id, q.workerId, q.from, q.to));
+  });
+
+  r.get('/payslips/export.csv', (req, res) => {
+    const { user, org } = session(req);
+    const from = req.query.from ? String(req.query.from).trim() : '2000-01-01';
+    const to = req.query.to ? String(req.query.to).trim() : '2099-12-31';
+
+    const slips = ctx.db.all<{
+      id: string;
+      worker_id: string;
+      worker_name: string;
+      phone: string;
+      period_start: string;
+      period_end: string;
+      currency: string;
+      gross_pay_minor: number;
+      net_pay_minor: number;
+      issued_at: string;
+      breakdown_json: string;
+    }>(
+      `SELECT p.id, p.worker_id, u.name AS worker_name, u.phone, p.period_start, p.period_end,
+              p.currency, p.gross_pay_minor, p.net_pay_minor, p.issued_at, p.breakdown_json
+       FROM payslips p
+       JOIN users u ON u.id = p.worker_id
+       WHERE p.org_id = @orgId AND p.period_start >= @from AND p.period_end <= @to
+       ORDER BY p.period_start DESC, u.name ASC`,
+      { orgId: org.id, from, to },
+    );
+
+    const headers = [
+      'Payslip ID',
+      'Worker ID',
+      'Worker Name',
+      'Phone',
+      'Period Start',
+      'Period End',
+      'Currency',
+      'Regular Hours',
+      'Overtime Hours',
+      'Base Pay',
+      'Overtime Pay',
+      'Gross Pay',
+      'Deductions',
+      'Net Pay',
+      'Issued At',
+    ];
+
+    const rows = slips.map((s) => {
+      let regHours = 0;
+      let otHours = 0;
+      let basePay = 0;
+      let otPay = 0;
+      let deductions = 0;
+      try {
+        const b = JSON.parse(s.breakdown_json);
+        regHours = Number(((b.regularMinutes || 0) / 60).toFixed(2));
+        otHours = Number(((b.overtimeMinutes || 0) / 60).toFixed(2));
+        basePay = Number(((b.basePayMinor || 0) / 100).toFixed(2));
+        otPay = Number(((b.overtimePayMinor || 0) / 100).toFixed(2));
+        deductions = Number(((b.totalDeductionsMinor || 0) / 100).toFixed(2));
+      } catch {
+        // Fallback to zero values if JSON parse fails
+        regHours = 0;
+      }
+
+      return [
+        s.id,
+        s.worker_id,
+        `"${s.worker_name.replace(/"/g, '""')}"`,
+        s.phone,
+        s.period_start,
+        s.period_end,
+        s.currency,
+        regHours,
+        otHours,
+        basePay,
+        otPay,
+        (s.gross_pay_minor / 100).toFixed(2),
+        deductions,
+        (s.net_pay_minor / 100).toFixed(2),
+        s.issued_at,
+      ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\r\n');
+
+    recordAudit(ctx.db, {
+      orgId: org.id,
+      actorId: user.id,
+      entityType: 'payroll',
+      entityId: org.id,
+      action: 'export_csv',
+      after: { from, to, recordCount: slips.length },
+      at: ctx.now().toISOString(),
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="fairshift_payroll_${org.id}_${from}_${to}.csv"`);
+    res.send(csv);
   });
 
   r.get('/payslips/:id', (req, res) => {

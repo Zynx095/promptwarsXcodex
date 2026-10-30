@@ -551,3 +551,31 @@ export interface AccountabilityMetricsDTO {
   reopenRatePercent: number;
   overdueFollowUps: number;
 }
+
+// ---- Sites & In-App Notifications (V4.0) ----
+
+export interface SiteDTO {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export type NotificationType = 'shift_correction' | 'payslip_issued' | 'safety_update' | 'safety_alert' | 'system';
+
+export interface NotificationDTO {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  items: NotificationDTO[];
+  unreadCount: number;
+}

@@ -17,7 +17,9 @@ export type DomainErrorCode =
   | 'INVALID_RECEIPT_DATA'
   | 'FINALIZED_PERIOD_LOCKED'
   | 'CONCURRENT_CORRECTION'
-  | 'SELF_VERIFICATION_DISALLOWED';
+  | 'SELF_VERIFICATION_DISALLOWED'
+  | 'INACTIVE_ACCOUNT'
+  | 'DUPLICATE_SITE_CODE';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {

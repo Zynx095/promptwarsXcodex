@@ -1,5 +1,6 @@
 import type { Db } from '../db/db';
 import type { Role } from '../../shared/types';
+import { randomUUID } from 'node:crypto';
 
 export interface SessionUserRow {
   id: string;
@@ -54,6 +55,50 @@ export function updateWorker(db: Db, orgId: string, id: string, patch: { hourlyR
      WHERE id = @id AND org_id = @orgId AND role = 'worker'`,
     { id, orgId, rate: patch.hourlyRateMinor ?? null, active: patch.active ?? null },
   );
+}
+
+export function createWorker(
+  db: Db,
+  data: {
+    orgId: string;
+    name: string;
+    phone: string;
+    pinHash: string;
+    jobTitle?: string;
+    team?: string;
+    hourlyRateMinor: number;
+    nowIso: string;
+  },
+): WorkerRow {
+  const id = `usr_${randomUUID()}`;
+  db.run(
+    `INSERT INTO users (id, org_id, role, name, phone, pin_hash, job_title, team, hourly_rate_minor, active, is_synthetic, created_at)
+     VALUES (@id, @orgId, 'worker', @name, @phone, @pinHash, @jobTitle, @team, @hourlyRateMinor, 1, 0, @nowIso)`,
+    {
+      id,
+      orgId: data.orgId,
+      name: data.name,
+      phone: data.phone,
+      pinHash: data.pinHash,
+      jobTitle: data.jobTitle ?? '',
+      team: data.team ?? '',
+      hourlyRateMinor: data.hourlyRateMinor,
+      nowIso: data.nowIso,
+    },
+  );
+
+  return {
+    id,
+    orgId: data.orgId,
+    role: 'worker',
+    name: data.name,
+    phone: data.phone,
+    jobTitle: data.jobTitle ?? '',
+    team: data.team ?? '',
+    hourlyRateMinor: data.hourlyRateMinor,
+    active: true,
+    synthetic: false,
+  };
 }
 
 export function userName(db: Db, orgId: string, id: string | null): string | null {

@@ -171,6 +171,33 @@ export const skillCreateSchema = z
 
 export const skillVerifySchema = z.object({ verified: z.boolean() });
 
+export const workerCreateSchema = z.object({
+  name: text(2, 100, 'Name'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, 'Enter a 10-digit phone number'),
+  jobTitle: z.string().trim().max(100).default(''),
+  team: z.string().trim().max(100).default(''),
+  hourlyRateMinor: z.number().int().min(1, 'Hourly rate must be at least 1').max(1_000_000),
+  pin: z
+    .string()
+    .trim()
+    .regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits')
+    .default('1234'),
+});
+
+export const siteCreateSchema = z.object({
+  name: text(2, 100, 'Site name'),
+  code: z
+    .string()
+    .trim()
+    .min(2, 'Site code must be 2 to 10 characters')
+    .max(10, 'Site code must be at most 10 characters')
+    .regex(/^[A-Za-z0-9_-]+$/, 'Site code must be alphanumeric (letters, numbers, hyphens)'),
+  address: z.string().trim().max(200).default(''),
+});
+
 export const phoneOtpRequestSchema = z.object({
   phone: z
     .string()
@@ -198,3 +225,5 @@ export type ReportTransitionInput = z.infer<typeof reportTransitionSchema>;
 export type FeedbackCreateInput = z.infer<typeof feedbackCreateSchema>;
 export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
 export type SkillCreateInput = z.infer<typeof skillCreateSchema>;
+export type WorkerCreateInput = z.infer<typeof workerCreateSchema>;
+export type SiteCreateInput = z.infer<typeof siteCreateSchema>;
