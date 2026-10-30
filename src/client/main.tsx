@@ -11,6 +11,7 @@ import './styles/timecard.css';
 import './styles/records.css';
 import './styles/home.css';
 import './styles/jar.css';
+import './styles/statement.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';

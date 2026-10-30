@@ -347,5 +347,11 @@
   "jar.overtimeDefinition": "এক দিনে {hours}-এর বেশি সময়। এর জন্য আপনার ঘণ্টার হারের {multiplier} দেওয়া হয়।",
   "jar.deductionsDefinition": "প্রভিডেন্ট ফান্ড বা অগ্রিমের মতো যে টাকা নিয়োগকর্তা মোট বেতন থেকে কাটেন। প্রতিটি পেস্লিপে লেখা থাকে।",
   "jar.netDefinition": "মোট বেতন থেকে কাটা বাদ দিয়ে যা থাকে। এই টাকাই আপনার পাওয়ার কথা।",
-  "jar.paidDefinition": "ব্যাংক বা নগদ পেমেন্ট FairShift দেখতে পায় না। আপনি যা পেয়েছেন তা আলাদা হলে, নিয়োগকর্তার কাছে বলুন।"
+  "jar.paidDefinition": "ব্যাংক বা নগদ পেমেন্ট FairShift দেখতে পায় না। আপনি যা পেয়েছেন তা আলাদা হলে, নিয়োগকর্তার কাছে বলুন।",
+  "pay.statement": "বেতনের বিবরণ",
+  "pay.hoursGroup": "ঘণ্টা",
+  "pay.earningsGroup": "আয়",
+  "pay.weekCalculation": "এই সপ্তাহের বেতন কীভাবে হিসাব হলো",
+  "pay.payslipTitle": "পেস্লিপ",
+  "pay.overtimeRateNote": "ঘণ্টার হারের {multiplier}"
 }

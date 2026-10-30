@@ -214,10 +214,28 @@
 .jar-glossary summary {
   display: flex;
   align-items: center;
+  gap: var(--sp-2);
   min-height: var(--tap);
   color: var(--fs-aubergine);
   font-weight: 650;
   cursor: pointer;
+  list-style: none;
+}
+.jar-glossary summary::-webkit-details-marker {
+  display: none;
+}
+.jar-glossary summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+.jar-glossary[open] summary::after {
+  margin-top: 4px;
+  transform: rotate(-135deg);
 }
 .jar-glossary dl {
   margin: 0 0 var(--sp-2);

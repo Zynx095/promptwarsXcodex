@@ -1,102 +1,106 @@
 import { useState } from 'react';
-import { useI18n } from '../../lib/i18n';
+import { ChevronRight, FileText, FileWarning, Printer } from 'lucide-react';
+import { useI18n, useMoney } from '../../lib/i18n';
 import { useApi } from '../../lib/useApi';
-import { Link, useRouter } from '../../lib/router';
-import { formatDate } from '../../lib/format';
+import { Link } from '../../lib/router';
+import { formatDate, formatPeriod } from '../../lib/format';
 import type { Paged, PayslipDTO, PayslipListItem } from '../../../shared/types';
-import { Async, Card, Empty, Money, Page } from '../../components/ui';
+import { Async, Empty, Page } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
 import { MoneyJar } from '../../components/MoneyJar';
 import { DisputeNoticeModal } from '../../components/DisputeNoticeModal';
-import { Printer, FileWarning } from 'lucide-react';
 
 export function WorkerPayslips() {
   const { t, locale } = useI18n();
+  const money = useMoney();
   const preview = useApi<PayslipDTO>('/payslips/preview');
   const issued = useApi<Paged<PayslipListItem>>('/payslips?limit=50');
 
   return (
     <Page title={t('pay.title')}>
-      <Card title={t('pay.issued')}>
+      <Async state={preview}>{(slip) => <MoneyJar slip={slip} />}</Async>
+
+      <section aria-labelledby="pay-issued">
+        <div className="section-head">
+          <h2 id="pay-issued">{t('pay.issued')}</h2>
+        </div>
         <Async state={issued}>
           {(d) =>
             d.items.length === 0 ? (
               <Empty>{t('pay.none')}</Empty>
             ) : (
-              <ul className="list">
+              <ul className="row-list">
                 {d.items.map((p) => (
-                  <li key={p.id} className="row">
-                    <span>
-                      <Link to={`/worker/payslips/${p.id}`}>
-                        {formatDate(p.periodStart, locale)} – {formatDate(p.periodEnd, locale)}
-                      </Link>
-                    </span>
-                    <span>
-                      {t('pay.net')}:{' '}
-                      <strong>
-                        <Money minor={p.netPayMinor} />
-                      </strong>
-                    </span>
+                  <li key={p.id}>
+                    <Link to={`/worker/payslips/${p.id}`} className="row-item">
+                      <span className="row-icon" aria-hidden="true">
+                        <FileText className="icon" />
+                      </span>
+                      <span className="row-text">
+                        <strong>{formatPeriod(p.periodStart, p.periodEnd, locale)}</strong>
+                        <span>{t('pay.issuedOn', { date: formatDate(p.issuedAt.slice(0, 10), locale) })}</span>
+                      </span>
+                      <span className="row-figure figure">
+                        <span className="visually-hidden">{t('pay.net')}: </span>
+                        {money(p.netPayMinor)}
+                      </span>
+                      <ChevronRight className="icon chevron" aria-hidden="true" />
+                    </Link>
                   </li>
                 ))}
               </ul>
             )
           }
         </Async>
-      </Card>
-      <Card title={t('pay.current')}>
-        <p className="muted small">{t('pay.currentHint')}</p>
-        <Async state={preview}>
-          {(slip) => (
-            <>
-              <MoneyJar slip={slip} />
-              <PayslipBreakdown slip={slip} />
-            </>
-          )}
-        </Async>
-      </Card>
+      </section>
+
+      <section className="pay-calculation" aria-labelledby="pay-calc">
+        <details>
+          <summary>
+            <span id="pay-calc">{t('pay.weekCalculation')}</span>
+          </summary>
+          <Async state={preview}>{(slip) => <PayslipBreakdown slip={slip} />}</Async>
+        </details>
+      </section>
     </Page>
   );
 }
 
 export function WorkerPayslipView({ id }: { id: string }) {
   const { t } = useI18n();
-  const { navigate } = useRouter();
   const slip = useApi<PayslipDTO>(`/payslips/${encodeURIComponent(id)}`);
   const [showDispute, setShowDispute] = useState(false);
 
   return (
     <Page
-      title={t('pay.title')}
+      title={t('pay.payslipTitle')}
       actions={
         <div className="btn-group">
-          {slip.data && (
-            <button type="button" className="btn btn-secondary" onClick={() => setShowDispute(true)}>
-              <FileWarning className="icon-sm text-amber" aria-hidden="true" />
-              <span>{t('dispute.raiseNotice') || 'Generate Dispute Notice'}</span>
-            </button>
-          )}
-          <button type="button" className="btn btn-secondary" onClick={() => window.print()}>
-            <Printer className="icon-sm" aria-hidden="true" />
-            <span>{t('pay.print') || 'Print'}</span>
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => navigate('/worker/payslips')}>
+          <Link to="/worker/payslips" className="btn btn-quiet">
             {t('action.back')}
+          </Link>
+          <button type="button" className="btn btn-secondary" onClick={() => window.print()}>
+            <Printer className="icon" aria-hidden="true" />
+            <span>{t('pay.print')}</span>
           </button>
+          {slip.data ? (
+            <button type="button" className="btn btn-secondary" onClick={() => setShowDispute(true)}>
+              <FileWarning className="icon" aria-hidden="true" />
+              <span>{t('dispute.raiseNotice')}</span>
+            </button>
+          ) : null}
         </div>
       }
     >
-      <Card>
-        <Async state={slip}>
-          {(s) => (
-            <>
-              <MoneyJar slip={s} />
-              <PayslipBreakdown slip={s} />
-              {showDispute && <DisputeNoticeModal slip={s} isOpen={showDispute} onClose={() => setShowDispute(false)} />}
-            </>
-          )}
-        </Async>
-      </Card>
+      <Async state={slip}>
+        {(s) => (
+          <>
+            <MoneyJar slip={s} />
+            <PayslipBreakdown slip={s} />
+            {showDispute ? <DisputeNoticeModal slip={s} isOpen={showDispute} onClose={() => setShowDispute(false)} /> : null}
+          </>
+        )}
+      </Async>
     </Page>
   );
 }

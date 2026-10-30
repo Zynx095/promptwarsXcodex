@@ -347,5 +347,11 @@
   "jar.overtimeDefinition": "ఒక రోజులో {hours} దాటిన సమయం. దీనికి మీ గంట రేటుకు {multiplier} చెల్లిస్తారు.",
   "jar.deductionsDefinition": "భవిష్య నిధి లేదా అడ్వాన్స్ వంటివి, మీ యజమాని స్థూల జీతం నుండి కోసే మొత్తాలు. ప్రతి ఒక్కటీ పేస్లిప్‌లో ఉంటుంది.",
   "jar.netDefinition": "స్థూల జీతం నుండి కోతలు తీసివేసిన మొత్తం. మీకు అందవలసిన మొత్తం ఇదే.",
-  "jar.paidDefinition": "బ్యాంక్ లేదా నగదు చెల్లింపులు FairShift కు కనిపించవు. మీకు అందిన మొత్తం వేరుగా ఉంటే, మీ యజమానిని అడగండి."
+  "jar.paidDefinition": "బ్యాంక్ లేదా నగదు చెల్లింపులు FairShift కు కనిపించవు. మీకు అందిన మొత్తం వేరుగా ఉంటే, మీ యజమానిని అడగండి.",
+  "pay.statement": "జీతం వివరాలు",
+  "pay.hoursGroup": "గంటలు",
+  "pay.earningsGroup": "సంపాదన",
+  "pay.weekCalculation": "ఈ వారం జీతం ఎలా లెక్కించారు",
+  "pay.payslipTitle": "పేస్లిప్",
+  "pay.overtimeRateNote": "గంట రేటుకు {multiplier}"
 }

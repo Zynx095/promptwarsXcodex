@@ -347,5 +347,11 @@
   "jar.overtimeDefinition": "Time beyond {hours} in one day. It is paid at {multiplier} your hourly rate.",
   "jar.deductionsDefinition": "Amounts your employer takes out of gross pay, such as provident fund or an advance. Each one is listed on the payslip.",
   "jar.netDefinition": "Gross pay minus deductions. This is the amount you should receive.",
-  "jar.paidDefinition": "FairShift does not see bank or cash payments. If the amount you receive is different, raise it with your employer."
+  "jar.paidDefinition": "FairShift does not see bank or cash payments. If the amount you receive is different, raise it with your employer.",
+  "pay.statement": "Pay statement",
+  "pay.hoursGroup": "Hours",
+  "pay.earningsGroup": "Earnings",
+  "pay.weekCalculation": "How this week's pay is calculated",
+  "pay.payslipTitle": "Payslip",
+  "pay.overtimeRateNote": "At {multiplier} the hourly rate"
 }

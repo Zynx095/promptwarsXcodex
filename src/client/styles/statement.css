@@ -1,0 +1,247 @@
+/* Pay statement and the Pay screen */
+
+.row-figure {
+  flex: none;
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+  color: var(--fs-aubergine);
+}
+
+.pay-calculation {
+  margin-top: var(--sp-7);
+}
+.pay-calculation > details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 56px;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-record);
+  background: var(--fs-paper);
+  box-shadow: var(--e-record);
+  color: var(--fs-aubergine);
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-lg);
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+.pay-calculation > details > summary::-webkit-details-marker {
+  display: none;
+}
+.pay-calculation > details > summary::after,
+.statement-days > summary::after {
+  content: '';
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--m-fast) ease;
+}
+.pay-calculation > details[open] > summary::after,
+.statement-days[open] > summary::after {
+  margin-top: 4px;
+  transform: rotate(-135deg);
+}
+.pay-calculation > details[open] > summary {
+  margin-bottom: var(--sp-4);
+}
+
+.statement {
+  padding: var(--sp-5);
+  background: var(--fs-paper);
+  border-radius: var(--r-record);
+  box-shadow: var(--e-record);
+}
+@media (min-width: 600px) {
+  .statement {
+    padding: var(--sp-7);
+  }
+}
+.statement-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.statement-title {
+  margin: 0;
+  font-size: var(--fs-text-xl);
+}
+.statement-meta {
+  margin: 2px 0 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+
+/* Ledger: ruled rows, amounts right-aligned in tabular figures */
+.ledger {
+  width: 100%;
+  margin-bottom: var(--sp-5);
+  font-size: var(--fs-text-md);
+}
+.ledger th,
+.ledger td {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--fs-line);
+  background: none;
+  vertical-align: baseline;
+}
+.ledger th {
+  font-size: var(--fs-text-md);
+  font-weight: 400;
+  color: var(--fs-ink);
+  white-space: normal;
+}
+.ledger td {
+  text-align: right;
+  padding-left: var(--sp-3);
+  color: var(--fs-ink);
+}
+.ledger tbody tr:hover {
+  background: none;
+}
+.ledger-group th {
+  padding-top: var(--sp-5);
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+  color: var(--fs-ink-3);
+  border-bottom-color: var(--fs-line-strong);
+}
+.ledger-group:first-child th {
+  padding-top: 0;
+}
+.ledger-note {
+  display: block;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+.ledger-subtotal th,
+.ledger-subtotal td {
+  font-weight: 650;
+}
+.ledger-total th,
+.ledger-total td {
+  padding-top: var(--sp-4);
+  border-top: 2px solid var(--fs-aubergine);
+  border-bottom: 0;
+  font-weight: 700;
+  color: var(--fs-aubergine);
+}
+.ledger-total th {
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-lg);
+}
+.ledger-total td {
+  font-size: var(--fs-text-2xl);
+}
+
+/* How it was calculated: a numbered sequence, because it is one */
+.explain {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-control);
+  background: var(--fs-sunk);
+}
+.explain-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.explain-head h3 {
+  margin: 0;
+}
+.explain ol {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
+}
+.explain li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 36px;
+  min-height: 26px;
+  font-size: var(--fs-text-sm);
+}
+.explain li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fs-aubergine);
+  color: #fff;
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-xs);
+  font-weight: 700;
+}
+.explain li + li {
+  margin-top: var(--sp-3);
+}
+
+.statement-days {
+  margin-top: var(--sp-4);
+}
+.statement-days > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  color: var(--fs-aubergine);
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+.statement-days > summary::-webkit-details-marker {
+  display: none;
+}
+.statement-days[open] > summary {
+  margin-bottom: var(--sp-3);
+}
+.statement-foot {
+  margin: var(--sp-4) 0 0;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-3);
+}
+
+/* Print: the record alone, in black on white. */
+@media print {
+  .ws-rail,
+  .ws-topbar,
+  .ws-tabbar,
+  .page-actions,
+  .jar-foot,
+  .explain-head .btn,
+  .skip-link {
+    display: none !important;
+  }
+  .worker-shell {
+    display: block !important;
+    background: none !important;
+  }
+  .worker-shell main {
+    max-width: none;
+    padding: 0;
+  }
+  .jar,
+  .statement {
+    box-shadow: none;
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+}

@@ -347,5 +347,11 @@
   "jar.overtimeDefinition": "एक दिन में {hours} से ज़्यादा का समय। इसका भुगतान आपकी घंटे की दर के {multiplier} पर होता है।",
   "jar.deductionsDefinition": "भविष्य निधि या अग्रिम जैसी रकम जो नियोक्ता सकल वेतन से काटता है। हर कटौती पेस्लिप पर लिखी होती है।",
   "jar.netDefinition": "सकल वेतन में से कटौतियाँ घटाकर बची रकम। यही रकम आपको मिलनी चाहिए।",
-  "jar.paidDefinition": "FairShift को बैंक या नकद भुगतान नहीं दिखते। अगर आपको मिली रकम अलग है, तो अपने नियोक्ता से बात करें।"
+  "jar.paidDefinition": "FairShift को बैंक या नकद भुगतान नहीं दिखते। अगर आपको मिली रकम अलग है, तो अपने नियोक्ता से बात करें।",
+  "pay.statement": "वेतन विवरण",
+  "pay.hoursGroup": "घंटे",
+  "pay.earningsGroup": "कमाई",
+  "pay.weekCalculation": "इस सप्ताह का वेतन कैसे गिना गया",
+  "pay.payslipTitle": "पेस्लिप",
+  "pay.overtimeRateNote": "घंटे की दर का {multiplier}"
 }
