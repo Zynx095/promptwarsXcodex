@@ -5,24 +5,11 @@ import { useState, useId, useEffect } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useMe } from '../lib/session';
 import type { PayslipDTO } from '../../shared/types';
-import {
-  buildWageDisputeNotice,
-  type DiscrepancyCategory,
-  DISCREPANCY_LABELS,
-  type FormattedDisputeNotice,
-} from '../../domain/dispute';
+import { buildWageDisputeNotice, type DiscrepancyCategory, DISCREPANCY_LABELS, type FormattedDisputeNotice } from '../../domain/dispute';
 import { Button, Notice } from './ui';
 import { Printer, Download, FileText, AlertTriangle, ShieldCheck, ArrowLeft, X } from 'lucide-react';
 
-export function DisputeNoticeModal({
-  slip,
-  isOpen,
-  onClose,
-}: {
-  slip: PayslipDTO;
-  isOpen: boolean;
-  onClose: () => void;
-}) {
+export function DisputeNoticeModal({ slip, isOpen, onClose }: { slip: PayslipDTO; isOpen: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const me = useMe();
   const categoryId = useId();
@@ -72,7 +59,7 @@ export function DisputeNoticeModal({
       workerStatement: statement,
       generatedAt: new Date().toISOString(),
     });
-  } catch (err: unknown) {
+  } catch {
     if (!previewMode) {
       // Just fallback during drafting
     }
@@ -366,8 +353,7 @@ ${notice.statutoryContext}
                         <strong>Receipt ID:</strong> <code>{notice.cryptographicProof.receiptId}</code>
                       </div>
                       <div>
-                        <strong>HMAC Canonical Digest:</strong>{' '}
-                        <code className="text-break">{notice.cryptographicProof.canonicalDigest}</code>
+                        <strong>HMAC Canonical Digest:</strong> <code className="text-break">{notice.cryptographicProof.canonicalDigest}</code>
                       </div>
                     </div>
                   </div>

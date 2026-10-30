@@ -4,12 +4,8 @@
 import { useState, useId } from 'react';
 import { useI18n, type MessageKey } from '../lib/i18n';
 import { Link } from '../lib/router';
-import {
-  assessHeatStress,
-  INDIAN_WEATHER_PRESETS,
-  type HeatStressAssessment,
-} from '../../domain/heat';
-import { Badge, Notice } from './ui';
+import { assessHeatStress, INDIAN_WEATHER_PRESETS, type HeatStressAssessment } from '../../domain/heat';
+import { Badge } from './ui';
 import { ReadAloudButton } from './Voice';
 import { Sun, Droplets, Thermometer, AlertTriangle, ShieldCheck, Flame, HeartPulse, Flag } from 'lucide-react';
 
@@ -40,8 +36,7 @@ export function HeatSafetyWidget({ initialTemp = 34, initialHumidity = 60 }: { i
             </h3>
           </div>
           <p className="heat-widget-subtitle">
-            {t('heat.subtitle') ||
-              'Occupational heat-stress monitoring and NDMA hydration guidelines for frontline worksites.'}
+            {t('heat.subtitle') || 'Occupational heat-stress monitoring and NDMA hydration guidelines for frontline worksites.'}
           </p>
         </div>
         <ReadAloudButton text={voiceScript} />
@@ -79,15 +74,7 @@ export function HeatSafetyWidget({ initialTemp = 34, initialHumidity = 60 }: { i
               </label>
               <strong>{tempC}°C</strong>
             </div>
-            <input
-              id={tempId}
-              type="range"
-              min={20}
-              max={50}
-              step={1}
-              value={tempC}
-              onChange={(e) => setTempC(Number(e.target.value))}
-            />
+            <input id={tempId} type="range" min={20} max={50} step={1} value={tempC} onChange={(e) => setTempC(Number(e.target.value))} />
           </div>
 
           <div className="field">
@@ -98,15 +85,7 @@ export function HeatSafetyWidget({ initialTemp = 34, initialHumidity = 60 }: { i
               </label>
               <strong>{humidity}%</strong>
             </div>
-            <input
-              id={humidityId}
-              type="range"
-              min={10}
-              max={95}
-              step={1}
-              value={humidity}
-              onChange={(e) => setHumidity(Number(e.target.value))}
-            />
+            <input id={humidityId} type="range" min={10} max={95} step={1} value={humidity} onChange={(e) => setHumidity(Number(e.target.value))} />
           </div>
         </div>
 

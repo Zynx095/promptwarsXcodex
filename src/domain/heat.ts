@@ -136,10 +136,7 @@ export function assessHeatStress(tempC: number, humidity: number): HeatStressAss
   let workModification = 'Normal outdoor construction and campus maintenance work permitted.';
   let isExtremeHazard = false;
 
-  const symptomsToWatch = [
-    'Heavy sweating and extreme thirst',
-    'Mild fatigue and sluggishness',
-  ];
+  const symptomsToWatch = ['Heavy sweating and extreme thirst', 'Mild fatigue and sluggishness'];
 
   if (heatIndexC >= 51) {
     riskLevel = 'extreme_danger';
@@ -149,9 +146,7 @@ export function assessHeatStress(tempC: number, humidity: number): HeatStressAss
     hydrationGuideline = 'MANDATORY: Drink 250ml water every 10-15 minutes with ORS / electrolytes. Do not wait for thirst.';
     restCycleGuideline = 'SUSPEND heavy outdoor physical work. Work limited to early morning (before 10 AM) or shaded areas.';
     workModification = 'Stop direct sun exposure (concrete pouring, roof scaffolding, road laying suspended).';
-    symptomsToWatch.push(
-      'Heat Stroke Warning: Hot, dry skin (cessation of sweating), mental confusion, fainting. CALL 108 IMMEDIATELY.',
-    );
+    symptomsToWatch.push('Heat Stroke Warning: Hot, dry skin (cessation of sweating), mental confusion, fainting. CALL 108 IMMEDIATELY.');
     isExtremeHazard = true;
   } else if (heatIndexC >= 39) {
     riskLevel = 'danger';
@@ -161,9 +156,7 @@ export function assessHeatStress(tempC: number, humidity: number): HeatStressAss
     hydrationGuideline = 'Drink 250ml cool water or lemon water every 15 minutes. Cool water points must be within 50m of work.';
     restCycleGuideline = 'Mandatory 30-45 minutes rest in cool shade for every 45 minutes of heavy work.';
     workModification = 'Shift strenuous tasks to early morning (6 AM - 11 AM). Rotate workers frequently.';
-    symptomsToWatch.push(
-      'Heat Exhaustion: Dizziness, nausea, vomiting, rapid heartbeat, headache. Move to shade immediately.',
-    );
+    symptomsToWatch.push('Heat Exhaustion: Dizziness, nausea, vomiting, rapid heartbeat, headache. Move to shade immediately.');
     isExtremeHazard = true;
   } else if (heatIndexC >= 32) {
     riskLevel = 'extreme_caution';

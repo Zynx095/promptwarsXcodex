@@ -7,6 +7,7 @@ import { getIndustry } from '../../shared/industries';
 import type { AuthConfigResponse, DemoAccount } from '../../shared/types';
 import { Button, Card, ErrorBox, Field, Notice } from '../components/ui';
 import { BrandMark, DemoBanner, LanguageSelect } from '../components/Layout';
+import { MobileDemoQrModal } from '../components/MobileDemoQrModal';
 import { Clock, KeyRound, Languages, MessageSquare, ShieldAlert, Smartphone, Users } from 'lucide-react';
 
 function GoogleIcon() {
@@ -41,6 +42,7 @@ function GithubIcon() {
 export function LoginPage() {
   const { t } = useI18n();
   const { refresh } = useSession();
+  const [showQr, setShowQr] = useState(false);
 
   // Authentication configuration
   const authConfig = useApi<AuthConfigResponse>('/auth/config');
@@ -175,7 +177,13 @@ export function LoginPage() {
               <BrandMark />
               <span>FairShift</span>
             </div>
-            <LanguageSelect />
+            <div className="flex items-center gap-2">
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowQr(true)} title="Scan QR Code to open on mobile phone">
+                <Smartphone className="icon-sm" aria-hidden="true" />
+                <span>Mobile Demo</span>
+              </button>
+              <LanguageSelect />
+            </div>
           </div>
           <h1 id="login-heading">{t('login.heading')}</h1>
           <p className="lead">{t('app.tagline')}</p>
@@ -405,6 +413,7 @@ export function LoginPage() {
           </p>
         </div>
       </main>
+      <MobileDemoQrModal isOpen={showQr} onClose={() => setShowQr(false)} />
     </>
   );
 }

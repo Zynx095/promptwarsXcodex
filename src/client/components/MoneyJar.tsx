@@ -17,7 +17,6 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
 
   const baseLayer = model.layers.find((l) => l.id === 'base');
   const otLayer = model.layers.find((l) => l.id === 'overtime');
-  const netLayer = model.layers.find((l) => l.id === 'net');
 
   // Plain-language voice script for speech synthesis
   const voiceScript = [
@@ -40,9 +39,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
             </span>
             <span>{t('jar.title') || 'FairShift Money Jar — Visual Earnings Explanation'}</span>
           </h3>
-          <p className="money-jar-subtitle">
-            {t('jar.subtitle') || 'A clear, transparent breakdown of how your work hours translate into approved wages.'}
-          </p>
+          <p className="money-jar-subtitle">{t('jar.subtitle') || 'A clear, transparent breakdown of how your work hours translate into approved wages.'}</p>
         </div>
         <ReadAloudButton text={voiceScript} className="jar-voice-btn" />
       </div>
@@ -168,8 +165,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
                     <div>
                       <strong>{t('jar.overtimeWages') || 'Overtime Earnings'}</strong>
                       <div className="muted small">
-                        {hoursDecimal(model.comparison.worked.overtimeMinutes)} hrs @ {(slip.breakdown.overtimeMultiplierBp / 10000).toFixed(1)}×
-                        rate
+                        {hoursDecimal(model.comparison.worked.overtimeMinutes)} hrs @ {(slip.breakdown.overtimeMultiplierBp / 10000).toFixed(1)}× rate
                       </div>
                     </div>
                   </div>
@@ -183,9 +179,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
                     <div className="jar-legend-dot dot-ded" aria-hidden="true" />
                     <div>
                       <strong>{t('jar.deductions') || 'Authorized Deductions'}</strong>
-                      <div className="muted small">
-                        {model.deductionLines.map((d) => `${d.label}${d.capped ? ' (capped)' : ''}`).join(', ')}
-                      </div>
+                      <div className="muted small">{model.deductionLines.map((d) => `${d.label}${d.capped ? ' (capped)' : ''}`).join(', ')}</div>
                     </div>
                   </div>
                   <strong className="jar-item-val text-bad">−{m(model.totalDeductionsMinor)}</strong>
@@ -207,10 +201,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
             <div className="jar-trust-guarantee">
               <span className="small text-muted flex items-start gap-1">
                 <HelpCircle className="icon-sm mt-0.5 shrink-0" aria-hidden="true" />
-                <span>
-                  {t('jar.guaranteeNote') ||
-                    'Amounts are sealed by cryptographic work receipts and matched to verified check-in records.'}
-                </span>
+                <span>{t('jar.guaranteeNote') || 'Amounts are sealed by cryptographic work receipts and matched to verified check-in records.'}</span>
               </span>
             </div>
           </div>
@@ -237,8 +228,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
                     {t('jar.hourlyRate') || 'Rate'}: <strong>{m(model.comparison.agreed.hourlyRateMinor)}/hr</strong>
                   </li>
                   <li>
-                    {t('jar.scheduledHours') || 'Schedule'}:{' '}
-                    <strong>{formatMinutes(model.comparison.agreed.scheduledDailyMinutes)}/day</strong>
+                    {t('jar.scheduledHours') || 'Schedule'}: <strong>{formatMinutes(model.comparison.agreed.scheduledDailyMinutes)}/day</strong>
                   </li>
                   <li>
                     {t('jar.workedDays') || 'Working Days'}: <strong>{model.comparison.agreed.workedDaysCount} days</strong>
@@ -266,8 +256,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
                   {t('jar.overtime') || 'Overtime'}: <strong>{formatMinutes(model.comparison.worked.overtimeMinutes)}</strong>
                 </li>
                 <li>
-                  {t('jar.totalHours') || 'Total Time'}:{' '}
-                  <strong>{formatMinutes(model.comparison.worked.totalWorkedMinutes)}</strong>
+                  {t('jar.totalHours') || 'Total Time'}: <strong>{formatMinutes(model.comparison.worked.totalWorkedMinutes)}</strong>
                 </li>
               </ul>
             </div>
@@ -286,12 +275,13 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
                   {t('jar.disbursed') || 'Disbursed'}: <strong>{m(model.comparison.paid.disbursedAmountMinor)}</strong>
                 </li>
                 <li>
-                  {t('jar.outstanding') || 'Outstanding'}:{' '}
-                  <strong className="text-good">{m(model.comparison.paid.outstandingAmountMinor)}</strong>
+                  {t('jar.outstanding') || 'Outstanding'}: <strong className="text-good">{m(model.comparison.paid.outstandingAmountMinor)}</strong>
                 </li>
                 <li>
                   {t('jar.status') || 'Status'}:{' '}
-                  <span className="badge-status-inline">{t(model.comparison.paid.statusLabelKey as MessageKey) || model.comparison.paid.defaultStatusLabel}</span>
+                  <span className="badge-status-inline">
+                    {t(model.comparison.paid.statusLabelKey as MessageKey) || model.comparison.paid.defaultStatusLabel}
+                  </span>
                 </li>
               </ul>
             </div>

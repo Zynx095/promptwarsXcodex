@@ -12,15 +12,15 @@
 
 Before introducing modifications, the existing repository baseline was independently reproduced and audited against the target branch (`main`):
 
-| Quality Gate | Tool / Command | Baseline Output | Status |
-| :--- | :--- | :--- | :---: |
-| **Unit & Integration Tests** | `npx vitest run` | **30 test files passed, 254 tests passed** (36.47s) | **PASS** |
-| **Static Type Analysis** | `npm run typecheck` (`tsc --noEmit`) | 0 type errors across whole codebase | **PASS** |
-| **Code Quality & Lint** | `npm run lint` (`eslint .`) | 0 errors, 0 warnings under ESLint 9 flat config | **PASS** |
-| **Code Formatting** | `npm run format:check` (`prettier --check .`) | 100% compliant across all 99 repository files | **PASS** |
-| **Client Production Build** | `npm run build:client` (`vite build`) | `401.74 kB` JS (`115.23 kB` gzip), `38.17 kB` CSS | **PASS** |
-| **Server Production Build** | `npm run build:server` (`esbuild`) | `209.4 kB` Node 22 ESM standalone bundle | **PASS** |
-| **Git Working Tree State** | `git status` | Clean working tree; `pitch-preparation/` untouched | **PASS** |
+| Quality Gate                 | Tool / Command                                | Baseline Output                                     |  Status  |
+| :--------------------------- | :-------------------------------------------- | :-------------------------------------------------- | :------: |
+| **Unit & Integration Tests** | `npx vitest run`                              | **30 test files passed, 254 tests passed** (36.47s) | **PASS** |
+| **Static Type Analysis**     | `npm run typecheck` (`tsc --noEmit`)          | 0 type errors across whole codebase                 | **PASS** |
+| **Code Quality & Lint**      | `npm run lint` (`eslint .`)                   | 0 errors, 0 warnings under ESLint 9 flat config     | **PASS** |
+| **Code Formatting**          | `npm run format:check` (`prettier --check .`) | 100% compliant across all 99 repository files       | **PASS** |
+| **Client Production Build**  | `npm run build:client` (`vite build`)         | `401.74 kB` JS (`115.23 kB` gzip), `38.17 kB` CSS   | **PASS** |
+| **Server Production Build**  | `npm run build:server` (`esbuild`)            | `209.4 kB` Node 22 ESM standalone bundle            | **PASS** |
+| **Git Working Tree State**   | `git status`                                  | Clean working tree; `pitch-preparation/` untouched  | **PASS** |
 
 ---
 
@@ -80,36 +80,43 @@ flowchart TD
 ## 3. Product Workstreams
 
 ### Priority 0 — Deployment Readiness and Demonstration
+
 - **Cloud Run Deployment Runbook & Readiness**: Single-writer persistent volume configuration via Cloud Storage FUSE / Filestore, health checks, secrets management.
 - **Mobile Demonstration QR Code Access**: Clean, accessible QR code modal on login and demonstration views pointing to active deployment or LAN mobile test address.
 - **Enhanced README**: Authentic screenshots, architecture diagrams, live demo workflows, and transparent technical disclosure.
 
 ### Priority 1 — FairShift Money Jar & Earnings Transparency
+
 - **Visual Money Jar Component**: Transparent layered container displaying Base Pay (primary emerald), Overtime Pay (amber), Deductions (reduction indicator), Net Payable (prominent), and Paid vs Outstanding status.
 - **Agreed vs Worked vs Paid Comparison**: Three-way structured breakdown deriving from worker contracted hourly rate, scheduled daily hours, actual recorded attendance, and payslip issuance.
 - **Accessibility & Numerical Rigor**: Integer paise calculations, screen-reader markup (`aria-label`, semantic `<meter>`/`<progress>` equivalents), high-contrast tokens, reduced motion support.
 
 ### Priority 1 — Worker Labour Dispute Notice Generator
+
 - **Factual Wage Discrepancy Notice**: Structured, print-ready document allowing workers to review and edit factual discrepancies with employer details, pay periods, recorded hours, earnings, and cryptographic receipt hashes.
 - **Legal Accuracy & Non-Representation Disclaimer**: Explicit disclaimer that the notice is a worker-generated factual summary and not a substitute for legal advice. Factual references to Indian wage frameworks (Code on Wages 2019 / Payment of Wages Act 1936) without false assertions.
 - **Strict Privacy**: Zero exposure of confidential safety reports or reporter references.
 
 ### Priority 2 — Multilingual Architecture & Language Expansion
+
 - **Modular Asynchronous I18n**: Decoupled `src/client/locales/*.json` architecture with dynamic imports, memory and local storage caching, and instant fallback to bundled English.
 - **Expanded Indian Languages**: Six-language coverage including English (`en`), Kannada (`kn`), Hindi (`hi`), Tamil (`ta`), Telugu (`te`), and Bengali (`bn`).
 - **Comprehensive Coverage & Regional Formatting**: Full coverage across navigation, payslips, Money Jar, dispute generator, heat safety, reports, and error messages with locale-aware INR and date formatting.
 
 ### Priority 2 — Heat-Stress and Outdoor Worker Safety
+
 - **Scientifically Grounded Heat Index**: NOAA/NWS Rothfusz regression algorithm adapted for occupational frontline safety, distinguishing Heat Index from Wet Bulb Globe Temperature (WBGT).
 - **NDMA & Indian Guidelines**: Work-rest cycles, hydration intervals (250ml per 15-20 min), shade requirements, acclimatization advice, and heat stroke warning signs.
 - **Worker & Admin Views**: Interactive calculator and presets (Delhi Dry Heat, Chennai Humid, Bengaluru Moderate) for workers, and aggregated hazard overview for admins without reporter deanonymization.
 
 ### Priority 2 — Upgrade Existing Features
+
 - **Proof Explainer**: Plain-language explanations of HMAC-SHA256, version chain comparisons, and Merkle checkpoint verification.
 - **Safe Signal Transparency**: Cohort suppression ($k \ge 3$) explanations and differencing defense disclosures.
 - **Accountability Loop Stepper**: Complete 7-state lifecycle visualization with separation-of-duties clarity.
 
 ### Priority 3 — Mobile Worker Experience Improvements
+
 - Comfortable touch targets ($\ge 44 \times 44\text{px}$), safe-area insets, keyboard-friendly forms, and responsive glassmorphism containers preserving Deep Aubergine (`#3A0F34`), Ice Silver (`#DDE3E8`), and Marigold (`#EAAA00`).
 
 ---
@@ -117,6 +124,7 @@ flowchart TD
 ## 4. Planned Commit Sequence
 
 Granular, logically scoped commits will be created following verified tests:
+
 1. `docs(plan): establish V4.1 baseline, dependency map and enhancement architecture`
 2. `feat(payroll): implement Money Jar calculation model and Agreed-Worked-Paid comparison`
 3. `feat(ui): add accessible Money Jar component with layered earnings visualization`

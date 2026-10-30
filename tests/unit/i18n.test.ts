@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { LANGUAGES, type Lang } from '../../src/client/lib/i18n';
+import { LANGUAGES } from '../../src/client/lib/i18n';
 import { formatMoney } from '../../src/shared/money';
 import { formatDate } from '../../src/client/lib/format';
 

@@ -40,7 +40,7 @@ export async function createApp(ctx: AppContext, frontend?: (app: Express) => Pr
   app.set('trust proxy', ctx.config.production ? 1 : false);
   app.use(securityHeaders(ctx.config.production));
 
-  app.get('/healthz', (_req, res) => {
+  app.get(['/healthz', '/api/health'], (_req, res) => {
     ctx.db.get('SELECT 1 AS ok');
     res.json({ status: 'ok' });
   });

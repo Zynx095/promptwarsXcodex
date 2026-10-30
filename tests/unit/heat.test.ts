@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  assessHeatStress,
-  calculateHeatIndex,
-  INDIAN_WEATHER_PRESETS,
-  NDMA_SOURCE_ATTRIBUTION,
-} from '../../src/domain/heat';
+import { assessHeatStress, calculateHeatIndex, INDIAN_WEATHER_PRESETS, NDMA_SOURCE_ATTRIBUTION } from '../../src/domain/heat';
 
 describe('FairShift Environmental Safety — Heat Stress & Occupational Health Audit', () => {
   it('accurately computes Heat Index using the Rothfusz algorithm', () => {

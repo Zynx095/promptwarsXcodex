@@ -19,12 +19,14 @@ FairShift V4.1 implements an **occupational environmental safety module** that t
 ## 2. Assessment Methodology & Mathematical Formulation
 
 ### NOAA/NWS Rothfusz Regression Algorithm
+
 The Heat Index ($HI$) is derived from ambient dry-bulb temperature ($T$ in °F) and relative humidity ($R$ in %):
 
 $$HI = c_1 + c_2 T + c_3 R + c_4 T R + c_5 T^2 + c_6 R^2 + c_7 T^2 R + c_8 T R^2 + c_9 T^2 R^2$$
 
 Where:
-$$\begin{aligned}
+
+$$ \begin{aligned}
 c_1 &= -42.379, & c_2 &= 2.04901523, & c_3 &= 10.14333127 \\
 c_4 &= -0.22475541, & c_5 &= -0.00683783, & c_6 &= -0.05481717 \\
 c_7 &= 0.00122874, & c_8 &= 0.00085282, & c_9 &= -0.00000199
@@ -79,3 +81,4 @@ Automated tests in [`tests/unit/heat.test.ts`](file:///D:/College/SOMESHIT%20DOW
 - Regional weather preset consistency.
 - Input boundary checking (rejection of $-15^\circ\text{C}$ or $>100\%$ RH).
 - Presence of NDMA source attribution and symptom alerts.
+$$

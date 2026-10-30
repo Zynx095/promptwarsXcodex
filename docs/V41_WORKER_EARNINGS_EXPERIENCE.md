@@ -4,6 +4,7 @@
 **Feature:** FairShift Money Jar & Agreed vs Worked vs Paid Comparison  
 **Primary Users:** Frontline construction workers and campus support staff  
 **Component Paths:**
+
 - [`src/domain/moneyJar.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/domain/moneyJar.ts)
 - [`src/client/components/MoneyJar.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/components/MoneyJar.tsx)
 - [`src/client/pages/worker/Payslips.tsx`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/src/client/pages/worker/Payslips.tsx)
@@ -15,6 +16,7 @@
 In frontline employment sectors (construction sites, maintenance, security, housekeeping), pay discrepancies and complex payslip tables create distrust. Many workers have limited numerical or financial literacy and find standard deduction tables incomprehensible.
 
 The **FairShift Money Jar** replaces abstract ledger columns with a visual, physical metaphor:
+
 1. **Base Wages**: The foundational liquid layer (Emerald) representing regular hours worked multiplied by contracted hourly rate.
 2. **Overtime Earnings**: The top earnings layer (Amber / Marigold) showing hours worked beyond the daily schedule multiplied by the statutory 1.5× overtime multiplier.
 3. **Authorized Deductions**: A clearly distinguished reduction indicator (Rose) showing statutory deductions (e.g., canteen, equipment) subtracted from gross earnings.
@@ -27,6 +29,7 @@ The **FairShift Money Jar** replaces abstract ledger columns with a visual, phys
 The Money Jar strictly consumes verified domain calculations from `src/domain/payroll.ts` and `src/shared/money.ts`. It introduces zero duplicate accounting math on the client.
 
 ### Invariants Maintained
+
 - **Integer Paise Representation**: All currency amounts remain integer minor units (paise) throughout calculation and formatting.
 - **Reconciliation Invariant**:
   $$\text{Base Pay} + \text{Overtime Pay} = \text{Gross Pay}$$
@@ -40,11 +43,11 @@ The Money Jar strictly consumes verified domain calculations from `src/domain/pa
 
 To give workers complete transparency into what was promised versus what was recorded and paid, the Money Jar provides a side-by-side reconciliation:
 
-| Pillar | Underlying Data Source | Calculation / Definition |
-| :--- | :--- | :--- |
-| **1. Agreed** | Worker contract rate and scheduled daily hours | $\text{Contracted Hourly Rate} \times \text{Daily Scheduled Hours} \times \text{Working Days in Period}$ |
-| **2. Worked** | Immutable shift attendance timestamps | $\text{Regular Hours} + \text{Overtime Hours}$ mapped to gross earnings |
-| **3. Paid / Payable** | Employer payslip issuance and disbursement status | Net approved amount with explicit distinction between **Earned**, **Approved**, and **Disbursed** |
+| Pillar                | Underlying Data Source                            | Calculation / Definition                                                                                 |
+| :-------------------- | :------------------------------------------------ | :------------------------------------------------------------------------------------------------------- |
+| **1. Agreed**         | Worker contract rate and scheduled daily hours    | $\text{Contracted Hourly Rate} \times \text{Daily Scheduled Hours} \times \text{Working Days in Period}$ |
+| **2. Worked**         | Immutable shift attendance timestamps             | $\text{Regular Hours} + \text{Overtime Hours}$ mapped to gross earnings                                  |
+| **3. Paid / Payable** | Employer payslip issuance and disbursement status | Net approved amount with explicit distinction between **Earned**, **Approved**, and **Disbursed**        |
 
 > [!IMPORTANT]
 > The system never implies money has been paid into a worker's hands or bank account when it is merely approved. Unpaid approved wages are explicitly labeled **Outstanding** with zero false disbursement claims.
@@ -69,6 +72,7 @@ To give workers complete transparency into what was promised versus what was rec
 ## 5. Verification Test Coverage
 
 Automated unit tests in [`tests/unit/money-jar.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/unit/money-jar.test.ts) verify:
+
 - Accurate mapping of base, overtime, deductions, and net payable.
 - Normalization of visual layer percentages (summing to 100%).
 - Graceful handling of zero-earnings pay periods.

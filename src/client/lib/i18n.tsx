@@ -66,28 +66,21 @@ function initialLang(): Lang {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang);
-  const [loadedLang, setLoadedLang] = useState<Lang>(lang);
-  const [loading, setLoading] = useState(false);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    if (dictionaryCache.has(lang)) {
-      setLoadedLang(lang);
-      return;
-    }
+    if (dictionaryCache.has(lang)) return;
     let cancelled = false;
-    setLoading(true);
     loaders[lang]()
       .then((mod) => {
         if (cancelled) return;
-        dictionaryCache.set(lang, mod.default);
-        setLoadedLang(lang);
+        const dict = (mod as { default?: Dictionary }).default ?? (mod as unknown as Dictionary);
+        dictionaryCache.set(lang, dict);
+        setVersion((v) => v + 1);
       })
       .catch((err) => {
         console.warn(`Failed to load locale "${lang}":`, err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -104,14 +97,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<I18n>(() => {
-    const activeDict = dictionaryCache.get(loadedLang) ?? en;
+    void version;
+    const activeDict = dictionaryCache.get(lang) ?? en;
     const activeLocale = LANGUAGES.find((l) => l.code === lang)?.locale ?? 'en-IN';
+    const isLoading = !dictionaryCache.has(lang);
 
     return {
       lang,
       locale: activeLocale,
       setLang,
-      isLoading: loading,
+      isLoading,
       t: (key, vars) => {
         const text = activeDict[key] ?? en[key] ?? key;
         return interpolate(text, vars);
@@ -121,7 +116,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return activeDict[catKey] ?? en[catKey] ?? fallback;
       },
     };
-  }, [lang, loadedLang, loading, setLang]);
+  }, [lang, setLang, version]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

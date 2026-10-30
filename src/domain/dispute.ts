@@ -5,13 +5,7 @@ import { DomainError } from './errors';
 import { formatMinutes, hoursDecimal } from '../client/lib/format';
 import { formatMoney } from '../shared/money';
 
-export type DiscrepancyCategory =
-  | 'unpaid_wages'
-  | 'unpaid_overtime'
-  | 'unauthorized_deductions'
-  | 'rate_mismatch'
-  | 'incorrect_hours'
-  | 'other';
+export type DiscrepancyCategory = 'unpaid_wages' | 'unpaid_overtime' | 'unauthorized_deductions' | 'rate_mismatch' | 'incorrect_hours' | 'other';
 
 export const DISCREPANCY_LABELS: Record<DiscrepancyCategory, string> = {
   unpaid_wages: 'Full or Partial Unpaid Net Wages',
@@ -140,9 +134,7 @@ export function buildWageDisputeNotice(input: WageDisputeNoticeInput): Formatted
     attendanceSummary: {
       regularHoursText: `${formatMinutes(input.regularMinutes)} (${hoursDecimal(input.regularMinutes)})`,
       overtimeHoursText: `${formatMinutes(input.overtimeMinutes)} (${hoursDecimal(input.overtimeMinutes)})`,
-      totalHoursText: `${formatMinutes(input.regularMinutes + input.overtimeMinutes)} (${hoursDecimal(
-        input.regularMinutes + input.overtimeMinutes,
-      )})`,
+      totalHoursText: `${formatMinutes(input.regularMinutes + input.overtimeMinutes)} (${hoursDecimal(input.regularMinutes + input.overtimeMinutes)})`,
       scheduledDailyText: formatMinutes(input.scheduledDailyMinutes),
     },
     financialSummary: {
