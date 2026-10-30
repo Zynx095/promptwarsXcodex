@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { setup } from './helpers';
-import { generateReceiptForShift } from '../../src/server/services/receipts';
-import { generateCheckpointForOrg, getIndependentVerificationBundle, getReceiptInclusionProof } from '../../src/server/services/checkpoints';
 import { getOrg } from '../../src/server/repositories/orgs';
 import { verifyIndependentBundle } from '../../src/domain/proof';
 import type { IndependentVerificationBundle } from '../../src/shared/types';
 
 describe('FairShift Proof — Checkpoints, Merkle Trees & Independent Anchoring', () => {
   it('generates cryptographic checkpoints, Merkle inclusion proofs, and self-contained verification bundles', async () => {
-    const { ctx, app, login } = await setup();
+    const { ctx, login } = await setup();
     const org = getOrg(ctx.db, 'org_demo_construction')!;
 
     // In seed data, Ravi has completed shifts with generated receipts
@@ -87,7 +85,7 @@ describe('FairShift Proof — Checkpoints, Merkle Trees & Independent Anchoring'
   });
 
   it('rejects tampered bundle and enforces tenant isolation', async () => {
-    const { ctx, app, login } = await setup();
+    const { ctx, login } = await setup();
     const adminSession = await login('9000000100'); // Construction admin
     const eduAdminSession = await login('9100000100'); // Education admin
 

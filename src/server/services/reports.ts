@@ -249,7 +249,9 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
         try {
           const settings = JSON.parse(orgRow.settings_json);
           requireIndependent = Boolean(settings.safety?.requireIndependentVerification);
-        } catch {}
+        } catch {
+          requireIndependent = false;
+        }
       }
 
       const lastResolver = ctx.db.get<{ actor_id: string }>(

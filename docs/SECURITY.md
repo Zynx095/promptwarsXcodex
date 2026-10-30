@@ -45,6 +45,8 @@ This document describes the controls FairShift implements and the gaps that rema
 - **Canonical JSON serialization:** deterministic key sorting (RFC 8785 subset), uniform integer/float encoding, and whitespace normalization ensure byte-for-byte reproducibility across runtime platforms.
 - **HMAC-SHA256 cryptographic digests:** receipts are sealed with `HMAC-SHA256(RECEIPT_SIGNING_SECRET, canonicalJson)` upon shift check-out. Any direct database tampering with hours, overtime, or pay rates causes immediate verification failure.
 - **Multi-key management & rotation:** receipts carry explicit `key_id` attributes, decoupling receipt verification from session secret rotation and allowing zero-downtime key rotation with historical key maps (`RECEIPT_SIGNING_KEYS`).
+- **Independent Merkle checkpoint anchoring:** receipts are batched into append-only cryptographic commitment logs. Domain-separated binary Merkle trees (`fairshift:leaf:v1:`) produce signed checkpoints linked via hash chains (`previousCheckpointRoot`).
+- **Self-contained verification bundles:** workers and external auditors can export and verify independent proof bundles completely offline without requiring access to application databases or server signing secrets.
 - **Constant-time verification:** digest verification uses `crypto.timingSafeEqual` with strict 64-char hex format validation to eliminate timing side-channel attacks and malformed signature exceptions.
 - **Append-only version chaining:** administrator shift corrections do not overwrite historical receipts; they insert an incremented receipt version referencing `previous_version_id` with mandatory reason audit trails.
 - **Lifecycle status transition:** receipts transition from `estimated` to `finalized` when the employer issues the period payslip, cementing immutable payroll records.
@@ -53,14 +55,23 @@ This document describes the controls FairShift implements and the gaps that rema
 
 - **Minimum cohort suppression ($k \ge 3$):** hazard patterns are surfaced only when at least 3 distinct reports exist in a category. Smaller sample sizes are suppressed to defeat singling-out and re-identification attacks.
 - **Deduplication & distinct reporter tracking:** immediate duplicate submissions within 15 minutes are deduplicated. Minimum cohort rules evaluate distinct pseudonyms (`COALESCE(reporter_ref, reporter_id)`) internally to prevent single-worker Sybil cluster inflation and accidental self-exposure.
+- **Dedicated pseudonym secret & tenant isolation:** confidential report pseudonyms use `scopedReporterRef(SIGNAL_PSEUDONYM_SECRET, orgId, userId)` with organization-scoped domain separation, preventing cross-tenant correlation and ensuring session cookie rotation never invalidates historical report lookups.
+- **In-memory pseudonymization:** raw user IDs from non-confidential reports are hashed with `signalAggregationKey` prior to domain ingestion, eliminating user IDs from application memory during aggregation.
+- **Differencing protection via snapshot caching:** aggregation responses are cached in 15-second sliding snapshot windows to defeat temporal differencing attacks by supervisors monitoring shift check-outs.
 - **Identifier exclusion:** database queries explicitly omit `reporter_id`, `reporter_ref`, worker names, phone numbers, and sub-day timestamps.
 - **Multi-tenant partitioning:** all hazard aggregation queries strictly filter on `org_id`, ensuring zero cross-tenant signal leakage.
 
 **Safety accountability and audit (Accountability Loop)**
 
 - **Audited status lifecycle:** all transitions (`submitted -> acknowledged -> in_progress -> resolved -> follow_up_pending -> outcome_verified`) enforce mandatory explanatory notes and audit event records.
-- **Verification authority & separation of duties:** detects and flags when the resolver self-verifies their own corrective action versus independent third-party auditor sign-off (`verified_by`, `verification_note`, `verified_at`). Outcome verification requires an explanatory note of at least 5 characters.
+- **Verification authority & separation of duties:** detects and flags when the resolver self-verifies their own corrective action versus independent third-party auditor sign-off (`verified_by`, `verification_note`, `verified_at`). When `requireIndependentVerification` policy is active, self-verification is strictly rejected.
 - **Worker outcome transparency:** workers can view exact corrective actions and verification results without exposing administrator identity or internal notes.
+
+**Production Storage Durability & Disaster Recovery**
+
+- **Persistent storage default:** runtime container specifies `/data/fairshift.db` with non-root ownership (`node:node`) designed for Google Cloud Run volume mounts (Cloud Storage FUSE or Filestore).
+- **Atomic non-blocking backups:** `backupDb` utilizes SQLite native `VACUUM INTO` for point-in-time snapshot creation without table locks.
+- **Automated integrity verification:** `verifyDbIntegrity` confirms structural page integrity (`PRAGMA integrity_check`) before and after recovery operations.
 
 **Privacy**
 
