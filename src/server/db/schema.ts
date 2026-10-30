@@ -267,4 +267,23 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read, created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_org ON notifications(org_id, created_at);
+
+-- Append-only history: audit events, report status events and proof checkpoints can be added but
+-- never edited or deleted through the application (or any other SQL run against this database).
+CREATE TRIGGER IF NOT EXISTS audit_events_no_update BEFORE UPDATE ON audit_events
+BEGIN SELECT RAISE(ABORT, 'audit_events is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS audit_events_no_delete BEFORE DELETE ON audit_events
+BEGIN SELECT RAISE(ABORT, 'audit_events is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS report_events_no_update BEFORE UPDATE ON report_events
+BEGIN SELECT RAISE(ABORT, 'report_events is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS report_events_no_delete BEFORE DELETE ON report_events
+BEGIN SELECT RAISE(ABORT, 'report_events is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS receipt_checkpoints_no_update BEFORE UPDATE ON receipt_checkpoints
+BEGIN SELECT RAISE(ABORT, 'receipt_checkpoints is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS receipt_checkpoints_no_delete BEFORE DELETE ON receipt_checkpoints
+BEGIN SELECT RAISE(ABORT, 'receipt_checkpoints is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS receipt_checkpoint_entries_no_update BEFORE UPDATE ON receipt_checkpoint_entries
+BEGIN SELECT RAISE(ABORT, 'receipt_checkpoint_entries is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS receipt_checkpoint_entries_no_delete BEFORE DELETE ON receipt_checkpoint_entries
+BEGIN SELECT RAISE(ABORT, 'receipt_checkpoint_entries is append-only'); END;
 `;
