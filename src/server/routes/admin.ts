@@ -287,7 +287,8 @@ export function adminRoutes(ctx: AppContext): Router {
   // ---- Safe Signal (Recurring Hazard Detection) ----
   r.get('/signals', (req, res) => {
     const { org } = session(req);
-    res.json(getSafeSignals(ctx, org));
+    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+    res.json(getSafeSignals(ctx, org, { category }));
   });
 
   return r;

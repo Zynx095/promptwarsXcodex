@@ -3,6 +3,7 @@
 import type { Severity } from '../shared/types';
 
 export const SAFE_SIGNAL_MIN_COHORT = 3;
+export const SAFE_SIGNAL_MIN_DISTINCT_REPORTERS = 2;
 
 export type SignalRuleType = 'category_cluster' | 'persistent_unresolved' | 'severity_escalation' | 'reopened_cluster';
 
@@ -13,6 +14,8 @@ export interface SignalReportInput {
   status: string;
   createdAt: string;
   resolvedAt: string | null;
+  reporterKey?: string | null;
+  location?: string | null;
 }
 
 export interface SafeSignalCandidate {
@@ -52,9 +55,48 @@ function initializeSeverityDistribution(): Record<Severity, number> {
   return { low: 0, medium: 0, high: 0, critical: 0 };
 }
 
+export function parseValidDate(dateStr: string): number | null {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const ms = Date.parse(dateStr);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/**
+ * Deduplicates immediate duplicate submissions from the same reporter in the same location/category within 15 minutes.
+ */
+export function deduplicateReports(reports: SignalReportInput[]): SignalReportInput[] {
+  const seen = new Map<string, number>();
+  const out: SignalReportInput[] = [];
+
+  for (const r of reports) {
+    const key = `${r.reporterKey || r.id}:${r.category}:${(r.location || '').trim().toLowerCase()}`;
+    const ts = parseValidDate(r.createdAt);
+    if (ts === null) continue;
+
+    const lastTs = seen.get(key);
+    if (lastTs !== undefined && Math.abs(ts - lastTs) < 15 * 60 * 1000) {
+      continue;
+    }
+    seen.set(key, ts);
+    out.push(r);
+  }
+  return out;
+}
+
+/**
+ * Verifies diversity of reporters to prevent a single reporter from self-inflating a cluster or exposing themselves.
+ */
+export function hasSufficientDistinctReporters(
+  items: SignalReportInput[],
+  minDistinct: number = SAFE_SIGNAL_MIN_DISTINCT_REPORTERS,
+): boolean {
+  const distinct = new Set(items.map((i) => i.reporterKey || i.id));
+  return distinct.size >= minDistinct;
+}
+
 /**
  * Detects clusters of multiple safety reports in the same hazard category within a sliding time window.
- * Requires at least SAFE_SIGNAL_MIN_COHORT reports; smaller groups are strictly suppressed to protect anonymity.
+ * Requires at least SAFE_SIGNAL_MIN_COHORT reports and multi-reporter diversity.
  */
 export function detectCategoryClusters(
   reports: SignalReportInput[],
@@ -64,7 +106,11 @@ export function detectCategoryClusters(
   minCohort = SAFE_SIGNAL_MIN_COHORT,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
-  const recent = reports.filter((r) => Date.parse(r.createdAt) >= windowStartMs);
+  const recent = reports.filter((r) => {
+    const ts = parseValidDate(r.createdAt);
+    if (ts === null) return false;
+    return ts >= windowStartMs && ts <= now.getTime() + 60000;
+  });
 
   const byCategory = new Map<string, SignalReportInput[]>();
   for (const r of recent) {
@@ -78,6 +124,7 @@ export function detectCategoryClusters(
   for (const [category, items] of byCategory.entries()) {
     // Minimum cohort threshold enforcement: single or paired reports are suppressed
     if (items.length < minCohort) continue;
+    if (!hasSufficientDistinctReporters(items)) continue;
 
     const severityDist = initializeSeverityDistribution();
     let unresolved = 0;
@@ -87,7 +134,7 @@ export function detectCategoryClusters(
     for (const item of items) {
       severityDist[item.severity]++;
       if (item.status === 'reopened') reopened++;
-      else if (item.status === 'resolved') resolved++;
+      else if (item.status === 'resolved' || item.status === 'outcome_verified') resolved++;
       else unresolved++;
     }
 
@@ -132,7 +179,11 @@ export function detectPersistentUnresolved(
   minCohort = SAFE_SIGNAL_MIN_COHORT,
 ): SafeSignalCandidate[] {
   const cutoffMs = now.getTime() - daysThreshold * 86400000;
-  const persistent = reports.filter((r) => r.status !== 'resolved' && Date.parse(r.createdAt) <= cutoffMs);
+  const persistent = reports.filter((r) => {
+    const ts = parseValidDate(r.createdAt);
+    if (ts === null) return false;
+    return r.status !== 'resolved' && r.status !== 'outcome_verified' && ts <= cutoffMs;
+  });
 
   const byCategory = new Map<string, SignalReportInput[]>();
   for (const r of persistent) {
@@ -145,6 +196,7 @@ export function detectPersistentUnresolved(
 
   for (const [category, items] of byCategory.entries()) {
     if (items.length < minCohort) continue;
+    if (!hasSufficientDistinctReporters(items)) continue;
 
     const severityDist = initializeSeverityDistribution();
     for (const item of items) severityDist[item.severity]++;
@@ -189,7 +241,13 @@ export function detectSeverityEscalations(
   minCohort = SAFE_SIGNAL_MIN_COHORT,
 ): SafeSignalCandidate[] {
   const windowStartMs = now.getTime() - windowDays * 86400000;
-  const inWindow = reports.filter((r) => Date.parse(r.createdAt) >= windowStartMs).sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  const inWindow = reports
+    .filter((r) => {
+      const ts = parseValidDate(r.createdAt);
+      if (ts === null) return false;
+      return ts >= windowStartMs && ts <= now.getTime() + 60000;
+    })
+    .sort((a, b) => (parseValidDate(a.createdAt) ?? 0) - (parseValidDate(b.createdAt) ?? 0));
 
   const byCategory = new Map<string, SignalReportInput[]>();
   for (const r of inWindow) {
@@ -202,6 +260,7 @@ export function detectSeverityEscalations(
 
   for (const [category, items] of byCategory.entries()) {
     if (items.length < minCohort) continue;
+    if (!hasSufficientDistinctReporters(items)) continue;
 
     const firstHalf = items.slice(0, Math.floor(items.length / 2));
     const secondHalf = items.slice(Math.floor(items.length / 2));
@@ -227,8 +286,8 @@ export function detectSeverityEscalations(
         timeWindow: `Past ${windowDays} days`,
         severityDistribution: severityDist,
         statusSummary: {
-          unresolvedCount: items.filter((i) => i.status !== 'resolved').length,
-          resolvedCount: items.filter((i) => i.status === 'resolved').length,
+          unresolvedCount: items.filter((i) => i.status !== 'resolved' && i.status !== 'outcome_verified').length,
+          resolvedCount: items.filter((i) => i.status === 'resolved' || i.status === 'outcome_verified').length,
           reopenedCount: items.filter((i) => i.status === 'reopened').length,
         },
         confidence: 'recurrent_hazard',
@@ -245,17 +304,81 @@ export function detectSeverityEscalations(
 }
 
 /**
+ * Detects recurrent hazards where remediated issues were reopened across multiple reports.
+ */
+export function detectReopenedClusters(
+  reports: SignalReportInput[],
+  categoryMap: Map<string, string>,
+  now: Date,
+  windowDays = 30,
+  minCohort = SAFE_SIGNAL_MIN_COHORT,
+): SafeSignalCandidate[] {
+  const windowStartMs = now.getTime() - windowDays * 86400000;
+  const reopened = reports.filter((r) => {
+    const ts = parseValidDate(r.createdAt);
+    if (ts === null) return false;
+    return r.status === 'reopened' && ts >= windowStartMs && ts <= now.getTime() + 60000;
+  });
+
+  const byCategory = new Map<string, SignalReportInput[]>();
+  for (const r of reopened) {
+    const list = byCategory.get(r.category) ?? [];
+    list.push(r);
+    byCategory.set(r.category, list);
+  }
+
+  const signals: SafeSignalCandidate[] = [];
+
+  for (const [category, items] of byCategory.entries()) {
+    if (items.length < minCohort) continue;
+    if (!hasSufficientDistinctReporters(items)) continue;
+
+    const severityDist = initializeSeverityDistribution();
+    for (const item of items) severityDist[item.severity]++;
+
+    const catLabel = categoryMap.get(category) ?? category;
+
+    signals.push({
+      id: `sig_reopened_${category}_${now.toISOString().slice(0, 10)}`,
+      rule: 'reopened_cluster',
+      title: `Recurrent hazard after resolution: ${catLabel}`,
+      category,
+      categoryLabel: catLabel,
+      severityLevel: getDominantSeverity(severityDist),
+      reportCount: items.length,
+      timeWindow: `Past ${windowDays} days`,
+      severityDistribution: severityDist,
+      statusSummary: {
+        unresolvedCount: items.length,
+        resolvedCount: 0,
+        reopenedCount: items.length,
+      },
+      confidence: 'recurrent_hazard',
+      recommendedActions: [
+        `Re-examine the original corrective action for structural inadequacy.`,
+        `Conduct an on-site joint inspection with workers who operate in the affected zone.`,
+        `Establish mandatory monitoring protocol before closing issues in this category.`,
+      ],
+    });
+  }
+
+  return signals;
+}
+
+/**
  * Runs the comprehensive Safe Signal rule evaluation suite.
  */
 export function analyzeSafeSignals(reports: SignalReportInput[], categories: { key: string; label: string }[], now: Date): SafeSignalCandidate[] {
   const categoryMap = new Map(categories.map((c) => [c.key, c.label]));
+  const deduplicated = deduplicateReports(reports);
 
-  const clusters = detectCategoryClusters(reports, categoryMap, now);
-  const persistent = detectPersistentUnresolved(reports, categoryMap, now);
-  const escalations = detectSeverityEscalations(reports, categoryMap, now);
+  const clusters = detectCategoryClusters(deduplicated, categoryMap, now);
+  const persistent = detectPersistentUnresolved(deduplicated, categoryMap, now);
+  const escalations = detectSeverityEscalations(deduplicated, categoryMap, now);
+  const reopened = detectReopenedClusters(deduplicated, categoryMap, now);
 
   // Return combined signals sorted by severity weight descending, then report count descending
-  return [...clusters, ...persistent, ...escalations].sort((a, b) => {
+  return [...clusters, ...persistent, ...escalations, ...reopened].sort((a, b) => {
     const diff = SEVERITY_WEIGHT[b.severityLevel] - SEVERITY_WEIGHT[a.severityLevel];
     if (diff !== 0) return diff;
     return b.reportCount - a.reportCount;
