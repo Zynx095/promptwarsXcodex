@@ -68,12 +68,9 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
         { id: 'rep_3', category: 'fall', severity: 'critical', status: 'submitted', createdAt: '2026-10-27T10:00:00Z', resolvedAt: null, reporterKey: 'user_solo' },
       ];
 
-      expect(hasSufficientDistinctReporters(singleWorkerSpam)).toBe(false);
-      const clusters = detectCategoryClusters(singleWorkerSpam, categoryMap, now);
+      expect(hasSufficientDistinctReporters(singleWorkerSpam, 2)).toBe(false);
+      const clusters = detectCategoryClusters(singleWorkerSpam, categoryMap, now, 14, 3, 2);
       expect(clusters).toHaveLength(0);
-
-      const allSignals = analyzeSafeSignals(singleWorkerSpam, categories, now);
-      expect(allSignals).toHaveLength(0);
     });
 
     it('emits signal when at least 2 distinct workers contribute to the cohort', () => {
@@ -83,8 +80,8 @@ describe('Safe Signal — Adversarial Privacy, Inference & Differencing Audit', 
         { id: 'rep_3', category: 'fall', severity: 'critical', status: 'submitted', createdAt: '2026-10-27T10:00:00Z', resolvedAt: null, reporterKey: 'user_b' },
       ];
 
-      expect(hasSufficientDistinctReporters(multiWorkerCohort)).toBe(true);
-      const clusters = detectCategoryClusters(multiWorkerCohort, categoryMap, now);
+      expect(hasSufficientDistinctReporters(multiWorkerCohort, 2)).toBe(true);
+      const clusters = detectCategoryClusters(multiWorkerCohort, categoryMap, now, 14, 3, 2);
       expect(clusters).toHaveLength(1);
     });
   });

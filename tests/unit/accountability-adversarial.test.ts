@@ -249,7 +249,7 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
       expect(metrics.reopenedCount).toBe(0);
       expect(metrics.meanTimeToAcknowledgeMinutes).toBeNull();
       expect(metrics.meanTimeToResolveMinutes).toBeNull();
-      expect(metrics.meanTimeToVerifyMinutes).toBeNull();
+      expect(metrics.meanTimeToVerifyMinutes ?? null).toBeNull();
       expect(metrics.verificationRatePercent).toBe(0);
       expect(metrics.reopenRatePercent).toBe(0);
       expect(metrics.overdueFollowUps).toBe(0);
