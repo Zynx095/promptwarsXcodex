@@ -19,6 +19,7 @@ import './styles/heat.css';
 import './styles/notifications.css';
 import './styles/login.css';
 import './styles/voice.css';
+import './styles/dispute.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';

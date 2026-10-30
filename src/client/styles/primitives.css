@@ -740,6 +740,8 @@ td.num {
   max-height: min(88dvh, 820px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Keep a focused field clear of the sticky footer when the sheet scrolls to it */
+  scroll-padding-bottom: 136px;
   background: var(--fs-paper);
   border-radius: var(--r-slab);
   box-shadow: var(--e-float);

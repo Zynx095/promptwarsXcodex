@@ -31,28 +31,28 @@
   text-align: center;
 }
 
-.notice-sheet {
+.notif-sheet {
   max-width: 560px;
 }
-.notice-actions {
+.notif-actions {
   display: flex;
   justify-content: flex-end;
   margin: calc(-1 * var(--sp-3)) 0 var(--sp-2);
 }
-.notice-group {
+.notif-group {
   margin: var(--sp-4) 0 var(--sp-2);
   font-size: var(--fs-text-sm);
   color: var(--fs-ink-3);
 }
-.notice-list {
+.notif-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.notice-list li + li {
+.notif-list li + li {
   border-top: 1px solid var(--fs-line);
 }
-.notice-item {
+.notif-item {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-3);
@@ -65,31 +65,31 @@
   text-align: left;
   cursor: pointer;
 }
-.notice-item:hover {
+.notif-item:hover {
   background: #fafbfc;
 }
-.notice-item:focus-visible {
+.notif-item:focus-visible {
   outline-offset: -3px;
 }
-.notice-item .chevron {
+.notif-item .chevron {
   flex: none;
   margin-top: 10px;
   color: var(--fs-ink-3);
 }
-.notice-text {
+.notif-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
   min-width: 0;
 }
-.notice-text strong {
+.notif-text strong {
   font-weight: 600;
 }
-.notice-item.is-unread .notice-text strong {
+.notif-item.is-unread .notif-text strong {
   font-weight: 750;
 }
-.notice-item.is-unread .notice-text strong::before {
+.notif-item.is-unread .notif-text strong::before {
   content: '';
   display: inline-block;
   width: 8px;
@@ -99,12 +99,12 @@
   background: var(--fs-marigold);
   box-shadow: 0 0 0 2px var(--fs-caution-bg);
 }
-.notice-kind {
+.notif-kind {
   font-size: var(--fs-text-xs);
   font-weight: 700;
   color: var(--fs-danger);
 }
-.notice-body {
+.notif-body {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -112,18 +112,18 @@
   font-size: var(--fs-text-sm);
   color: var(--fs-ink-2);
 }
-.notice-time {
+.notif-time {
   font-size: var(--fs-text-xs);
   color: var(--fs-ink-3);
 }
-.notice-empty {
+.notif-empty {
   display: grid;
   justify-items: start;
   gap: var(--sp-1);
   padding: var(--sp-5) 0;
   color: var(--fs-ink-2);
 }
-.notice-empty svg {
+.notif-empty svg {
   margin-bottom: var(--sp-2);
   color: var(--fs-ink-3);
 }

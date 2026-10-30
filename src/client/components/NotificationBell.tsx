@@ -50,15 +50,15 @@ export function NotificationBell() {
     const kind = KIND[item.type] ?? { icon: Info, tone: '' };
     return (
       <li key={item.id}>
-        <button type="button" className={`notice-item${item.read ? '' : ' is-unread'}`} onClick={() => void openItem(item)}>
+        <button type="button" className={`notif-item${item.read ? '' : ' is-unread'}`} onClick={() => void openItem(item)}>
           <span className={`row-icon ${kind.tone}`} aria-hidden="true">
             <kind.icon className="icon" />
           </span>
-          <span className="notice-text">
-            {item.type === 'safety_alert' ? <span className="notice-kind">{t('notifications.safetyAlert')}</span> : null}
+          <span className="notif-text">
+            {item.type === 'safety_alert' ? <span className="notif-kind">{t('notifications.safetyAlert')}</span> : null}
             <strong>{item.title}</strong>
-            <span className="notice-body">{item.body}</span>
-            <time className="notice-time" dateTime={item.createdAt} title={formatDateTime(item.createdAt, me.org.timezone, locale)}>
+            <span className="notif-body">{item.body}</span>
+            <time className="notif-time" dateTime={item.createdAt} title={formatDateTime(item.createdAt, me.org.timezone, locale)}>
               {relative(item.createdAt)}
             </time>
           </span>
@@ -87,9 +87,9 @@ export function NotificationBell() {
         ) : null}
       </button>
 
-      <Sheet open={open} onClose={() => setOpen(false)} title={t('notifications.title')} className="notice-sheet">
+      <Sheet open={open} onClose={() => setOpen(false)} title={t('notifications.title')} className="notif-sheet">
         {unreadCount > 0 ? (
-          <div className="notice-actions">
+          <div className="notif-actions">
             <button type="button" className="btn btn-quiet btn-sm" onClick={() => void markAllRead().catch(() => undefined)}>
               <CheckCheck className="icon-sm" aria-hidden="true" />
               {t('notifications.markAllRead')}
@@ -97,7 +97,7 @@ export function NotificationBell() {
           </div>
         ) : null}
         {items.length === 0 ? (
-          <div className="notice-empty">
+          <div className="notif-empty">
             <BellOff className="icon" aria-hidden="true" />
             <p className="m-0">
               <strong>{t('notifications.empty')}</strong>
@@ -108,18 +108,18 @@ export function NotificationBell() {
           <>
             {unread.length > 0 ? (
               <section aria-labelledby="notice-new">
-                <h3 id="notice-new" className="notice-group">
+                <h3 id="notice-new" className="notif-group">
                   {t('notifications.new')}
                 </h3>
-                <ul className="notice-list">{unread.map(renderItem)}</ul>
+                <ul className="notif-list">{unread.map(renderItem)}</ul>
               </section>
             ) : null}
             {earlier.length > 0 ? (
               <section aria-labelledby="notice-earlier">
-                <h3 id="notice-earlier" className="notice-group">
+                <h3 id="notice-earlier" className="notif-group">
                   {t('notifications.earlier')}
                 </h3>
-                <ul className="notice-list">{earlier.map(renderItem)}</ul>
+                <ul className="notif-list">{earlier.map(renderItem)}</ul>
               </section>
             ) : null}
           </>

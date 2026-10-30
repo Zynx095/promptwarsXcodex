@@ -1,0 +1,193 @@
+/* Pay dispute notice: a two-step sheet (explain, then review a printable document) */
+
+.dispute-sheet {
+  max-width: 760px;
+}
+.dispute-draft {
+  display: grid;
+  gap: var(--sp-5);
+}
+.dispute-draft .form-step {
+  margin: 0;
+}
+.dispute-example {
+  margin: calc(-1 * var(--sp-2)) 0 var(--sp-3);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.dispute-actions {
+  justify-content: flex-end;
+}
+.dispute-actions .btn-primary {
+  flex: 0 1 auto;
+}
+@media (max-width: 599px) {
+  .dispute-actions .btn {
+    flex: 1 1 auto;
+  }
+}
+.dispute-back {
+  margin: 0 0 var(--sp-2) calc(-1 * var(--sp-3));
+}
+
+.dispute-language {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+
+/* The notice as a sheet of paper: plain, black on white, ruled, so it prints as it looks */
+.dispute-document {
+  padding: var(--sp-5);
+  background: #fff;
+  color: #1b1b1b;
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-control);
+  font-size: var(--fs-text-sm);
+  line-height: 1.5;
+}
+.dispute-document:focus-visible {
+  outline-offset: 3px;
+}
+.notice-document {
+  display: grid;
+  gap: var(--sp-5);
+}
+.notice-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-2) var(--sp-4);
+}
+.notice-heading {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-text-lg);
+  font-weight: 750;
+  letter-spacing: 0;
+  color: #111;
+}
+.notice-ref,
+.notice-date {
+  font-size: var(--fs-text-xs);
+  font-weight: 600;
+  color: #444;
+}
+.notice-divider {
+  height: 2px;
+  margin: 0;
+  border: 0;
+  background: #111;
+}
+.notice-parties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--sp-4) var(--sp-6);
+}
+.notice-subhead {
+  display: block;
+  margin-bottom: var(--sp-1);
+  font-size: var(--fs-text-xs);
+  font-weight: 750;
+  color: #555;
+}
+.notice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.notice-highlight-box {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 4px solid var(--fs-marigold);
+  background: #f6f6f6;
+  font-weight: 700;
+}
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-text-sm);
+}
+.notice-table td {
+  padding: 6px 8px;
+  border: 1px solid #d4d4d4;
+  vertical-align: top;
+}
+.notice-row-emphasis td {
+  border-top: 2px solid #111;
+  background: #f6f6f6;
+}
+@media (max-width: 599px) {
+  /* Four columns do not fit a phone: each label sits above its value */
+  .notice-table,
+  .notice-table tbody,
+  .notice-table tr,
+  .notice-table td {
+    display: block;
+  }
+  .notice-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    border-bottom: 1px solid #d4d4d4;
+  }
+  .notice-table td {
+    border: 0;
+    padding: 4px 0;
+  }
+  .notice-table td:nth-child(even) {
+    text-align: right;
+  }
+  .notice-row-emphasis td {
+    border-top: 0;
+    background: none;
+  }
+}
+.notice-statement {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 4px solid #111;
+  background: #f6f6f6;
+  white-space: pre-wrap;
+}
+.notice-crypto-box {
+  display: grid;
+  gap: 2px;
+  font-size: var(--fs-text-xs);
+}
+.notice-crypto-box code {
+  word-break: break-all;
+}
+.notice-legal-footer {
+  display: grid;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid #d4d4d4;
+}
+.notice-disclaimer-text {
+  margin: 0;
+  font-size: var(--fs-text-xs);
+  font-weight: 600;
+  color: #333;
+}
+.notice-statutory-text {
+  margin: 0;
+  font-size: var(--fs-text-xs);
+  color: #555;
+}
+
+@media print {
+  body:has(.dispute-sheet) main > :not(.sheet-backdrop),
+  .dispute-sheet .sheet-head,
+  .dispute-language {
+    display: none !important;
+  }
+  .dispute-document {
+    padding: 0;
+    border: 0;
+  }
+}
