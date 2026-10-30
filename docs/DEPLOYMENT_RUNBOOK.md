@@ -66,6 +66,15 @@ SIGNAL_PSEUDONYM_SECRET=fairshift-signal-key:latest \
 > [!IMPORTANT]
 > **Single-Writer Constraint**: SQLite in WAL mode requires single-writer semantics. Always configure `--min-instances=1 --max-instances=1` on Cloud Run to prevent split-brain write conflicts across multiple container instances.
 
+> [!WARNING]
+> **Cloud Storage FUSE is not a safe home for a live SQLite database.** A Cloud Storage volume is an object store exposed through FUSE: it provides no file locking and no shared memory for SQLite's `-wal`/`-shm` files, and writes are uploaded as whole objects. Even with one instance, a revision rollout briefly runs the old and new instance together, and a crash mid-upload can leave a stale or torn file. Treat the Step 3 command as **unverified** (it was never deployed during the audit). Safer options, in order of effort:
+>
+> 1. **Demo:** omit the volume, keep `DEMO_MODE=true`, and accept that data is reseeded on each cold start (`docs/DEPLOYMENT.md`).
+> 2. **Small pilot:** keep the database on the container's local disk and copy snapshots made with `backupDb` (`VACUUM INTO`) to Cloud Storage on a schedule, restoring the newest snapshot at start-up; or mount a Filestore (NFS) volume, which supports locking.
+> 3. **Production:** move to Cloud SQL for PostgreSQL. This is a separate migration and was not started.
+>
+> Also set `RECEIPT_SIGNING_SECRET`, `CHECKPOINT_SIGNING_SECRET` and `SIGNAL_PSEUDONYM_SECRET` explicitly, as above. When they are unset they fall back to `SESSION_SECRET`, and with `DEMO_MODE=true` and no `SESSION_SECRET` that is an ephemeral random value: every receipt and checkpoint in a persisted database then fails verification after a restart, and confidential reporters can no longer find their own reports.
+
 ---
 
 ## 3. Local / Self-Hosted Docker Deployment
