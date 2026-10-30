@@ -7,8 +7,16 @@ import { Smartphone, X, Copy, Check } from 'lucide-react';
 
 export function MobileDemoQrModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
-  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-  const qrSvg = generateQrSvg(currentOrigin, 220);
+  // The QR encodes only the address this page was opened from: never a guessed or hard-coded URL.
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const loopbackOnly = hostname === 'localhost' || hostname === '::1' || hostname === '[::1]' || hostname.startsWith('127.');
+  let qrSvg = '';
+  try {
+    qrSvg = currentOrigin ? generateQrSvg(currentOrigin, 220) : '';
+  } catch {
+    qrSvg = '';
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -53,7 +61,22 @@ export function MobileDemoQrModal({ isOpen, onClose }: { isOpen: boolean; onClos
         <div className="dispute-modal-body text-center flex flex-col items-center gap-3">
           <p className="text-sm muted m-0">Scan this QR code with your mobile camera to test FairShift's frontline worker interface on your smartphone.</p>
 
-          <div className="qr-code-frame" dangerouslySetInnerHTML={{ __html: qrSvg }} aria-label={`QR Code pointing to ${currentOrigin}`} />
+          {qrSvg ? (
+            <div className="qr-code-frame" role="img" aria-label={`QR code for ${currentOrigin}`} dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          ) : (
+            <Notice kind="warning">
+              <span className="small">This address is too long to show as a QR code. Copy it instead.</span>
+            </Notice>
+          )}
+
+          {loopbackOnly && (
+            <Notice kind="warning">
+              <span className="small">
+                <strong>This address only works on this computer.</strong> A phone cannot open {currentOrigin}. Open FairShift on this computer using its
+                network address (for example http://192.168.x.x:8080) or the deployed URL, then show this code again.
+              </span>
+            </Notice>
+          )}
 
           <div className="qr-url-box flex items-center justify-between w-full max-w-sm">
             <code className="text-xs truncate">{currentOrigin}</code>
@@ -65,14 +88,14 @@ export function MobileDemoQrModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
           <Notice kind="info">
             <span className="small">
-              <strong>Local & Cloud Access:</strong> When evaluating on a local development server, ensure your mobile device is on the same local Wi-Fi network
-              (or tunnel via port-forwarding). Production deployments automatically connect directly via public HTTPS.
+              <strong>Local & Cloud Access:</strong> On a local server, the phone must be on the same Wi-Fi network. A deployed instance is reachable at its
+              public HTTPS address.
             </span>
           </Notice>
         </div>
 
         <div className="dispute-modal-footer flex justify-between items-center">
-          <span className="text-xs muted">Zero demo credentials exposed on public networks.</span>
+          <span className="text-xs muted">The code contains only this page address, never sign-in details.</span>
           <Button variant="primary" onClick={onClose}>
             Done
           </Button>
