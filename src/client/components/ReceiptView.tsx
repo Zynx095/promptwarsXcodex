@@ -244,7 +244,7 @@ export function ReceiptModal({ shiftId, onClose }: { shiftId: string; onClose: (
                     </div>
                     <p className="text-xs muted m-0 mb-2">
                       {isAnchored
-                        ? 'This receipt is sealed in an immutable Merkle checkpoint log. It can be independently verified without server access.'
+                        ? 'This receipt is included in a signed Merkle checkpoint. The exported bundle shows the inclusion path; confirming the checkpoint signature requires the organisation’s checkpoint key. The seal proves the record has not changed since it was issued, not that the original entry was correct.'
                         : 'This receipt is cryptographically sealed with the organization key. It will be batched into the next checkpoint.'}
                     </p>
                     <code className="block p-2 rounded bg-black/5 font-mono text-xs break-all mb-3">{activeReceipt.canonicalDigest}</code>
