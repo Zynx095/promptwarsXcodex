@@ -1,7 +1,7 @@
-// Environmental Heat Stress & Occupational Safety Assessment
-// Implements the NOAA/NWS Rothfusz regression algorithm for Heat Index (HI),
-// mapped to National Disaster Management Authority (NDMA) guidelines and Indian occupational standards.
-// Distinguishes Heat Index from Wet Bulb Globe Temperature (WBGT).
+// Environmental Heat Stress Assessment
+// Implements the NOAA/NWS Heat Index procedure (Steadman simple formula + Rothfusz regression) and
+// NWS risk categories, with advisory hydration and timing guidance attributed to OSHA/NIOSH and NDMA.
+// Heat Index is a shaded temperature-humidity estimate; it is not a WBGT occupational exposure measurement.
 import { DomainError } from './errors';
 
 export type HeatRiskLevel = 'normal' | 'caution' | 'extreme_caution' | 'danger' | 'extreme_danger';
@@ -68,25 +68,33 @@ export const INDIAN_WEATHER_PRESETS: WeatherPreset[] = [
 ];
 
 export const NDMA_SOURCE_ATTRIBUTION =
-  'Based on National Disaster Management Authority (NDMA) Guidelines on Heat-Wave Management (2019/2024), Factories Act 1948, and NOAA National Weather Service heat-index standards. Heat Index reflects shaded "apparent temperature"; direct sunlight can increase effective heat index by up to 8°C (15°F).';
+  'Heat Index: NOAA/NWS Rothfusz regression and NWS risk categories. Hydration amounts: OSHA/NIOSH guidance (about 1 cup / 250 ml every 15–20 minutes during work in heat). Timing and ORS advice: NDMA heat-wave guidelines. This is advisory guidance, not a statutory requirement. Heat Index assumes shade and light wind; full sun can add up to 15°F (about 8°C). It is not a WBGT measurement and does not account for workload, clothing or acclimatisation.';
+
+/** NWS heat index category boundaries in °F: Caution 80–90, Extreme Caution 90–103, Danger 103–124, Extreme Danger 125+. */
+export const NWS_HEAT_INDEX_THRESHOLDS_F = { caution: 80, extremeCaution: 90, danger: 103, extremeDanger: 125 } as const;
 
 /**
- * Computes the Heat Index using the NWS / NOAA Rothfusz regression algorithm.
+ * Computes the Heat Index using the NWS procedure (WPC "The Heat Index Equation").
  * Input: dry bulb ambient temperature in °C and relative humidity (0-100%).
+ *
+ * The simple Steadman formula is computed first and averaged with the air temperature; only if that
+ * average is 80°F or more is the Rothfusz regression applied, with the NWS low- and high-humidity
+ * adjustments. The regression is not valid beyond the conditions Steadman studied, so results at
+ * extreme temperature/humidity combinations are rough estimates.
  */
 export function calculateHeatIndex(tempC: number, humidity: number): { heatIndexC: number; heatIndexF: number } {
-  if (tempC < -10 || tempC > 65) {
+  if (!Number.isFinite(tempC) || tempC < -10 || tempC > 65) {
     throw new DomainError('INVALID_PAY_INPUT', 'Temperature must be between -10°C and 65°C.');
   }
-  if (humidity < 0 || humidity > 100) {
+  if (!Number.isFinite(humidity) || humidity < 0 || humidity > 100) {
     throw new DomainError('INVALID_PAY_INPUT', 'Relative humidity must be between 0% and 100%.');
   }
 
   const T = (tempC * 9) / 5 + 32; // Fahrenheit
   const R = humidity;
 
-  // Simple Steadman formula check
-  let HI = 0.5 * (T + 61.0 + (T - 68.0) * 1.2 + R * 0.094);
+  // Simple formula averaged with the temperature (NWS procedure)
+  let HI = (0.5 * (T + 61.0 + (T - 68.0) * 1.2 + R * 0.094) + T) / 2;
 
   // If HI >= 80°F, use the full Rothfusz regression equation
   if (HI >= 80) {
@@ -103,78 +111,79 @@ export function calculateHeatIndex(tempC: number, humidity: number): { heatIndex
 
     // Low humidity adjustment
     if (R < 13 && T >= 80 && T <= 112) {
-      const adj = ((13 - R) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
-      HI -= adj;
+      HI -= ((13 - R) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
     }
     // High humidity adjustment
     else if (R > 85 && T >= 80 && T <= 87) {
-      const adj = ((R - 85) / 10) * ((87 - T) / 5);
-      HI += adj;
+      HI += ((R - 85) / 10) * ((87 - T) / 5);
     }
   }
 
-  // Clamped result converted back to Celsius
   const hiF = Math.round(HI * 10) / 10;
   const hiC = Math.round((((HI - 32) * 5) / 9) * 10) / 10;
 
   return { heatIndexC: hiC, heatIndexF: hiF };
 }
 
+const HYDRATION_IN_HEAT = 'Drink about 1 cup (250 ml) of cool water every 15–20 minutes while working, even if not thirsty.';
+
 /**
- * Classifies the Heat Index into occupational safety tiers and provides
- * NDMA/Indian statutory work-rest recommendations.
+ * Classifies the Heat Index into the NWS categories and attaches advisory guidance. Each
+ * recommendation is attributed in NDMA_SOURCE_ATTRIBUTION; none is presented as a legal requirement.
  */
 export function assessHeatStress(tempC: number, humidity: number): HeatStressAssessment {
   const { heatIndexC, heatIndexF } = calculateHeatIndex(tempC, humidity);
+  const t = NWS_HEAT_INDEX_THRESHOLDS_F;
 
   let riskLevel: HeatRiskLevel = 'normal';
   let badgeTone: 'good' | 'info' | 'warn' | 'bad' = 'good';
   let riskLabelKey = 'heat.risk.normal';
   let defaultRiskLabel = 'Normal / Low Risk';
-  let hydrationGuideline = 'Drink 250ml water every 30 minutes. Keep potable water accessible.';
-  let restCycleGuideline = 'Standard break cycle: 15 minutes rest per 4 hours of physical shift.';
-  let workModification = 'Normal outdoor construction and campus maintenance work permitted.';
+  let hydrationGuideline = 'Drink water regularly through the shift, even if not thirsty. Keep drinking water close to the work area.';
+  let restCycleGuideline = 'Normal breaks. Watch new or unacclimatised workers, who are more vulnerable to heat.';
+  let workModification = 'Normal outdoor construction and campus maintenance work, with shade and drinking water available.';
   let isExtremeHazard = false;
 
   const symptomsToWatch = ['Heavy sweating and extreme thirst', 'Mild fatigue and sluggishness'];
 
-  if (heatIndexC >= 51) {
+  if (heatIndexF >= t.extremeDanger) {
     riskLevel = 'extreme_danger';
     badgeTone = 'bad';
     riskLabelKey = 'heat.risk.extreme_danger';
     defaultRiskLabel = 'Extreme Danger (Heat Stroke Highly Likely)';
-    hydrationGuideline = 'MANDATORY: Drink 250ml water every 10-15 minutes with ORS / electrolytes. Do not wait for thirst.';
-    restCycleGuideline = 'SUSPEND heavy outdoor physical work. Work limited to early morning (before 10 AM) or shaded areas.';
-    workModification = 'Stop direct sun exposure (concrete pouring, roof scaffolding, road laying suspended).';
+    hydrationGuideline = `${HYDRATION_IN_HEAT} Use ORS if sweating heavily.`;
+    restCycleGuideline = 'Stop strenuous outdoor work in direct sun unless essential; resume only under a work-rest schedule set by a supervisor.';
+    workModification = 'Move work to shade or indoors, or reschedule it to the early morning. Never work alone in these conditions.';
     symptomsToWatch.push('Heat Stroke Warning: Hot, dry skin (cessation of sweating), mental confusion, fainting. CALL 108 IMMEDIATELY.');
     isExtremeHazard = true;
-  } else if (heatIndexC >= 39) {
+  } else if (heatIndexF >= t.danger) {
     riskLevel = 'danger';
     badgeTone = 'bad';
     riskLabelKey = 'heat.risk.danger';
     defaultRiskLabel = 'Danger (Heat Exhaustion Likely, Heat Stroke Possible)';
-    hydrationGuideline = 'Drink 250ml cool water or lemon water every 15 minutes. Cool water points must be within 50m of work.';
-    restCycleGuideline = 'Mandatory 30-45 minutes rest in cool shade for every 45 minutes of heavy work.';
-    workModification = 'Shift strenuous tasks to early morning (6 AM - 11 AM). Rotate workers frequently.';
+    hydrationGuideline = `${HYDRATION_IN_HEAT} Use ORS if sweating heavily.`;
+    restCycleGuideline =
+      'Take frequent, longer rest breaks in a cool, shaded place. A supervisor should set the work-rest schedule, ideally from a WBGT measurement.';
+    workModification = 'Avoid strenuous outdoor work between 12 PM and 3 PM; move heavy tasks to the early morning and work in pairs.';
     symptomsToWatch.push('Heat Exhaustion: Dizziness, nausea, vomiting, rapid heartbeat, headache. Move to shade immediately.');
     isExtremeHazard = true;
-  } else if (heatIndexC >= 32) {
+  } else if (heatIndexF >= t.extremeCaution) {
     riskLevel = 'extreme_caution';
     badgeTone = 'warn';
     riskLabelKey = 'heat.risk.extreme_caution';
     defaultRiskLabel = 'Extreme Caution (Heat Cramps & Exhaustion Likely)';
-    hydrationGuideline = 'Drink 250ml water every 15-20 minutes. Avoid caffeinated or sugary beverages.';
-    restCycleGuideline = 'Mandatory 15 minutes shade break every hour during peak heat hours (12 PM - 3 PM).';
-    workModification = 'Provide ventilated shaded rest shelters. Ensure head protection (wide-brim helmets/cloth liners).';
+    hydrationGuideline = `${HYDRATION_IN_HEAT} Avoid alcohol and very sugary or caffeinated drinks.`;
+    restCycleGuideline = 'Take more frequent rest breaks in shade, especially between 12 PM and 3 PM.';
+    workModification = 'Provide shaded rest areas and head covering. Schedule strenuous tasks for cooler hours where possible.';
     symptomsToWatch.push('Heat Cramps: Painful muscle spasms in legs or abdomen. Rest in shade and drink fluids.');
-  } else if (heatIndexC >= 27) {
+  } else if (heatIndexF >= t.caution) {
     riskLevel = 'caution';
     badgeTone = 'info';
     riskLabelKey = 'heat.risk.caution';
     defaultRiskLabel = 'Caution (Fatigue Possible with Prolonged Exposure)';
-    hydrationGuideline = 'Drink 250ml water every 20-25 minutes.';
-    restCycleGuideline = '10 minutes rest break in shade every 2 hours.';
-    workModification = 'Encourage hydration breaks. Monitor unacclimatized new workers.';
+    hydrationGuideline = HYDRATION_IN_HEAT;
+    restCycleGuideline = 'Take short breaks in shade; fatigue is possible with prolonged exposure or heavy work.';
+    workModification = 'Make sure shade and cool drinking water are near the work area. Watch unacclimatised workers.';
   }
 
   return {

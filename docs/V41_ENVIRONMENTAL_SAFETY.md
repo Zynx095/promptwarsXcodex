@@ -42,17 +42,33 @@ With standard NOAA corrections for low humidity ($R < 13\%$ and $80^\circ\text{F
 
 ---
 
-## 3. Occupational Risk Tiers & NDMA Guidelines
+## 3. Risk Categories and Advisory Guidance (corrected in the final engineering audit)
 
-FairShift adheres strictly to the **National Disaster Management Authority (NDMA) National Guidelines for Preparation of Action Plan - Prevention and Management of Heat-Wave (2019/2024)** and the **Factories Act, 1948**:
+The previous table claimed the tiers followed NDMA guidelines **and the Factories Act, 1948**, labelled hydration as "mandatory", and prescribed work-rest cycles (e.g. "30–45 min shade / 45 min work", "SUSPEND outdoor work") without a source. The Factories Act does not prescribe these cycles, and NDMA's heat-wave guidance is advisory. Thresholds were also approximated in °C (27/32/39/51), which misclassified values just under the NWS boundaries.
 
-| Tier | Heat Index Range | Work-Rest Cycle | Mandatory Hydration Protocol | Strenuous Activity Advisory |
-| :---: | :---: | :---: | :---: | :--- |
-| **Normal** | $< 27^\circ\text{C}$ | Standard 15 min / 4h | 250ml per 30 min | Normal operations permitted |
-| **Caution** | $27^\circ\text{C} - 32^\circ\text{C}$ | 10 min shade / 2h | 250ml per 20–25 min | Monitor unacclimatized workers |
-| **Extreme Caution** | $32^\circ\text{C} - 39^\circ\text{C}$ | 15 min shade / 1h (12–3 PM) | 250ml per 15–20 min | Ventilated shaded rest shelters mandatory |
-| **Danger** | $39^\circ\text{C} - 51^\circ\text{C}$ | 30–45 min shade / 45 min work | 250ml per 15 min with ORS/lemon water | Reschedule heavy outdoor tasks to early morning (6–11 AM) |
-| **Extreme Danger** | $\ge 51^\circ\text{C}$ | **SUSPEND outdoor work** | 250ml per 10–15 min with electrolytes | **Halt direct sun exposure (concrete pouring, scaffolding)** |
+Current behaviour (`src/domain/heat.ts`):
+
+| NWS category | Heat Index | Advice shown (all advisory) | Source |
+| :-- | :-- | :-- | :-- |
+| Normal | < 80°F (26.7°C) | Drink water regularly; watch unacclimatised workers | General |
+| Caution | 80–89°F | About 1 cup (250 ml) every 15–20 min while working; short shade breaks | OSHA/NIOSH hydration guidance; NWS category effects |
+| Extreme Caution | 90–102°F | As above; more frequent shade breaks, especially 12–3 PM; shade and head covering | NDMA heat-wave advice (avoid strenuous activity 12–3 PM) |
+| Danger | 103–124°F | As above plus ORS; supervisor-set work-rest schedule, ideally from WBGT; avoid strenuous work 12–3 PM; work in pairs | NDMA (ORS, timing); NIOSH (WBGT-based work-rest) |
+| Extreme Danger | ≥ 125°F (51.7°C) | Stop strenuous work in direct sun unless essential; resume under a supervisor-set schedule | NWS category effects ("heat stroke highly likely") |
+
+Classification uses the NWS °F boundaries directly. The UI states that the advice is not a legal requirement.
+
+### Calculation corrections
+
+- The simple Steadman formula is now **averaged with the air temperature** before the 80°F test, as the NWS procedure specifies (previously the unaveraged value was used and returned).
+- Non-finite inputs (`NaN`, `Infinity`) are rejected.
+- Regression tests compare against NWS chart values within 2.5°F (Rothfusz's stated fit error is about ±1.3°F and the chart is rounded) and assert every classification matches the °F boundaries across 20–50°C × 10–95% RH.
+
+### Inputs and limitations
+
+- Inputs are **manual**: the worker or supervisor sets temperature and humidity with sliders or picks a preset. There is no live weather feed, so there is no stale or unavailable-data state; the values shown are only as current as what was entered.
+- The Heat Index is a shaded, light-wind estimate. It is not WBGT and ignores solar load, workload, clothing and acclimatisation. It must not be presented as an occupational exposure measurement.
+- Advisory text is English only (it is generated in the domain module, not the locale files).
 
 ---
 
@@ -76,7 +92,7 @@ To ensure ease of use without manual weather API dependencies, FairShift provide
 ## 6. Verification Test Coverage
 
 Automated tests in [`tests/unit/heat.test.ts`](file:///D:/College/SOMESHIT%20DOWNLOADS/ACM/tests/unit/heat.test.ts) verify:
-- Mathematical accuracy of the Rothfusz regression algorithm against NOAA benchmark test cases.
+- The NWS procedure (simple-formula averaging, Rothfusz regression, humidity adjustments) against NWS chart values.
 - Proper classification into all 5 occupational safety tiers.
 - Regional weather preset consistency.
 - Input boundary checking (rejection of $-15^\circ\text{C}$ or $>100\%$ RH).

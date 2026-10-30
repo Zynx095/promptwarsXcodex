@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assessHeatStress, calculateHeatIndex, INDIAN_WEATHER_PRESETS, NDMA_SOURCE_ATTRIBUTION } from '../../src/domain/heat';
+import { assessHeatStress, calculateHeatIndex, INDIAN_WEATHER_PRESETS, NDMA_SOURCE_ATTRIBUTION, NWS_HEAT_INDEX_THRESHOLDS_F } from '../../src/domain/heat';
 
 describe('FairShift Environmental Safety — Heat Stress & Occupational Health Audit', () => {
   it('accurately computes Heat Index using the Rothfusz algorithm', () => {
@@ -41,7 +41,7 @@ describe('FairShift Environmental Safety — Heat Stress & Occupational Health A
     expect(extremeDanger.riskLevel).toBe('extreme_danger');
     expect(extremeDanger.badgeTone).toBe('bad');
     expect(extremeDanger.isExtremeHazard).toBe(true);
-    expect(extremeDanger.restCycleGuideline).toContain('SUSPEND');
+    expect(extremeDanger.restCycleGuideline).toMatch(/^Stop strenuous outdoor work/);
   });
 
   it('evaluates all regional Indian weather presets reliably', () => {
@@ -65,5 +65,64 @@ describe('FairShift Environmental Safety — Heat Stress & Occupational Health A
     const hazard = assessHeatStress(38, 70);
     expect(hazard.sourceAttribution).toBe(NDMA_SOURCE_ATTRIBUTION);
     expect(hazard.symptomsToWatch.some((s) => s.includes('Heat Exhaustion') || s.includes('Heat Stroke'))).toBe(true);
+  });
+
+  const fToC = (f: number) => ((f - 32) * 5) / 9;
+
+  it.each([
+    // [air °F, RH %, NWS heat index chart value °F]
+    [80, 40, 80],
+    [90, 40, 93],
+    [96, 65, 121],
+    [100, 55, 124],
+    [86, 90, 105], // exercises the high-humidity adjustment
+    [104, 10, 99], // exercises the low-humidity adjustment (chart is undefined below 40% RH; NWS formula value)
+  ])('approximates the NWS heat index chart for %d°F at %d%% RH', (tF, rh, expectedF) => {
+    // Rothfusz is a regression fit of Steadman's table (about ±1.3°F) and the chart is rounded to whole degrees.
+    expect(Math.abs(calculateHeatIndex(fToC(tF), rh).heatIndexF - expectedF)).toBeLessThanOrEqual(2.5);
+  });
+
+  it('averages the simple formula with the air temperature below 80°F, as the NWS procedure specifies', () => {
+    // 70°F at 50% RH: simple formula 69.05°F, averaged with 70°F -> 69.5°F (the unaveraged value was returned before)
+    expect(calculateHeatIndex(fToC(70), 50).heatIndexF).toBe(69.5);
+  });
+
+  it('assigns risk levels from the NWS °F category boundaries across the full input range', () => {
+    const t = NWS_HEAT_INDEX_THRESHOLDS_F;
+    for (let c = 20; c <= 50; c += 0.5) {
+      for (let rh = 10; rh <= 95; rh += 5) {
+        const a = assessHeatStress(c, rh);
+        const f = a.heatIndexF;
+        const expected =
+          f >= t.extremeDanger
+            ? 'extreme_danger'
+            : f >= t.danger
+              ? 'danger'
+              : f >= t.extremeCaution
+                ? 'extreme_caution'
+                : f >= t.caution
+                  ? 'caution'
+                  : 'normal';
+        expect(a.riskLevel, `${c}°C ${rh}% -> ${f}°F`).toBe(expected);
+      }
+    }
+  });
+
+  it('rejects missing or non-numeric environmental input', () => {
+    expect(() => calculateHeatIndex(Number.NaN, 50)).toThrow();
+    expect(() => calculateHeatIndex(30, Number.NaN)).toThrow();
+    expect(() => calculateHeatIndex(Number.POSITIVE_INFINITY, 50)).toThrow();
+  });
+
+  it('presents guidance as advisory and never as a statutory or mandatory requirement', () => {
+    expect(NDMA_SOURCE_ATTRIBUTION).toMatch(/not a statutory requirement/);
+    expect(NDMA_SOURCE_ATTRIBUTION).toMatch(/not a WBGT measurement/);
+    expect(NDMA_SOURCE_ATTRIBUTION).not.toMatch(/Factories Act/);
+    for (let c = 20; c <= 50; c += 2) {
+      const a = assessHeatStress(c, 70);
+      for (const text of [a.hydrationGuideline, a.restCycleGuideline, a.workModification]) {
+        expect(text).not.toMatch(/mandatory|MANDATORY|statutory/);
+      }
+    }
   });
 });

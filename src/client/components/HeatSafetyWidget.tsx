@@ -103,7 +103,7 @@ export function HeatSafetyWidget({ initialTemp = 34, initialHumidity = 60 }: { i
           {assessment.isExtremeHazard && (
             <div className="heat-hazard-flag">
               <Flame className="icon-sm text-bad shrink-0" aria-hidden="true" />
-              <span>Severe heat conditions: follow mandatory NDMA shade and hydration intervals.</span>
+              <span>Severe heat conditions: follow the hydration and rest advice below (advisory guidance, not a legal requirement).</span>
             </div>
           )}
         </div>
