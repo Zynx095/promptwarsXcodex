@@ -284,6 +284,20 @@ const en = {
   'jar.disbursed': 'Disbursed',
   'jar.outstanding': 'Outstanding',
   'jar.status': 'Status',
+  'dispute.title': 'Worker Wage Discrepancy Notice Generator',
+  'dispute.draftNotice':
+    'This tool generates a factual summary notice of your recorded hours, earnings, and unpaid discrepancies based on cryptographic FairShift receipts.',
+  'dispute.categoryLabel': 'Discrepancy Category',
+  'dispute.statementLabel': 'Your Factual Explanation',
+  'dispute.statementHint': 'Describe the specific discrepancy factually. You can edit this before generating the notice.',
+  'dispute.disclaimerTitle': 'Legal Disclaimer',
+  'dispute.disclaimerShort':
+    'This notice is a worker-prepared statement of recorded facts. It is not formal legal counsel or a certified statutory filing.',
+  'dispute.reviewNotice': 'Review Notice Document',
+  'dispute.editStatement': 'Edit Statement',
+  'dispute.downloadText': 'Download TXT',
+  'dispute.printPdf': 'Print / Save PDF',
+  'dispute.raiseNotice': 'Generate Dispute Notice',
 };
 
 export type MessageKey = keyof typeof en;
@@ -570,6 +584,20 @@ const kn: Dictionary = {
   'jar.disbursed': 'ವಿತರಿಸಲಾಗಿದೆ',
   'jar.outstanding': 'ಬಾಕಿ ಇರುವ ಮೊತ್ತ',
   'jar.status': 'ಸ್ಥಿತಿ',
+  'dispute.title': 'ಕಾರ್ಮಿಕ ವೇತನ ವ್ಯತ್ಯಾಸ ನೋಟಿಸ್ ಜನರೇಟರ್',
+  'dispute.draftNotice':
+    'ಈ ಉಪಕರಣವು ನಿಮ್ಮ ದಾಖಲಾದ ಕೆಲಸದ ಸಮಯ, ಗಳಿಕೆ ಮತ್ತು ಪಾವತಿಸದ ವ್ಯತ್ಯಾಸಗಳ ಸತ್ಯಾಂಶದ ಸಾರಾಂಶ ನೋಟಿಸ್ ಅನ್ನು ಕ್ರಿಪ್ಟೋಗ್ರಾಫಿಕ್ ರಶೀದಿಗಳ ಆಧಾರದ ಮೇಲೆ ಸಿದ್ಧಪಡಿಸುತ್ತದೆ.',
+  'dispute.categoryLabel': 'ವ್ಯತ್ಯಾಸದ ವರ್ಗ',
+  'dispute.statementLabel': 'ನಿಮ್ಮ ಸತ್ಯಾಂಶ ವಿವರಣೆ',
+  'dispute.statementHint': 'ನಿರ್ದಿಷ್ಟ ವ್ಯತ್ಯಾಸವನ್ನು ಸತ್ಯವಾಗಿ ವಿವರಿಸಿ. ನೋಟಿಸ್ ರಚಿಸುವ ಮೊದಲು ನೀವು ಇದನ್ನು ಸಂಪಾದಿಸಬಹುದು.',
+  'dispute.disclaimerTitle': 'ಕಾನೂನು ಹಕ್ಕು ನಿರಾಕರಣೆ',
+  'dispute.disclaimerShort':
+    'ಈ ನೋಟಿಸ್ ದಾಖಲಾದ ಸತ್ಯಗಳ ಕಾರ್ಮಿಕ ಸಿದ್ಧಪಡಿಸಿದ ಹೇಳಿಕೆಯಾಗಿದೆ. ಇದು ಔಪಚಾರಿಕ ಕಾನೂನು ಸಲಹೆಯಲ್ಲ.',
+  'dispute.reviewNotice': 'ನೋಟಿಸ್ ದಾಖಲೆ ಪರಿಶೀಲಿಸಿ',
+  'dispute.editStatement': 'ಹೇಳಿಕೆಯನ್ನು ಸಂಪಾದಿಸಿ',
+  'dispute.downloadText': 'TXT ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ',
+  'dispute.printPdf': 'ಮುದ್ರಿಸಿ / PDF ಉಳಿಸಿ',
+  'dispute.raiseNotice': 'ವಿವಾದದ ನೋಟಿಸ್ ರಚಿಸಿ',
 };
 
 /** Translations for industry category keys, looked up as "hazard.<key>" / "topic.<key>". */

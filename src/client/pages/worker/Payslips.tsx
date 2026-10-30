@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import { useApi } from '../../lib/useApi';
 import { Link, useRouter } from '../../lib/router';
@@ -6,7 +7,8 @@ import type { Paged, PayslipDTO, PayslipListItem } from '../../../shared/types';
 import { Async, Card, Empty, Money, Page } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
 import { MoneyJar } from '../../components/MoneyJar';
-import { Printer } from 'lucide-react';
+import { DisputeNoticeModal } from '../../components/DisputeNoticeModal';
+import { Printer, FileWarning } from 'lucide-react';
 
 export function WorkerPayslips() {
   const { t, locale } = useI18n();
@@ -61,11 +63,19 @@ export function WorkerPayslipView({ id }: { id: string }) {
   const { t } = useI18n();
   const { navigate } = useRouter();
   const slip = useApi<PayslipDTO>(`/payslips/${encodeURIComponent(id)}`);
+  const [showDispute, setShowDispute] = useState(false);
+
   return (
     <Page
       title={t('pay.title')}
       actions={
         <div className="btn-group">
+          {slip.data && (
+            <button type="button" className="btn btn-secondary" onClick={() => setShowDispute(true)}>
+              <FileWarning className="icon-sm text-amber" aria-hidden="true" />
+              <span>{t('dispute.raiseNotice') || 'Generate Dispute Notice'}</span>
+            </button>
+          )}
           <button type="button" className="btn btn-secondary" onClick={() => window.print()}>
             <Printer className="icon-sm" aria-hidden="true" />
             <span>{t('pay.print') || 'Print'}</span>
@@ -82,6 +92,7 @@ export function WorkerPayslipView({ id }: { id: string }) {
             <>
               <MoneyJar slip={s} />
               <PayslipBreakdown slip={s} />
+              {showDispute && <DisputeNoticeModal slip={s} isOpen={showDispute} onClose={() => setShowDispute(false)} />}
             </>
           )}
         </Async>

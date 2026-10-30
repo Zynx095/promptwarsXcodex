@@ -19,7 +19,8 @@ export type DomainErrorCode =
   | 'CONCURRENT_CORRECTION'
   | 'SELF_VERIFICATION_DISALLOWED'
   | 'INACTIVE_ACCOUNT'
-  | 'DUPLICATE_SITE_CODE';
+  | 'DUPLICATE_SITE_CODE'
+  | 'INVALID_DISPUTE_INPUT';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {
