@@ -46,6 +46,7 @@ export const shiftCorrectionSchema = z.object({
   checkInAt: isoInstantSchema,
   checkOutAt: isoInstantSchema.nullable(),
   reason: text(5, 500, 'Reason'),
+  isPayrollAdjustment: z.boolean().optional(),
 });
 
 export const reportCreateSchema = z.object({

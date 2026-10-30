@@ -400,6 +400,9 @@ export interface ReceiptCorrectionDiff {
     durationMinutes?: { before: number; after: number };
     overtimeMinutes?: { before: number; after: number };
     grossPayMinor?: { before: number; after: number; deltaMinor: number };
+    basePayMinor?: { before: number; after: number };
+    overtimePayMinor?: { before: number; after: number };
+    hourlyRateMinor?: { before: number; after: number };
   };
 }
 
@@ -408,6 +411,7 @@ export interface CanonicalReceiptData {
   workerId: string;
   orgId: string;
   version: number;
+  keyId?: string;
   status: 'estimated' | 'finalized';
   checkInAt: string;
   checkOutAt: string;
@@ -425,6 +429,7 @@ export interface WorkReceiptDTO {
   orgId: string;
   version: number;
   previousVersionId: string | null;
+  keyId?: string;
   canonicalDigest: string;
   status: 'estimated' | 'finalized';
   data: CanonicalReceiptData;

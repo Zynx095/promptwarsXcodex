@@ -28,17 +28,31 @@ export function canonicalizeJson(obj: unknown): string {
  * Computes a cryptographic HMAC-SHA256 digest of the canonical receipt data.
  */
 export function computeReceiptDigest(secret: string, data: CanonicalReceiptData): string {
+  if (!secret || typeof secret !== 'string' || secret.trim().length === 0) {
+    throw new DomainError('INVALID_SIGNING_SECRET', 'A valid non-empty signing secret is required to sign work receipts.');
+  }
+  if (!data || typeof data !== 'object') {
+    throw new DomainError('INVALID_RECEIPT_DATA', 'Receipt data must be a valid object.');
+  }
   const canonicalString = canonicalizeJson(data);
   return createHmac('sha256', secret).update(canonicalString).digest('hex');
 }
 
 /**
  * Verifies that the provided receipt data matches its stored cryptographic digest.
+ * Safely guards against missing keys, malformed digests, non-hex strings, and parsing anomalies.
  */
 export function verifyReceiptDigest(secret: string, data: CanonicalReceiptData, expectedDigest: string): boolean {
+  if (!secret || typeof secret !== 'string' || secret.trim().length === 0) return false;
   if (!expectedDigest || typeof expectedDigest !== 'string') return false;
-  const computed = computeReceiptDigest(secret, data);
-  return safeEqual(computed, expectedDigest);
+  // A valid SHA-256 hex digest must be exactly 64 hexadecimal characters
+  if (!/^[0-9a-fA-F]{64}$/.test(expectedDigest)) return false;
+  try {
+    const computed = computeReceiptDigest(secret, data);
+    return safeEqual(computed.toLowerCase(), expectedDigest.toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -93,6 +107,7 @@ export function buildCorrectionDiff(
     checkInAt: string;
     checkOutAt: string;
     durationMinutes: number;
+    rules?: ReceiptCalculationRule;
     earnings: ReceiptEarningsBreakdown;
   },
   meta: {
@@ -112,8 +127,17 @@ export function buildCorrectionDiff(
   if (prev.durationMinutes !== curr.durationMinutes) {
     changes.durationMinutes = { before: prev.durationMinutes, after: curr.durationMinutes };
   }
+  if (curr.rules && prev.rules.hourlyRateMinor !== curr.rules.hourlyRateMinor) {
+    changes.hourlyRateMinor = { before: prev.rules.hourlyRateMinor, after: curr.rules.hourlyRateMinor };
+  }
+  if (prev.earnings.basePayMinor !== curr.earnings.basePayMinor) {
+    changes.basePayMinor = { before: prev.earnings.basePayMinor, after: curr.earnings.basePayMinor };
+  }
   if (prev.earnings.overtimeMinutes !== curr.earnings.overtimeMinutes) {
     changes.overtimeMinutes = { before: prev.earnings.overtimeMinutes, after: curr.earnings.overtimeMinutes };
+  }
+  if (prev.earnings.overtimePayMinor !== curr.earnings.overtimePayMinor) {
+    changes.overtimePayMinor = { before: prev.earnings.overtimePayMinor, after: curr.earnings.overtimePayMinor };
   }
   if (prev.earnings.grossPayMinor !== curr.earnings.grossPayMinor) {
     changes.grossPayMinor = {

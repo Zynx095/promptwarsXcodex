@@ -4,6 +4,9 @@ export interface AppConfig {
   port: number;
   production: boolean;
   sessionSecret: string;
+  receiptSigningSecret: string;
+  receiptSigningKeys: Record<string, string>;
+  activeReceiptKeyId: string;
   databasePath: string;
   demoMode: boolean;
   googleClientId?: string;
@@ -32,6 +35,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const port = Number(env.PORT ?? 8080);
   if (!Number.isInteger(port) || port <= 0) throw new Error('PORT must be a positive integer.');
 
+  // Work Receipt Signing Keys & Active Key ID (supports key rotation)
+  const receiptSigningSecret = env.RECEIPT_SIGNING_SECRET?.trim() || sessionSecret;
+  const activeReceiptKeyId = env.ACTIVE_RECEIPT_KEY_ID?.trim() || 'v1';
+  let receiptSigningKeys: Record<string, string> = { [activeReceiptKeyId]: receiptSigningSecret };
+  if (env.RECEIPT_KEYS_JSON) {
+    try {
+      const parsed = JSON.parse(env.RECEIPT_KEYS_JSON) as Record<string, string>;
+      if (typeof parsed === 'object' && parsed !== null) {
+        receiptSigningKeys = { ...parsed, [activeReceiptKeyId]: receiptSigningSecret };
+      }
+    } catch {
+      console.warn('[fairshift] Failed to parse RECEIPT_KEYS_JSON; falling back to primary signing key.');
+    }
+  }
+
   const smsProviderEnv = (env.SMS_PROVIDER ?? '').toLowerCase();
   const smsProvider: 'twilio' | 'mock' | 'none' = smsProviderEnv === 'twilio' ? 'twilio' : smsProviderEnv === 'mock' ? 'mock' : 'none';
 
@@ -39,6 +57,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port,
     production,
     sessionSecret,
+    receiptSigningSecret,
+    receiptSigningKeys,
+    activeReceiptKeyId,
     databasePath: env.DATABASE_PATH ?? './data/fairshift.db',
     demoMode,
     googleClientId: env.GOOGLE_CLIENT_ID?.trim() || undefined,

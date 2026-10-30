@@ -96,4 +96,12 @@ function migrate(raw: DatabaseSync): void {
   if (!reportCols.some((c) => c.name === 'verification_note')) {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN verification_note TEXT`);
   }
+  const receiptCols = raw.prepare(`SELECT name FROM pragma_table_info('work_receipts')`).all() as { name: string }[];
+  if (!receiptCols.some((c) => c.name === 'key_id')) {
+    raw.exec(`ALTER TABLE work_receipts ADD COLUMN key_id TEXT NOT NULL DEFAULT 'v1'`);
+  }
+}
+
+export function isUniqueViolation(err: unknown): boolean {
+  return err instanceof Error && /UNIQUE constraint failed/.test(err.message);
 }

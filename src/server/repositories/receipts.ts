@@ -8,6 +8,7 @@ export interface WorkReceiptRow {
   worker_id: string;
   version: number;
   previous_version_id: string | null;
+  key_id: string;
   canonical_digest: string;
   status: 'estimated' | 'finalized';
   receipt_json: string;
@@ -25,6 +26,7 @@ export function insertReceipt(
     workerId: string;
     version: number;
     previousVersionId?: string | null;
+    keyId?: string;
     canonicalDigest: string;
     status: 'estimated' | 'finalized';
     data: CanonicalReceiptData;
@@ -36,10 +38,10 @@ export function insertReceipt(
   db.run(
     `INSERT INTO work_receipts (
       id, org_id, shift_id, worker_id, version, previous_version_id,
-      canonical_digest, status, receipt_json, correction_reason, created_at, created_by
+      key_id, canonical_digest, status, receipt_json, correction_reason, created_at, created_by
     ) VALUES (
       @id, @orgId, @shiftId, @workerId, @version, @previousVersionId,
-      @canonicalDigest, @status, @receiptJson, @correctionReason, @createdAt, @createdBy
+      @keyId, @canonicalDigest, @status, @receiptJson, @correctionReason, @createdAt, @createdBy
     )`,
     {
       id: receipt.id,
@@ -48,6 +50,7 @@ export function insertReceipt(
       workerId: receipt.workerId,
       version: receipt.version,
       previousVersionId: receipt.previousVersionId ?? null,
+      keyId: receipt.keyId ?? 'v1',
       canonicalDigest: receipt.canonicalDigest,
       status: receipt.status,
       receiptJson: JSON.stringify(receipt.data),
@@ -90,7 +93,7 @@ export function markReceiptsFinalizedForPeriod(db: Db, orgId: string, workerId: 
     `UPDATE work_receipts
      SET status = 'finalized'
      WHERE org_id = @orgId AND worker_id = @workerId AND shift_id IN (
-       SELECT id FROM shifts WHERE org_id = @orgId AND worker_id = @workerId AND check_in_at >= @startIso AND check_in_at <= @endIso
+       SELECT id FROM shifts WHERE org_id = @orgId AND worker_id = @workerId AND check_in_at >= @startIso AND check_in_at < @endIso
      )`,
     { orgId, workerId, startIso, endIso },
   );
@@ -104,6 +107,7 @@ export function toWorkReceiptDTO(row: WorkReceiptRow, verified?: boolean): WorkR
     orgId: row.org_id,
     version: row.version,
     previousVersionId: row.previous_version_id,
+    keyId: row.key_id ?? 'v1',
     canonicalDigest: row.canonical_digest,
     status: row.status,
     data: JSON.parse(row.receipt_json) as CanonicalReceiptData,

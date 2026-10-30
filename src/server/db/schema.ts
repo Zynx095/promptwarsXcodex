@@ -203,6 +203,7 @@ CREATE TABLE IF NOT EXISTS work_receipts (
   worker_id TEXT NOT NULL REFERENCES users(id),
   version INTEGER NOT NULL DEFAULT 1,
   previous_version_id TEXT REFERENCES work_receipts(id),
+  key_id TEXT NOT NULL DEFAULT 'v1',
   canonical_digest TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('estimated', 'finalized')),
   receipt_json TEXT NOT NULL,

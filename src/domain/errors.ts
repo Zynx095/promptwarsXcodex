@@ -12,7 +12,11 @@ export type DomainErrorCode =
   | 'FORBIDDEN'
   | 'CONFLICT'
   | 'INVALID_SITE_CODE'
-  | 'SITE_CODE_REQUIRED';
+  | 'SITE_CODE_REQUIRED'
+  | 'INVALID_SIGNING_SECRET'
+  | 'INVALID_RECEIPT_DATA'
+  | 'FINALIZED_PERIOD_LOCKED'
+  | 'CONCURRENT_CORRECTION';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {

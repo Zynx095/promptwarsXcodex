@@ -4,21 +4,34 @@ import type { OrgRow } from '../repositories/orgs';
 import { getShift, listWorkerShifts } from '../repositories/shifts';
 import { getWorker } from '../repositories/users';
 import { buildCorrectionDiff, calculateShiftEarnings, computeReceiptDigest, verifyReceiptDigest } from '../../domain/proof';
+import { DomainError } from '../../domain/errors';
+import { isUniqueViolation } from '../db/db';
 import type { CanonicalReceiptData, WorkReceiptDTO } from '../../shared/types';
 import { localDate, localRangeToUtc, minutesBetween } from '../../shared/time';
 import { getLatestReceiptForShift, getReceiptById, getReceiptHistoryForShift, insertReceipt, toWorkReceiptDTO } from '../repositories/receipts';
 import { notFound } from '../http';
 
 /**
- * Checks whether an issued payslip already covers the given shift timestamp.
+ * Returns the signing secret for a given key ID, falling back to receiptSigningSecret.
  */
-function isShiftInFinalizedPeriod(ctx: AppContext, orgId: string, workerId: string, checkInAt: string): boolean {
+export function getSecretForKey(ctx: AppContext, keyId?: string | null): string {
+  if (keyId && ctx.config.receiptSigningKeys && ctx.config.receiptSigningKeys[keyId]) {
+    return ctx.config.receiptSigningKeys[keyId];
+  }
+  return ctx.config.receiptSigningSecret;
+}
+
+/**
+ * Checks whether an issued payslip already covers the given shift timestamp in the org's timezone.
+ */
+export function isShiftInFinalizedPeriod(ctx: AppContext, orgId: string, workerId: string, checkInAt: string, timezone: string): boolean {
+  const shiftDate = localDate(checkInAt, timezone);
   const payslip = ctx.db.get<{ id: string }>(
     `SELECT id FROM payslips
      WHERE org_id = @orgId AND worker_id = @workerId
-       AND period_start <= @checkInAt AND period_end >= @checkInAt
+       AND period_start <= @shiftDate AND period_end >= @shiftDate
      LIMIT 1`,
-    { orgId, workerId, checkInAt },
+    { orgId, workerId, shiftDate },
   );
   return Boolean(payslip);
 }
@@ -53,14 +66,17 @@ export function generateReceiptForShift(ctx: AppContext, org: OrgRow, shiftId: s
     org.settings.pay.overtimeMultiplierBp,
   );
 
-  const isFinalized = isShiftInFinalizedPeriod(ctx, org.id, worker.id, shift.checkInAt);
+  const isFinalized = isShiftInFinalizedPeriod(ctx, org.id, worker.id, shift.checkInAt, org.timezone);
   const now = ctx.now().toISOString();
+  const keyId = ctx.config.activeReceiptKeyId;
+  const secret = getSecretForKey(ctx, keyId);
 
   const canonicalData: CanonicalReceiptData = {
     shiftId: shift.id,
     workerId: worker.id,
     orgId: org.id,
     version: 1,
+    keyId,
     status: isFinalized ? 'finalized' : 'estimated',
     checkInAt: shift.checkInAt,
     checkOutAt: shift.checkOutAt,
@@ -75,21 +91,29 @@ export function generateReceiptForShift(ctx: AppContext, org: OrgRow, shiftId: s
     issuedAt: now,
   };
 
-  const digest = computeReceiptDigest(ctx.config.sessionSecret, canonicalData);
+  const digest = computeReceiptDigest(secret, canonicalData);
   const id = `rcpt_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
 
-  insertReceipt(ctx.db, {
-    id,
-    orgId: org.id,
-    shiftId: shift.id,
-    workerId: worker.id,
-    version: 1,
-    canonicalDigest: digest,
-    status: canonicalData.status,
-    data: canonicalData,
-    createdAt: now,
-    createdBy: worker.id,
-  });
+  try {
+    insertReceipt(ctx.db, {
+      id,
+      orgId: org.id,
+      shiftId: shift.id,
+      workerId: worker.id,
+      version: 1,
+      keyId,
+      canonicalDigest: digest,
+      status: canonicalData.status,
+      data: canonicalData,
+      createdAt: now,
+      createdBy: worker.id,
+    });
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      throw new DomainError('CONFLICT', 'A receipt for version 1 of this shift already exists.');
+    }
+    throw err;
+  }
 
   const row = getReceiptById(ctx.db, org.id, id)!;
   return toWorkReceiptDTO(row, true);
@@ -116,6 +140,11 @@ export function generateCorrectedReceiptForShift(
   }
 
   const prevRow = getLatestReceiptForShift(ctx.db, org.id, shiftId);
+  if (prevRow) {
+    if (prevRow.org_id !== org.id || prevRow.worker_id !== shift.workerId || prevRow.shift_id !== shift.id) {
+      throw new DomainError('FORBIDDEN', 'Receipt history does not match target shift tenant or worker context');
+    }
+  }
   const prevVersion = prevRow ? prevRow.version : 0;
   const nextVersion = prevVersion + 1;
 
@@ -134,8 +163,10 @@ export function generateCorrectedReceiptForShift(
     org.settings.pay.overtimeMultiplierBp,
   );
 
-  const isFinalized = isShiftInFinalizedPeriod(ctx, org.id, worker.id, shift.checkInAt);
+  const isFinalized = isShiftInFinalizedPeriod(ctx, org.id, worker.id, shift.checkInAt, org.timezone);
   const now = ctx.now().toISOString();
+  const keyId = ctx.config.activeReceiptKeyId;
+  const secret = getSecretForKey(ctx, keyId);
 
   let correctionDiff = undefined;
   if (prevRow) {
@@ -161,6 +192,7 @@ export function generateCorrectedReceiptForShift(
     workerId: worker.id,
     orgId: org.id,
     version: nextVersion,
+    keyId,
     status: isFinalized ? 'finalized' : 'estimated',
     checkInAt: shift.checkInAt,
     checkOutAt: shift.checkOutAt,
@@ -176,23 +208,31 @@ export function generateCorrectedReceiptForShift(
     correction: correctionDiff,
   };
 
-  const digest = computeReceiptDigest(ctx.config.sessionSecret, canonicalData);
+  const digest = computeReceiptDigest(secret, canonicalData);
   const id = `rcpt_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
 
-  insertReceipt(ctx.db, {
-    id,
-    orgId: org.id,
-    shiftId: shift.id,
-    workerId: worker.id,
-    version: nextVersion,
-    previousVersionId: prevRow?.id ?? null,
-    canonicalDigest: digest,
-    status: canonicalData.status,
-    data: canonicalData,
-    correctionReason: reason,
-    createdAt: now,
-    createdBy: actor.id,
-  });
+  try {
+    insertReceipt(ctx.db, {
+      id,
+      orgId: org.id,
+      shiftId: shift.id,
+      workerId: worker.id,
+      version: nextVersion,
+      previousVersionId: prevRow?.id ?? null,
+      keyId,
+      canonicalDigest: digest,
+      status: canonicalData.status,
+      data: canonicalData,
+      correctionReason: reason,
+      createdAt: now,
+      createdBy: actor.id,
+    });
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      throw new DomainError('CONCURRENT_CORRECTION', 'A conflicting correction was just recorded for this shift. Please reload and try again.');
+    }
+    throw err;
+  }
 
   const row = getReceiptById(ctx.db, org.id, id)!;
   return toWorkReceiptDTO(row, true);
@@ -209,7 +249,8 @@ export function getShiftReceipts(ctx: AppContext, orgId: string, shiftId: string
 
   const dtos = rows.map((r) => {
     const data = JSON.parse(r.receipt_json) as CanonicalReceiptData;
-    const verified = verifyReceiptDigest(ctx.config.sessionSecret, data, r.canonical_digest);
+    const secret = getSecretForKey(ctx, r.key_id);
+    const verified = verifyReceiptDigest(secret, data, r.canonical_digest);
     return toWorkReceiptDTO(r, verified);
   });
 
@@ -229,7 +270,8 @@ export function verifyReceipt(ctx: AppContext, orgId: string, receiptId: string)
   }
 
   const data = JSON.parse(row.receipt_json) as CanonicalReceiptData;
-  const verified = verifyReceiptDigest(ctx.config.sessionSecret, data, row.canonical_digest);
+  const secret = getSecretForKey(ctx, row.key_id);
+  const verified = verifyReceiptDigest(secret, data, row.canonical_digest);
 
   return {
     receipt: toWorkReceiptDTO(row, verified),

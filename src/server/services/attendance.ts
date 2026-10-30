@@ -10,13 +10,11 @@ import type { OrgRow } from '../repositories/orgs';
 import { recordAudit } from '../repositories/audit';
 import * as shifts from '../repositories/shifts';
 import { evaluateWorkerFatigue } from './fatigue';
-import { generateCorrectedReceiptForShift, generateReceiptForShift } from './receipts';
+import { generateCorrectedReceiptForShift, generateReceiptForShift, isShiftInFinalizedPeriod } from './receipts';
 import { findSessionUser } from '../repositories/users';
 import { notFound } from '../http';
 
-function isUniqueViolation(err: unknown): boolean {
-  return err instanceof Error && /UNIQUE constraint failed/.test(err.message);
-}
+import { isUniqueViolation } from '../db/db';
 
 export function attendanceStatus(ctx: AppContext, org: OrgRow, workerId: string): AttendanceStatusDTO {
   const today = localDate(ctx.now(), org.timezone);
@@ -102,6 +100,15 @@ export function correctShift(ctx: AppContext, org: OrgRow, actorId: string, shif
   const updated = ctx.db.tx(() => {
     const existing = shifts.getShift(ctx.db, org.id, shiftId);
     if (!existing) throw notFound('Shift');
+
+    const inFinalized = isShiftInFinalizedPeriod(ctx, org.id, existing.workerId, existing.checkInAt, org.timezone);
+    if (inFinalized && !input.isPayrollAdjustment) {
+      throw new DomainError(
+        'FINALIZED_PERIOD_LOCKED',
+        'This shift belongs to a finalized pay period with an issued payslip and cannot be directly modified without an explicit retroactive payroll adjustment.',
+      );
+    }
+
     if (existing.checkInAt === checkInAt && existing.checkOutAt === checkOutAt) {
       throw new DomainError('INVALID_SHIFT_TIMES', 'The corrected times are the same as the recorded times.');
     }
@@ -122,7 +129,7 @@ export function correctShift(ctx: AppContext, org: OrgRow, actorId: string, shif
       entityId: shiftId,
       action: 'correction',
       before: { checkInAt: existing.checkInAt, checkOutAt: existing.checkOutAt },
-      after: { checkInAt, checkOutAt },
+      after: { checkInAt, checkOutAt, isPayrollAdjustment: Boolean(input.isPayrollAdjustment) },
       reason: input.reason,
       at,
     });
