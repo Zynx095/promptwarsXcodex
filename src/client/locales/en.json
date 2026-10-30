@@ -274,6 +274,7 @@
   "jar.paidDesc": "Disbursement Status",
   "jar.disbursed": "Disbursed",
   "jar.outstanding": "Outstanding",
+  "jar.paymentNotRecorded": "Not recorded in FairShift — confirm with your employer",
   "jar.status": "Status",
   "dispute.title": "Worker Wage Discrepancy Notice Generator",
   "dispute.draftNotice": "This tool generates a factual summary notice of your recorded hours, earnings, and unpaid discrepancies based on cryptographic FairShift receipts.",

@@ -269,13 +269,16 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
               <span className="comparison-subtitle">{t('jar.paidDesc') || 'Disbursement Status'}</span>
             </div>
             <div className="comparison-body">
-              <div className="comparison-figure text-good">{m(model.comparison.paid.outstandingAmountMinor)}</div>
+              <div className="comparison-figure text-good">{m(model.comparison.paid.payableAmountMinor)}</div>
               <ul className="comparison-details">
                 <li>
-                  {t('jar.disbursed') || 'Disbursed'}: <strong>{m(model.comparison.paid.disbursedAmountMinor)}</strong>
+                  {t('jar.netPayable') || 'Net Payable'}: <strong>{m(model.comparison.paid.payableAmountMinor)}</strong>
                 </li>
                 <li>
-                  {t('jar.outstanding') || 'Outstanding'}: <strong className="text-good">{m(model.comparison.paid.outstandingAmountMinor)}</strong>
+                  {t('jar.disbursed') || 'Disbursed'}:{' '}
+                  <strong>
+                    {model.comparison.paid.disbursedAmountMinor === null ? t('jar.paymentNotRecorded') : m(model.comparison.paid.disbursedAmountMinor)}
+                  </strong>
                 </li>
                 <li>
                   {t('jar.status') || 'Status'}:{' '}

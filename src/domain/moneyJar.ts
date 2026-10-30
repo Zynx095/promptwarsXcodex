@@ -36,8 +36,14 @@ export interface PaidComparison {
   status: 'pending_approval' | 'approved_payable' | 'disbursed';
   statusLabelKey: string;
   defaultStatusLabel: string;
-  disbursedAmountMinor: number;
-  outstandingAmountMinor: number;
+  /** False: FairShift records approved payroll, not bank or cash disbursements. */
+  paymentRecorded: boolean;
+  /** Null when no payment record exists — never assumed to be zero. */
+  disbursedAmountMinor: number | null;
+  /** Null when no payment record exists, since the outstanding balance is then unknown. */
+  outstandingAmountMinor: number | null;
+  /** Net amount payable for the period according to the payslip (estimated until issued). */
+  payableAmountMinor: number;
   netPayMinor: number;
 }
 
@@ -159,8 +165,10 @@ export function deriveMoneyJarModel(slip: PayslipDTO): MoneyJarModel {
     status: isIssued ? 'approved_payable' : 'pending_approval',
     statusLabelKey: isIssued ? 'jar.statusApproved' : 'jar.statusPending',
     defaultStatusLabel: isIssued ? 'Approved for Payment' : 'Estimated — Pending Final Approval',
-    disbursedAmountMinor: 0, // FairShift records approved payroll; direct payment integration marks disbursement
-    outstandingAmountMinor: b.netPayMinor,
+    paymentRecorded: false,
+    disbursedAmountMinor: null,
+    outstandingAmountMinor: null,
+    payableAmountMinor: b.netPayMinor,
     netPayMinor: b.netPayMinor,
   };
 

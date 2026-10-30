@@ -129,7 +129,11 @@ describe('FairShift Money Jar — Mathematical Integrity & Earnings Model', () =
 
     // Paid
     expect(model.comparison.paid.status).toBe('approved_payable');
-    expect(model.comparison.paid.outstandingAmountMinor).toBe(2730000);
+    expect(model.comparison.paid.payableAmountMinor).toBe(2730000);
+    // FairShift holds no payment records, so disbursed and outstanding are unknown — not ₹0 / full net
+    expect(model.comparison.paid.paymentRecorded).toBe(false);
+    expect(model.comparison.paid.disbursedAmountMinor).toBeNull();
+    expect(model.comparison.paid.outstandingAmountMinor).toBeNull();
   });
 
   it('clearly marks unfinalized preview status as pending approval', () => {
