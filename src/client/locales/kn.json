@@ -336,5 +336,11 @@
   "proof.offlineInstructions": "OpenSSL ಅಥವಾ Node.js ಬಳಸಿ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಹೇಗೆ ಪರಿಶೀಲಿಸುವುದು",
   "common.close": "ಮುಚ್ಚಿ",
   "navShort.more": "ಇನ್ನಷ್ಟು",
-  "demo.chip": "ಮಾದರಿ ದತ್ತಾಂಶ"
+  "demo.chip": "ಮಾದರಿ ದತ್ತಾಂಶ",
+  "att.confirmOutTitle": "ಈಗ ಚೆಕ್ ಔಟ್ ಮಾಡಬೇಕೆ?",
+  "att.confirmOutBody": "ನಿಮ್ಮ ಶಿಫ್ಟ್ ಈಗ ಮುಗಿಯುತ್ತದೆ ಮತ್ತು ಸಮಯ ದಾಖಲಾಗುತ್ತದೆ. ನೀವು {duration} ಶಿಫ್ಟ್‌ನಲ್ಲಿದ್ದೀರಿ.",
+  "att.confirmOutAction": "ಹೌದು, ಚೆಕ್ ಔಟ್ ಮಾಡಿ",
+  "att.keepWorking": "ಕೆಲಸ ಮುಂದುವರಿಸಿ",
+  "att.workedSoFar": "ಇಂದು ಇಲ್ಲಿಯವರೆಗೆ ಮಾಡಿದ ಕೆಲಸ",
+  "att.shiftSoFar": "ಈ ಶಿಫ್ಟ್ ಇಲ್ಲಿಯವರೆಗೆ"
 }

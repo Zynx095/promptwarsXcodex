@@ -685,6 +685,8 @@ td.num {
 }
 .dialog-card,
 .sheet {
+  --focus-color: var(--fs-aubergine);
+  color: var(--fs-ink);
   position: relative;
   width: 100%;
   max-width: 520px;

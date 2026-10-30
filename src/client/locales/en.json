@@ -337,5 +337,11 @@
   "proof.offlineInstructions": "How to verify offline using OpenSSL or Node.js",
   "common.close": "Close",
   "navShort.more": "More",
-  "demo.chip": "Sample data"
+  "demo.chip": "Sample data",
+  "att.confirmOutTitle": "Check out now?",
+  "att.confirmOutBody": "Your shift ends now and the time is recorded. You have been on shift for {duration}.",
+  "att.confirmOutAction": "Yes, check out",
+  "att.keepWorking": "Keep working",
+  "att.workedSoFar": "Worked today so far",
+  "att.shiftSoFar": "This shift so far"
 }

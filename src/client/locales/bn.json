@@ -337,5 +337,11 @@
   "proof.offlineInstructions": "OpenSSL या Node.js से ऑफलाइन सत्यापन कैसे करें",
   "common.close": "বন্ধ করুন",
   "navShort.more": "আরও",
-  "demo.chip": "নমুনা ডেটা"
+  "demo.chip": "নমুনা ডেটা",
+  "att.confirmOutTitle": "এখনই চেক আউট করবেন?",
+  "att.confirmOutBody": "আপনার শিফট এখন শেষ হবে এবং সময় রেকর্ড হবে। আপনি {duration} শিফটে আছেন।",
+  "att.confirmOutAction": "হ্যাঁ, চেক আউট করুন",
+  "att.keepWorking": "কাজ চালিয়ে যান",
+  "att.workedSoFar": "আজ এখন পর্যন্ত কাজ করেছেন",
+  "att.shiftSoFar": "এই শিফটে এখন পর্যন্ত"
 }

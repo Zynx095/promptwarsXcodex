@@ -143,6 +143,8 @@ describe('web client', () => {
     await waitForText('On shift now');
     env.advance(600);
     await submit('Check out');
+    await waitForText('Check out now?');
+    await submit('Yes, check out');
     await waitForText('Shift recorded: 10h');
     await waitForText('Shift completed today');
 

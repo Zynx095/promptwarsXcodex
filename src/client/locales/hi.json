@@ -337,5 +337,11 @@
   "proof.offlineInstructions": "OpenSSL या Node.js से ऑफलाइन सत्यापन कैसे करें",
   "common.close": "बंद करें",
   "navShort.more": "और",
-  "demo.chip": "नमूना डेटा"
+  "demo.chip": "नमूना डेटा",
+  "att.confirmOutTitle": "अभी चेक आउट करें?",
+  "att.confirmOutBody": "आपकी शिफ्ट अभी खत्म होगी और समय दर्ज हो जाएगा। आप {duration} से शिफ्ट पर हैं।",
+  "att.confirmOutAction": "हाँ, चेक आउट करें",
+  "att.keepWorking": "काम जारी रखें",
+  "att.workedSoFar": "आज अब तक काम किया",
+  "att.shiftSoFar": "इस शिफ्ट में अब तक"
 }

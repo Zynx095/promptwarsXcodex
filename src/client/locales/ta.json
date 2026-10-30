@@ -337,5 +337,11 @@
   "proof.offlineInstructions": "OpenSSL या Node.js से ऑफलाइन सत्यापन कैसे करें",
   "common.close": "மூடு",
   "navShort.more": "மேலும்",
-  "demo.chip": "மாதிரி தரவு"
+  "demo.chip": "மாதிரி தரவு",
+  "att.confirmOutTitle": "இப்போது செக்-அவுட் செய்யவா?",
+  "att.confirmOutBody": "உங்கள் பணி இப்போது முடிந்து நேரம் பதிவாகும். நீங்கள் {duration} பணியில் இருந்தீர்கள்.",
+  "att.confirmOutAction": "ஆம், செக்-அவுட் செய்",
+  "att.keepWorking": "பணியைத் தொடரவும்",
+  "att.workedSoFar": "இன்று இதுவரை வேலை செய்தது",
+  "att.shiftSoFar": "இந்த பணிநேரம் இதுவரை"
 }
