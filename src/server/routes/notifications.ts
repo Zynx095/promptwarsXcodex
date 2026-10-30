@@ -32,6 +32,5 @@ export function notificationRoutes(ctx: AppContext): Router {
     res.json({ ok: true, markedCount });
   });
 
-
   return r;
 }

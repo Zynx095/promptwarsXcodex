@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PHONES, setup, type TestEnv } from './helpers';
-import type {
-  NotificationsResponse,
-  SiteDTO,
-  WorkerDTO,
-  ShiftDTO,
-  SafetyReportDTO,
-} from '../../src/shared/types';
+import type { NotificationsResponse, SiteDTO, WorkerDTO, ShiftDTO, SafetyReportDTO } from '../../src/shared/types';
 
 let env: TestEnv;
 beforeEach(async () => {
@@ -27,7 +21,6 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
         hourlyRateMinor: 8500,
         pin: '1234',
       });
-
 
       expect(res.status).toBe(201);
       const worker = res.body as WorkerDTO;
@@ -63,23 +56,16 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
       const workerId = me.body.user.id;
 
       // 1. Admin deactivates worker
-      const patchRes = await admin
-        .patch(`/api/admin/workers/${workerId}`)
-        .send({ active: false });
+      const patchRes = await admin.patch(`/api/admin/workers/${workerId}`).send({ active: false });
       expect(patchRes.status).toBe(200);
 
       // 2. Deactivated worker attempts check-in -> session middleware rejects with 401 UNAUTHORIZED
       const checkInRes = await worker.post('/api/attendance/check-in').send({});
       expect(checkInRes.status).toBe(401);
 
-
       // 3. Reactivate worker and check-in succeeds
-      await admin
-        .patch(`/api/admin/workers/${workerId}`)
-        .send({ active: true });
-      const checkInAfter = await worker
-        .post('/api/attendance/check-in')
-        .send({});
+      await admin.patch(`/api/admin/workers/${workerId}`).send({ active: true });
+      const checkInAfter = await worker.post('/api/attendance/check-in').send({});
       expect(checkInAfter.status).toBe(201);
     });
   });
@@ -116,9 +102,7 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
       expect(dupRes.body.error.code).toBe('DUPLICATE_SITE_CODE');
 
       // 4. Toggle site status
-      const toggleRes = await admin
-        .patch(`/api/admin/sites/${created.id}/status`)
-        .send({ active: false });
+      const toggleRes = await admin.patch(`/api/admin/sites/${created.id}/status`).send({ active: false });
       expect(toggleRes.status).toBe(200);
       expect(toggleRes.body.active).toBe(false);
     });
@@ -145,38 +129,26 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
 
       // 3. Admin corrects shift -> triggers shift_correction notification
       env.advance(60);
-      const correctRes = await admin
-        .patch(`/api/admin/shifts/${shift.id}`)
-        .send({
-          checkInAt: shift.checkInAt,
-          checkOutAt: new Date(
-            Date.parse(shift.checkOutAt!) + 30 * 60000,
-          ).toISOString(),
-          reason: 'Overtime extension confirmed by supervisor',
-        });
+      const correctRes = await admin.patch(`/api/admin/shifts/${shift.id}`).send({
+        checkInAt: shift.checkInAt,
+        checkOutAt: new Date(Date.parse(shift.checkOutAt!) + 30 * 60000).toISOString(),
+        reason: 'Overtime extension confirmed by supervisor',
+      });
       expect(correctRes.status).toBe(200);
 
       // Verify worker received correction notification
       const afterCorrection = await worker.get('/api/notifications/mine');
-      const correctionNotif = (
-        afterCorrection.body as NotificationsResponse
-      ).items.find((n) => n.type === 'shift_correction');
+      const correctionNotif = (afterCorrection.body as NotificationsResponse).items.find((n) => n.type === 'shift_correction');
       expect(correctionNotif).toBeDefined();
-      expect(correctionNotif?.body).toContain(
-        'Overtime extension confirmed by supervisor',
-      );
+      expect(correctionNotif?.body).toContain('Overtime extension confirmed by supervisor');
 
       // 4. Mark single notification as read
-      const readRes = await worker
-        .post(`/api/notifications/${correctionNotif!.id}/read`)
-        .send({});
+      const readRes = await worker.post(`/api/notifications/${correctionNotif!.id}/read`).send({});
       expect(readRes.status).toBe(200);
       expect(readRes.body.ok).toBe(true);
 
       // 5. Mark all notifications as read
-      const readAllRes = await worker
-        .post('/api/notifications/read-all')
-        .send({});
+      const readAllRes = await worker.post('/api/notifications/read-all').send({});
       expect(readAllRes.status).toBe(200);
       const finalNotifs = await worker.get('/api/notifications/mine');
       expect((finalNotifs.body as NotificationsResponse).unreadCount).toBe(0);
@@ -200,34 +172,23 @@ describe('FairShift V4.0 — Release Candidate Workflows', () => {
 
       // Verify admin received safety_alert notification
       const adminNotifs = await admin.get('/api/notifications/mine');
-      const alertNotif = (
-        adminNotifs.body as NotificationsResponse
-      ).items.find((n) => n.type === 'safety_alert');
+      const alertNotif = (adminNotifs.body as NotificationsResponse).items.find((n) => n.type === 'safety_alert');
       expect(alertNotif).toBeDefined();
       expect(alertNotif?.title).toContain('CRITICAL');
 
       // 2. Admin acknowledges safety report -> worker receives safety_update notification
-      const transRes = await admin
-        .post(`/api/admin/reports/${report.id}/transition`)
-        .send({
-          to: 'acknowledged',
-          note: 'Safety team dispatched to clear pallets',
-        });
+      const transRes = await admin.post(`/api/admin/reports/${report.id}/transition`).send({
+        to: 'acknowledged',
+        note: 'Safety team dispatched to clear pallets',
+      });
       expect(transRes.status).toBe(200);
 
-      const workerNotifsAfterReport = await worker.get(
-        '/api/notifications/mine',
-      );
-      const safetyNotif = (
-        workerNotifsAfterReport.body as NotificationsResponse
-      ).items.find((n) => n.type === 'safety_update');
+      const workerNotifsAfterReport = await worker.get('/api/notifications/mine');
+      const safetyNotif = (workerNotifsAfterReport.body as NotificationsResponse).items.find((n) => n.type === 'safety_update');
       expect(safetyNotif).toBeDefined();
-      expect(safetyNotif?.body).toContain(
-        'Safety team dispatched to clear pallets',
-      );
+      expect(safetyNotif?.body).toContain('Safety team dispatched to clear pallets');
     });
   });
-
 
   describe('Administrative Payroll CSV Export', () => {
     it('exports tenant-isolated CSV containing payroll details and correct column headers', async () => {

@@ -55,7 +55,6 @@ export async function createApp(ctx: AppContext, frontend?: (app: Express) => Pr
     next(new HttpError(404, 'NOT_FOUND', 'Unknown API endpoint.'));
   });
 
-
   if (frontend) await frontend(app);
   app.use(errorHandler);
   return app;
