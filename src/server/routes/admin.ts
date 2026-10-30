@@ -36,6 +36,10 @@ import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/fe
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
 import { getShiftReceipts, verifyReceipt } from '../services/receipts';
+import { generateCheckpointForOrg, getCheckpointSecretForKey, getIndependentVerificationBundle } from '../services/checkpoints';
+import { listCheckpoints } from '../repositories/checkpoints';
+import { verifyIndependentBundle } from '../../domain/proof';
+import type { IndependentVerificationBundle } from '../../shared/types';
 import { getSafeSignals } from '../services/signal';
 
 export function adminRoutes(ctx: AppContext): Router {
@@ -281,7 +285,42 @@ export function adminRoutes(ctx: AppContext): Router {
       version: result.receipt.version,
       canonicalDigest: result.receipt.canonicalDigest,
       verified: result.verified,
+      trustStatus: result.trustStatus,
+      anchored: Boolean(result.checkpoint),
     });
+  });
+
+  r.get('/receipts/:id/bundle', (req, res) => {
+    const { org } = session(req);
+    const receiptId = param(req, 'id');
+    const bundle = getIndependentVerificationBundle(ctx, org.id, receiptId);
+    if (!bundle) {
+      throw notFound('Independent verification bundle (checkpoint pending)');
+    }
+    res.json(bundle);
+  });
+
+  // ---- Independent Proof Checkpoints ----
+  r.get('/checkpoints', (req, res) => {
+    const { org } = session(req);
+    res.json({ items: listCheckpoints(ctx.db, org.id, 100) });
+  });
+
+  r.post('/checkpoints/generate', (req, res) => {
+    const { org } = session(req);
+    const checkpoint = generateCheckpointForOrg(ctx, org.id);
+    res.json({ checkpoint, generated: Boolean(checkpoint) });
+  });
+
+  r.post('/checkpoints/verify-bundle', (req, res) => {
+    const bundle = req.body as IndependentVerificationBundle;
+    if (!bundle || typeof bundle !== 'object') {
+      res.status(400).json({ error: { code: 'INVALID_BUNDLE', message: 'Valid verification bundle object required.' } });
+      return;
+    }
+    const chkSecret = getCheckpointSecretForKey(ctx, bundle.checkpoint?.keyId);
+    const result = verifyIndependentBundle(bundle, chkSecret);
+    res.json(result);
   });
 
   // ---- Safe Signal (Recurring Hazard Detection) ----

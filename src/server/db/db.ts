@@ -100,6 +100,37 @@ function migrate(raw: DatabaseSync): void {
   if (!receiptCols.some((c) => c.name === 'key_id')) {
     raw.exec(`ALTER TABLE work_receipts ADD COLUMN key_id TEXT NOT NULL DEFAULT 'v1'`);
   }
+  const tables = raw.prepare(`SELECT name FROM sqlite_master WHERE type='table'`).all() as { name: string }[];
+  if (!tables.some((t) => t.name === 'receipt_checkpoints')) {
+    raw.exec(`
+      CREATE TABLE IF NOT EXISTS receipt_checkpoints (
+        id TEXT PRIMARY KEY,
+        org_id TEXT NOT NULL REFERENCES organizations(id),
+        sequence INTEGER NOT NULL,
+        merkle_root TEXT NOT NULL,
+        receipt_count INTEGER NOT NULL,
+        previous_checkpoint_root TEXT,
+        key_id TEXT NOT NULL DEFAULT 'chk_v1',
+        signature TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE (org_id, sequence)
+      );
+      CREATE INDEX IF NOT EXISTS idx_checkpoints_org_seq ON receipt_checkpoints(org_id, sequence);
+    `);
+  }
+  if (!tables.some((t) => t.name === 'receipt_checkpoint_entries')) {
+    raw.exec(`
+      CREATE TABLE IF NOT EXISTS receipt_checkpoint_entries (
+        checkpoint_id TEXT NOT NULL REFERENCES receipt_checkpoints(id) ON DELETE CASCADE,
+        receipt_id TEXT NOT NULL REFERENCES work_receipts(id) ON DELETE CASCADE,
+        leaf_index INTEGER NOT NULL,
+        leaf_hash TEXT NOT NULL,
+        PRIMARY KEY (checkpoint_id, leaf_index),
+        UNIQUE (receipt_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_chk_entries_receipt ON receipt_checkpoint_entries(receipt_id);
+    `);
+  }
 }
 
 export function isUniqueViolation(err: unknown): boolean {

@@ -3,12 +3,15 @@ import type { AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';
 import { getShift, listWorkerShifts } from '../repositories/shifts';
 import { getWorker } from '../repositories/users';
-import { buildCorrectionDiff, calculateShiftEarnings, computeReceiptDigest, verifyReceiptDigest } from '../../domain/proof';
+import { buildCorrectionDiff, calculateShiftEarnings, computeReceiptDigest, verifyCheckpointSignature, verifyReceiptDigest } from '../../domain/proof';
+import { verifyMerkleProof } from '../../domain/merkle';
 import { DomainError } from '../../domain/errors';
 import { isUniqueViolation } from '../db/db';
-import type { CanonicalReceiptData, WorkReceiptDTO } from '../../shared/types';
+import type { CanonicalReceiptData, ReceiptVerificationResponse, VerificationTrustStatus, WorkReceiptDTO } from '../../shared/types';
 import { localDate, localRangeToUtc, minutesBetween } from '../../shared/time';
 import { getLatestReceiptForShift, getReceiptById, getReceiptHistoryForShift, insertReceipt, toWorkReceiptDTO } from '../repositories/receipts';
+import { getCheckpointByReceiptId } from '../repositories/checkpoints';
+import { getCheckpointSecretForKey, getIndependentVerificationBundle, getReceiptInclusionProof } from './checkpoints';
 import { notFound } from '../http';
 
 /**
@@ -251,7 +254,11 @@ export function getShiftReceipts(ctx: AppContext, orgId: string, shiftId: string
     const data = JSON.parse(r.receipt_json) as CanonicalReceiptData;
     const secret = getSecretForKey(ctx, r.key_id);
     const verified = verifyReceiptDigest(secret, data, r.canonical_digest);
-    return toWorkReceiptDTO(r, verified);
+    const chk = getCheckpointByReceiptId(ctx.db, r.id);
+    return toWorkReceiptDTO(r, verified, {
+      anchored: Boolean(chk),
+      checkpointId: chk?.checkpoint.id ?? null,
+    });
   });
 
   return {
@@ -261,9 +268,10 @@ export function getShiftReceipts(ctx: AppContext, orgId: string, shiftId: string
 }
 
 /**
- * Verifies cryptographic integrity of a specific receipt version.
+ * Verifies cryptographic integrity of a specific receipt version, including its Merkle inclusion proof
+ * and signed checkpoint anchoring status.
  */
-export function verifyReceipt(ctx: AppContext, orgId: string, receiptId: string): { receipt: WorkReceiptDTO; verified: boolean } {
+export function verifyReceipt(ctx: AppContext, orgId: string, receiptId: string): ReceiptVerificationResponse {
   const row = getReceiptById(ctx.db, orgId, receiptId);
   if (!row) {
     throw notFound('Work receipt');
@@ -271,10 +279,44 @@ export function verifyReceipt(ctx: AppContext, orgId: string, receiptId: string)
 
   const data = JSON.parse(row.receipt_json) as CanonicalReceiptData;
   const secret = getSecretForKey(ctx, row.key_id);
-  const verified = verifyReceiptDigest(secret, data, row.canonical_digest);
+  const digestVerified = verifyReceiptDigest(secret, data, row.canonical_digest);
+
+  const inclusion = getReceiptInclusionProof(ctx, orgId, receiptId);
+  let trustStatus: VerificationTrustStatus = 'valid_unanchored';
+  let checkpointDTO = null;
+  let proofDTO = null;
+  let independentBundle = null;
+
+  if (!digestVerified) {
+    trustStatus = 'invalid_digest';
+  } else if (inclusion) {
+    checkpointDTO = inclusion.checkpoint;
+    proofDTO = inclusion.proof;
+    const proofValid = verifyMerkleProof(inclusion.proof.leafHash, inclusion.proof.auditPath, inclusion.checkpoint.merkleRoot);
+    const chkSecret = getCheckpointSecretForKey(ctx, inclusion.checkpoint.keyId);
+    const sigValid = verifyCheckpointSignature(chkSecret, inclusion.checkpoint);
+
+    if (!proofValid) {
+      trustStatus = 'invalid_proof';
+    } else if (!sigValid) {
+      trustStatus = 'invalid_checkpoint_signature';
+    } else {
+      trustStatus = 'valid_and_anchored';
+      independentBundle = getIndependentVerificationBundle(ctx, orgId, receiptId);
+    }
+  }
+
+  const receiptDTO = toWorkReceiptDTO(row, digestVerified, {
+    anchored: Boolean(inclusion && trustStatus === 'valid_and_anchored'),
+    checkpointId: inclusion?.checkpoint.id ?? null,
+  });
 
   return {
-    receipt: toWorkReceiptDTO(row, verified),
-    verified,
+    receipt: receiptDTO,
+    verified: digestVerified && (inclusion ? trustStatus === 'valid_and_anchored' : true),
+    trustStatus,
+    checkpoint: checkpointDTO,
+    proof: proofDTO,
+    independentBundle,
   };
 }

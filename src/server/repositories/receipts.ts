@@ -99,7 +99,7 @@ export function markReceiptsFinalizedForPeriod(db: Db, orgId: string, workerId: 
   );
 }
 
-export function toWorkReceiptDTO(row: WorkReceiptRow, verified?: boolean): WorkReceiptDTO {
+export function toWorkReceiptDTO(row: WorkReceiptRow, verified?: boolean, checkpointInfo?: { anchored: boolean; checkpointId: string | null }): WorkReceiptDTO {
   return {
     id: row.id,
     shiftId: row.shift_id,
@@ -115,5 +115,7 @@ export function toWorkReceiptDTO(row: WorkReceiptRow, verified?: boolean): WorkR
     createdAt: row.created_at,
     createdBy: row.created_by,
     verified,
+    anchored: checkpointInfo?.anchored ?? false,
+    checkpointId: checkpointInfo?.checkpointId ?? null,
   };
 }

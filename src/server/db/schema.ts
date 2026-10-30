@@ -215,4 +215,30 @@ CREATE TABLE IF NOT EXISTS work_receipts (
 CREATE INDEX IF NOT EXISTS idx_receipts_shift ON work_receipts(shift_id, version);
 CREATE INDEX IF NOT EXISTS idx_receipts_worker ON work_receipts(worker_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_receipts_org ON work_receipts(org_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_receipts_org_shift ON work_receipts(org_id, shift_id, version);
+
+CREATE TABLE IF NOT EXISTS receipt_checkpoints (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  sequence INTEGER NOT NULL,
+  merkle_root TEXT NOT NULL,
+  receipt_count INTEGER NOT NULL,
+  previous_checkpoint_root TEXT,
+  key_id TEXT NOT NULL DEFAULT 'chk_v1',
+  signature TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE (org_id, sequence)
+);
+CREATE INDEX IF NOT EXISTS idx_checkpoints_org_seq ON receipt_checkpoints(org_id, sequence);
+
+CREATE TABLE IF NOT EXISTS receipt_checkpoint_entries (
+  checkpoint_id TEXT NOT NULL REFERENCES receipt_checkpoints(id) ON DELETE CASCADE,
+  receipt_id TEXT NOT NULL REFERENCES work_receipts(id) ON DELETE CASCADE,
+  leaf_index INTEGER NOT NULL,
+  leaf_hash TEXT NOT NULL,
+  PRIMARY KEY (checkpoint_id, leaf_index),
+  UNIQUE (receipt_id)
+);
+CREATE INDEX IF NOT EXISTS idx_chk_entries_receipt ON receipt_checkpoint_entries(receipt_id);
+CREATE INDEX IF NOT EXISTS idx_reports_org_cat_status ON safety_reports(org_id, category, status);
 `;

@@ -14,6 +14,7 @@ import { submitFeedback } from '../services/feedback';
 import { listAlerts } from '../services/fatigue';
 import { addSkill, listSkills } from '../services/skills';
 import { getShiftReceipts, verifyReceipt } from '../services/receipts';
+import { getIndependentVerificationBundle } from '../services/checkpoints';
 import { getShift } from '../repositories/shifts';
 import { canViewWorkerRecord } from '../../domain/access';
 
@@ -155,7 +156,23 @@ export function workerRoutes(ctx: AppContext): Router {
       version: result.receipt.version,
       canonicalDigest: result.receipt.canonicalDigest,
       verified: result.verified,
+      trustStatus: result.trustStatus,
+      anchored: Boolean(result.checkpoint),
     });
+  });
+
+  r.get('/receipts/:id/bundle', worker, (req, res) => {
+    const { user, org } = session(req);
+    const receiptId = param(req, 'id');
+    const result = verifyReceipt(ctx, org.id, receiptId);
+    if (!canViewWorkerRecord(user, { orgId: org.id, workerId: result.receipt.workerId })) {
+      throw notFound('Work receipt');
+    }
+    const bundle = getIndependentVerificationBundle(ctx, org.id, receiptId);
+    if (!bundle) {
+      throw notFound('Independent verification bundle (checkpoint pending)');
+    }
+    res.json(bundle);
   });
 
   return r;
