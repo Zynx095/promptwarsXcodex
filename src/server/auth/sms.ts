@@ -90,6 +90,9 @@ export const mockSmsProvider = new MockSmsProvider();
 
 export function getSmsProvider(ctx: AppContext): SmsProvider {
   if (ctx.config.smsProvider === 'mock') {
+    if (ctx.config.production) {
+      throw new HttpError(500, 'SECURITY_VIOLATION', 'Mock SMS provider is strictly forbidden in production mode.');
+    }
     return mockSmsProvider;
   }
   if (ctx.config.smsProvider === 'twilio') {

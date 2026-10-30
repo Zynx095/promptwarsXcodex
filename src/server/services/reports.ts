@@ -7,7 +7,7 @@ import { canSeeReporter, type Actor } from '../../domain/access';
 import { DomainError } from '../../domain/errors';
 import { isHazardCategory } from '../../shared/industries';
 import { localDate, localRangeToUtc } from '../../shared/time';
-import type { ReportCreateInput, ReportTransitionInput } from '../../shared/schemas';
+import type { ReportCreateInput } from '../../shared/schemas';
 import type { AccountabilityMetricsDTO, ReportEventDTO, ReportStatus, SafetyReportDTO, Severity } from '../../shared/types';
 import { nowIso, type AppContext } from '../context';
 import type { OrgRow } from '../repositories/orgs';

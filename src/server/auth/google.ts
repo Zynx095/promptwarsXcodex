@@ -109,7 +109,12 @@ export interface GoogleUserInfo {
   name: string;
 }
 
-export async function verifyGoogleTokenInfo(idToken: string, expectedClientId: string): Promise<GoogleUserInfo> {
+export async function verifyGoogleTokenInfo(
+  idToken: string,
+  expectedClientId: string,
+  expectedNonce?: string,
+  now: Date = new Date(),
+): Promise<GoogleUserInfo> {
   const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
@@ -123,6 +128,7 @@ export async function verifyGoogleTokenInfo(idToken: string, expectedClientId: s
     email_verified?: string | boolean;
     name?: string;
     exp?: string | number;
+    nonce?: string;
   };
 
   if (!data.sub || !data.email) {
@@ -136,6 +142,16 @@ export async function verifyGoogleTokenInfo(idToken: string, expectedClientId: s
   const validIssuers = ['https://accounts.google.com', 'accounts.google.com'];
   if (!data.iss || !validIssuers.includes(data.iss)) {
     throw new HttpError(401, 'INVALID_TOKEN', 'Invalid Google token issuer.');
+  }
+
+  const nowSec = Math.floor(now.getTime() / 1000);
+  const expSec = typeof data.exp === 'string' ? parseInt(data.exp, 10) : typeof data.exp === 'number' ? data.exp : null;
+  if (expSec !== null && expSec < nowSec) {
+    throw new HttpError(401, 'INVALID_TOKEN', 'Google ID token has expired.');
+  }
+
+  if (expectedNonce && data.nonce && !safeEqual(data.nonce, expectedNonce)) {
+    throw new HttpError(401, 'INVALID_TOKEN', 'Google token nonce mismatch.');
   }
 
   const emailVerified = data.email_verified === true || data.email_verified === 'true';
@@ -219,7 +235,7 @@ export async function handleGoogleCallback(ctx: AppContext, req: Request, res: R
     return;
   }
 
-  const userinfo = await verifyGoogleTokenInfo(tokenData.id_token, ctx.config.googleClientId!);
+  const userinfo = await verifyGoogleTokenInfo(tokenData.id_token, ctx.config.googleClientId!, savedState.nonce, ctx.now());
 
   // Identity Mapping & Authorization:
   // 1. Look up existing link in auth_identities

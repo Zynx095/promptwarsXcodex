@@ -1,5 +1,6 @@
 // Signed, HttpOnly cookie sessions. The cookie carries only the user ID and expiry; role and
 // organisation are re-read from the database on every request.
+import { randomBytes } from 'node:crypto';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { hmac, safeEqual } from './crypto';
 import { HttpError } from '../http';
@@ -17,7 +18,8 @@ declare module 'express-serve-static-core' {
 }
 
 export function createToken(secret: string, userId: string, now: Date): string {
-  const payload = Buffer.from(JSON.stringify({ sub: userId, exp: now.getTime() + SESSION_TTL_MS })).toString('base64url');
+  const sid = randomBytes(16).toString('hex');
+  const payload = Buffer.from(JSON.stringify({ sub: userId, sid, exp: now.getTime() + SESSION_TTL_MS })).toString('base64url');
   return `${payload}.${hmac(secret, payload)}`;
 }
 
