@@ -177,6 +177,57 @@ describe('FairShift Accountability Loop — Adversarial State Machine & Metrics 
       expect(updated.verifiedBy).toBe('Er. Rajesh Sharma (Licensed Electrical Inspector)');
       expect(updated.verificationNote).toBe('Inspection certificate #EL-2026-99 issued.');
     });
+
+    it('strictly disallows self-verification when organization policy mandates independent verification', () => {
+      const { ctx, org } = setupEnv();
+      const adminActor = { id: 'usr_demo_c_admin', orgId: org.id, role: 'admin' as const };
+      const workerActor = { id: 'usr_demo_c_ravi', orgId: org.id, role: 'worker' as const };
+
+      // Update org settings to require independent verification
+      const updatedSettings = {
+        ...org.settings,
+        safety: { requireIndependentVerification: true },
+      };
+      ctx.db.run(`UPDATE organizations SET settings_json = @settings WHERE id = @id`, {
+        id: org.id,
+        settings: JSON.stringify(updatedSettings),
+      });
+
+      const rep = createReport(ctx, org, workerActor, {
+        category: 'machinery',
+        severity: 'high',
+        title: 'Emergency stop push-button jammed',
+        description: 'Button remains pressed in.',
+        location: 'Batching Plant 2',
+        confidential: false,
+      });
+
+      transitionReport(ctx, adminActor, rep.id, { to: 'acknowledged' });
+      transitionReport(ctx, adminActor, rep.id, {
+        to: 'resolved',
+        note: 'Replaced contact block and spring assembly.',
+        actionTaken: 'Installed new contact block.',
+      });
+
+      // Attempting self-verification by the resolver without independent auditor must throw
+      expect(() =>
+        transitionReport(ctx, adminActor, rep.id, {
+          to: 'outcome_verified',
+          note: 'Tested button myself and verified switch operates.',
+        }),
+      ).toThrowError(/independent auditor/i);
+
+      // Specifying an authorized independent auditor succeeds
+      transitionReport(ctx, adminActor, rep.id, {
+        to: 'outcome_verified',
+        note: 'Third-party auditor verified tripping within 100ms.',
+        verifiedBy: 'National Safety Council Inspector',
+      });
+
+      const updated = getReport(ctx, adminActor, rep.id)!;
+      expect(updated.status).toBe('outcome_verified');
+      expect(updated.verifiedBy).toBe('National Safety Council Inspector');
+    });
   });
 
   describe('Adversarial Vector 3: Concurrency & Optimistic Locking Collision', () => {

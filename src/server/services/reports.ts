@@ -243,15 +243,32 @@ export function transitionReport(ctx: AppContext, actor: Actor, id: string, inpu
     let verifiedBy: string | null = null;
     let verificationNote: string | null = null;
     if (input.to === 'outcome_verified') {
+      const orgRow = ctx.db.get<{ settings_json: string }>(`SELECT settings_json FROM organizations WHERE id = @orgId`, { orgId: actor.orgId });
+      let requireIndependent = false;
+      if (orgRow) {
+        try {
+          const settings = JSON.parse(orgRow.settings_json);
+          requireIndependent = Boolean(settings.safety?.requireIndependentVerification);
+        } catch {}
+      }
+
+      const lastResolver = ctx.db.get<{ actor_id: string }>(
+        `SELECT actor_id FROM report_events WHERE report_id = @id AND to_status = 'resolved' ORDER BY created_at DESC LIMIT 1`,
+        { id },
+      );
+      const isSelfVerification = Boolean(lastResolver && lastResolver.actor_id === actor.id && !input.verifiedBy);
+
+      if (isSelfVerification && requireIndependent) {
+        throw new DomainError(
+          'SELF_VERIFICATION_DISALLOWED',
+          'Organization policy requires an independent auditor or third party to verify outcome resolution; self-verification by the resolving administrator is disallowed.',
+        );
+      }
+
       verifiedBy = input.verifiedBy?.trim() || null;
       if (!verifiedBy) {
-        const lastResolver = ctx.db.get<{ actor_id: string }>(
-          `SELECT actor_id FROM report_events WHERE report_id = @id AND to_status = 'resolved' ORDER BY created_at DESC LIMIT 1`,
-          { id },
-        );
         const actorUser = findSessionUser(ctx.db, actor.id);
         const actorName = actorUser?.name || 'Admin';
-        const isSelfVerification = lastResolver && lastResolver.actor_id === actor.id;
         verifiedBy = isSelfVerification ? `${actorName} (Self-verification)` : actorName || 'Safety Officer';
       }
       verificationNote = input.verificationNote?.trim() || note.trim();

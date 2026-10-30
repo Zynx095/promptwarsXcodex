@@ -104,10 +104,16 @@ export interface AttendanceRules {
   requireSiteCode: boolean;
 }
 
+export interface SafetyRules {
+  /** When true, self-verification by the resolving administrator is disallowed and requires an independent party. */
+  requireIndependentVerification?: boolean;
+}
+
 export interface OrgSettings {
   pay: PayRules;
   fatigue: FatigueRules;
   attendance: AttendanceRules;
+  safety?: SafetyRules;
 }
 
 export interface SiteCodeDTO {

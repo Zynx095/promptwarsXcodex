@@ -16,7 +16,8 @@ export type DomainErrorCode =
   | 'INVALID_SIGNING_SECRET'
   | 'INVALID_RECEIPT_DATA'
   | 'FINALIZED_PERIOD_LOCKED'
-  | 'CONCURRENT_CORRECTION';
+  | 'CONCURRENT_CORRECTION'
+  | 'SELF_VERIFICATION_DISALLOWED';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {
