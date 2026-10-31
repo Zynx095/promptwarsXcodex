@@ -15,6 +15,7 @@ describe('FairShift design system: Glassmorphism V2', () => {
   const base = read('base.css');
   const glass = read('glass.css');
   const primitives = read('primitives.css');
+  const shell = read('shell.css');
 
   // The :root block before any @media/@supports override
   const rootBlock = tokens.slice(tokens.indexOf(':root {'), tokens.indexOf('\n}\n', tokens.indexOf(':root {')));
@@ -190,6 +191,9 @@ describe('FairShift design system: Glassmorphism V2', () => {
   it('enforces accessibility guarantees: 44 px targets, visible focus, reduced motion and transparency', () => {
     const tap = Number(token('tap').match(/(\d+)px/)?.[1]);
     expect(tap).toBeGreaterThanOrEqual(44);
+    // The floating tab bar keeps its items at least 44 px tall
+    expect(Number(token('bottom-bar-h').match(/(\d+)px/)?.[1]) - 12).toBeGreaterThanOrEqual(44);
+    expect(shell).toMatch(/min-height: calc\(var\(--bottom-bar-h\) - 12px\)/);
     expect(base).toMatch(/:focus-visible\s*\{[^}]*outline:\s*3px solid/);
     // Focus on smoked glass switches to marigold
     expect(glass).toMatch(/\.timecard,[\s\S]*?\{\s*--focus-color: var\(--fs-marigold\);/);
