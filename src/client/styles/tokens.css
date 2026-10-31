@@ -1,7 +1,9 @@
-/* FairShift design tokens.
-   Brand: Deep Aubergine #3A0F34 (structure), Ice Silver #DDE3E8 (neutral surfaces), Marigold #EAAA00 (action).
-   Contrast notes (WCAG 2.2): ink on canvas > 12:1; ink-3 on canvas 5.0:1; aubergine-deep on marigold 9.1:1;
-   tone text on tone backgrounds 5.7–7.1:1; input borders on paper 3.3:1. */
+/* FairShift design tokens: Glassmorphism V2.
+   Brand: Deep Aubergine #3A0F34 (structure, smoked glass), Ice Silver #DDE3E8 (frosted glass, lines),
+   Marigold #EAAA00 (the action that matters, active navigation, lamp light).
+   Contrast (WCAG 2.2) is checked in tests/unit/design-tokens.test.ts against the darkest colour the
+   atmosphere reaches (--atmo-floor), not against a flat canvas, and against every glass material
+   composited over that floor (light glass) or over white (smoked glass). */
 
 :root {
   /* Brand */
@@ -13,7 +15,8 @@
   --fs-silver: #dde3e8;
   --fs-marigold: #eaaa00;
   --fs-marigold-hover: #d89c00;
-  --fs-marigold-ink: #8a5a00;
+  --fs-marigold-lit: #f4c02a;
+  --fs-marigold-ink: #7a5000;
   --fs-marigold-tint: #fff3cf;
 
   /* Surfaces and lines */
@@ -27,13 +30,13 @@
   /* Text */
   --fs-ink: #2b1027;
   --fs-ink-2: #5e4659;
-  --fs-ink-3: #77606f;
+  --fs-ink-3: #654e5e;
   --fs-on-dark: #fbf5fa;
   --fs-on-dark-2: #d8c3d3;
   --fs-on-dark-3: #b49aae;
 
   /* States (text / background / line) */
-  --fs-good: #0d6b43;
+  --fs-good: #0b6340;
   --fs-good-bg: #e2f3ea;
   --fs-good-line: #a9d8bf;
   --fs-caution: #7a4a00;
@@ -87,16 +90,93 @@
   --r-slab: 20px;
   --r-sheet: 24px;
 
+  /* ---------- Atmosphere ----------
+     One fixed layer behind everything (base.css, body::before and ::after): a dusk wash at the top,
+     orchid light from the upper left, a marigold lamp low on the right, a silver sheen, and faint
+     ledger rules that the glass frosts. The lights are luminous tints, never dark, so text on the
+     canvas keeps its contrast; --atmo-floor is the darkest colour the layers produce together. */
+  --atmo-dusk: #eeebf3;
+  --atmo-orchid: rgba(214, 176, 206, 0.36);
+  --atmo-lamp: rgba(234, 170, 0, 0.2);
+  --atmo-sheen: rgba(255, 255, 255, 0.75);
+  --atmo-rule: rgba(58, 15, 52, 0.045);
+  --atmo-floor: #ddccdd;
+
+  /* ---------- Glass materials ----------
+     Five materials with different jobs. Only panels, bars and floating layers blur what is behind
+     them; controls and wells sit on glass already, so they are translucent without a filter of
+     their own (nested backdrop filters cost a lot and add nothing). Every fill has an opaque
+     fallback at the end of this file for browsers without backdrop-filter and for people who ask
+     for reduced transparency. */
+  --blur-soft: 10px;
+  --blur-panel: 18px;
+  --blur-bar: 20px;
+  --blur-float: 28px;
+  --glass-saturate: 170%;
+
+  /* Primary: records and panels that hold the content of a screen */
+  --glass-1-fill: linear-gradient(155deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.66) 100%);
+  --glass-1-edge: rgba(255, 255, 255, 0.78);
+  --glass-1-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 1px rgba(58, 15, 52, 0.07), 0 2px 6px -2px rgba(58, 15, 52, 0.1), 0 22px 44px -26px rgba(58, 15, 52, 0.42);
+  --glass-1-filter: blur(var(--blur-panel)) saturate(var(--glass-saturate));
+
+  /* Secondary: supporting panels; lower opacity, softer blur, quieter edge */
+  --glass-2-fill: rgba(255, 255, 255, 0.5);
+  --glass-2-edge: rgba(255, 255, 255, 0.6);
+  --glass-2-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 0 1px rgba(58, 15, 52, 0.05);
+  --glass-2-filter: blur(var(--blur-soft)) saturate(140%);
+
+  /* Floating: sheets, dialogs and menus; the densest light glass with the deepest shadow */
+  --glass-float-fill: linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 245, 250, 0.88) 100%);
+  --glass-float-edge: rgba(255, 255, 255, 0.85);
+  --glass-float-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), 0 0 0 1px rgba(58, 15, 52, 0.08), 0 32px 64px -24px rgba(36, 8, 31, 0.5);
+  --glass-float-filter: blur(var(--blur-float)) saturate(180%);
+  /* Top bars: floating glass that content scrolls under */
+  --glass-bar-fill: rgba(250, 249, 252, 0.74);
+  --glass-bar-edge: rgba(58, 15, 52, 0.08);
+
+  /* Smoked: aubergine glass for the time card, the worker tab bar, the console sidebar and the gate code */
+  --glass-dark-fill: linear-gradient(160deg, rgba(66, 20, 58, 0.93) 0%, rgba(30, 6, 26, 0.95) 100%);
+  --glass-dark-edge: rgba(255, 255, 255, 0.12);
+  --glass-dark-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 0 1px rgba(36, 8, 31, 0.4), 0 28px 48px -26px rgba(36, 8, 31, 0.75);
+  --glass-dark-filter: blur(var(--blur-bar)) saturate(160%);
+  /* Light caught in smoked glass: orchid from the upper left, a trace of marigold lamp at the right */
+  --glass-dark-glint:
+    radial-gradient(90% 70% at 0% 0%, rgba(214, 150, 200, 0.16), transparent 60%),
+    radial-gradient(70% 50% at 100% 0%, rgba(255, 200, 90, 0.07), transparent 60%);
+
+  /* Interactive: buttons, chips, tiles and tabs that sit on glass (no filter of their own) */
+  --glass-control-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.6) 100%);
+  --glass-control-hover: rgba(255, 255, 255, 0.95);
+  --glass-control-edge: rgba(58, 15, 52, 0.2);
+  --glass-control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(58, 15, 52, 0.08);
+  --glass-control-pressed: linear-gradient(180deg, rgba(244, 236, 242, 0.96) 0%, rgba(236, 224, 234, 0.92) 100%);
+  --glass-on-dark: rgba(255, 255, 255, 0.08);
+  --glass-on-dark-hover: rgba(255, 255, 255, 0.14);
+  --glass-on-dark-edge: rgba(255, 255, 255, 0.16);
+
+  /* Wells: recessed areas inside glass (facts, explanations, notes) */
+  --glass-well: rgba(58, 15, 52, 0.045);
+  --glass-well-edge: rgba(58, 15, 52, 0.08);
+  /* Fields: near-opaque, so typed text never competes with what is behind */
+  --glass-field: rgba(255, 255, 255, 0.9);
+  /* Paper: financial and legal documents and dense tables stay almost solid */
+  --glass-paper: rgba(255, 255, 255, 0.94);
+
   /* Elevation */
-  --e-record: 0 1px 2px rgba(36, 8, 31, 0.05), 0 0 0 1px rgba(36, 8, 31, 0.06);
-  --e-float: 0 16px 40px rgba(36, 8, 31, 0.18), 0 0 0 1px rgba(36, 8, 31, 0.06);
-  --e-sheet: 0 -16px 48px rgba(36, 8, 31, 0.24);
+  --e-record: var(--glass-1-shadow);
+  --e-float: var(--glass-float-shadow);
+  --e-sheet: 0 -24px 64px -12px rgba(36, 8, 31, 0.45);
+  --e-lift: 0 10px 24px -14px rgba(58, 15, 52, 0.45);
+  --e-marigold: 0 8px 20px -10px rgba(186, 128, 0, 0.75);
 
   /* Motion */
   --m-fast: 120ms;
   --m-base: 200ms;
   --m-slow: 420ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-glide: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Layout */
   --tap: 48px;
@@ -105,73 +185,10 @@
   --rail-w: 248px;
   --focus-color: var(--fs-aubergine);
 
-  /* Legacy names still used by feature styles that have not been redesigned yet. */
+  /* Brand names kept for older references */
   --brand-ice-silver: var(--fs-silver);
   --brand-deep-aubergine: var(--fs-aubergine);
   --brand-marigold: var(--fs-marigold);
-  --c-bg: var(--fs-canvas);
-  --c-surface: var(--fs-paper);
-  --c-surface-hover: var(--fs-paper);
-  --c-surface-2: var(--fs-sunk);
-  --c-surface-solid: var(--fs-paper);
-  --glass-blur: none;
-  --glass-blur-sm: none;
-  --c-heading: var(--fs-aubergine);
-  --c-aubergine: var(--fs-aubergine);
-  --c-text: var(--fs-ink);
-  --c-muted: var(--fs-ink-2);
-  --c-subtle: var(--fs-ink-3);
-  --c-border: var(--fs-line);
-  --c-border-subtle: var(--fs-line);
-  --c-border-strong: var(--fs-line-strong);
-  --c-border-focus: var(--fs-marigold);
-  --c-navy: var(--fs-aubergine-deep);
-  --c-navy-2: var(--fs-aubergine-deep);
-  --c-navy-border: rgba(234, 170, 0, 0.22);
-  --c-accent: var(--fs-aubergine);
-  --c-accent-hover: var(--fs-aubergine-700);
-  --c-accent-bright: var(--fs-marigold);
-  --c-accent-soft: var(--fs-aubergine-tint);
-  --c-accent-line: rgba(58, 15, 52, 0.16);
-  --c-gold: var(--fs-marigold);
-  --c-gold-hover: var(--fs-marigold-hover);
-  --c-gold-active: #bf8800;
-  --c-gold-text: var(--fs-aubergine-deep);
-  --c-gold-soft: var(--fs-marigold-tint);
-  --c-gold-line: var(--fs-caution-line);
-  --c-good: var(--fs-good);
-  --c-good-soft: var(--fs-good-bg);
-  --c-good-line: var(--fs-good-line);
-  --c-warn: var(--fs-caution);
-  --c-warn-soft: var(--fs-caution-bg);
-  --c-warn-line: var(--fs-caution-line);
-  --c-warn-bar: var(--fs-marigold);
-  --c-bad: var(--fs-danger);
-  --c-bad-strong: var(--fs-danger);
-  --c-bad-soft: var(--fs-danger-bg);
-  --c-bad-line: var(--fs-danger-line);
-  --c-info: var(--fs-info);
-  --c-info-soft: var(--fs-info-bg);
-  --c-info-line: var(--fs-info-line);
-  --c-focus: var(--fs-aubergine);
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius: var(--r-control);
-  --radius-md: var(--r-control);
-  --radius-lg: var(--r-record);
-  --radius-xl: var(--r-slab);
-  --shadow: var(--e-record);
-  --shadow-raised: var(--e-float);
-  --shadow-dark: none;
-  --space-1: var(--sp-1);
-  --space-2: var(--sp-2);
-  --space-3: var(--sp-3);
-  --space-4: var(--sp-4);
-  --space-5: var(--sp-6);
-  --space-6: var(--sp-7);
-  --sidebar: var(--rail-w);
-  --bottom-nav: var(--bottom-bar-h);
-  --font: var(--fs-font-text);
 
   color-scheme: light;
 }
@@ -181,8 +198,48 @@
     --gutter: 24px;
   }
 }
+/* Phones: smaller blur radii, which cost less to draw on mid-range hardware */
+@media (max-width: 599px) {
+  :root {
+    --blur-soft: 8px;
+    --blur-panel: 12px;
+    --blur-bar: 16px;
+    --blur-float: 20px;
+  }
+}
 @media (min-width: 1200px) {
   :root {
     --gutter: 32px;
+  }
+}
+
+/* Without backdrop-filter, or when someone asks for less transparency, every material becomes an
+   opaque surface of the same colour, so text contrast never depends on what is behind it. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-1-fill: linear-gradient(155deg, #ffffff 0%, #f9f8fb 100%);
+    --glass-2-fill: #f7f6f9;
+    --glass-float-fill: #ffffff;
+    --glass-bar-fill: #ffffff;
+    --glass-dark-fill: linear-gradient(160deg, #42143a 0%, #1e061a 100%);
+    --glass-control-fill: #ffffff;
+    --glass-field: #ffffff;
+    --glass-paper: #ffffff;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-1-fill: linear-gradient(155deg, #ffffff 0%, #f9f8fb 100%);
+    --glass-2-fill: #f7f6f9;
+    --glass-float-fill: #ffffff;
+    --glass-bar-fill: #ffffff;
+    --glass-dark-fill: linear-gradient(160deg, #42143a 0%, #1e061a 100%);
+    --glass-control-fill: #ffffff;
+    --glass-field: #ffffff;
+    --glass-paper: #ffffff;
+    --glass-1-filter: none;
+    --glass-2-filter: none;
+    --glass-float-filter: none;
+    --glass-dark-filter: none;
   }
 }

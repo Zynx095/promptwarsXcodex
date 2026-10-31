@@ -1,0 +1,156 @@
+/* Glassmorphism V2: the materials, and which surfaces wear them.
+   Values live in tokens.css; this file is the one place that applies them, so a surface changes
+   material by moving between lists rather than by restating colours, shadows and filters.
+
+   Primary   records and panels that hold a screen's content          blur, gradient fill, lit edge
+   Secondary supporting panels on the canvas                          softer blur, lower opacity
+   Paper     documents and dense tables where reading comes first     blur, near-opaque
+   Floating  sheets and dialogs                                       strongest blur, deepest shadow
+   Bar       top bars that content scrolls beneath                    blur, hairline underneath
+   Smoked    aubergine glass: time card, tab bar, sidebar, gate code   blur, marigold glint
+   Control   buttons, chips, tiles and tabs sitting on glass          no filter of its own
+   Well      recessed areas inside glass                              no filter of its own */
+
+/* ---------- Primary ---------- */
+.glass,
+.card,
+.row-list,
+.week-record,
+.jar,
+.case,
+.heat,
+.passport,
+.login-panel,
+.action-list,
+.ledgers > .ledger,
+.signal,
+.range-picker form,
+.pay-calculation > details > summary {
+  background: var(--glass-1-fill);
+  box-shadow: var(--glass-1-shadow);
+  -webkit-backdrop-filter: var(--glass-1-filter);
+  backdrop-filter: var(--glass-1-filter);
+}
+
+/* ---------- Secondary ---------- */
+.glass-2,
+.home-clear,
+.home-skeleton,
+.passport-add,
+.state-empty {
+  background: var(--glass-2-fill);
+  box-shadow: var(--glass-2-shadow);
+  -webkit-backdrop-filter: var(--glass-2-filter);
+  backdrop-filter: var(--glass-2-filter);
+}
+
+/* ---------- Paper ---------- */
+.glass-paper,
+.statement,
+.table-wrap {
+  background-color: var(--glass-paper);
+  box-shadow: var(--glass-1-shadow);
+  -webkit-backdrop-filter: var(--glass-1-filter);
+  backdrop-filter: var(--glass-1-filter);
+}
+
+/* ---------- Floating ---------- */
+.glass-float,
+.sheet,
+.dialog-card {
+  background: var(--glass-float-fill);
+  box-shadow: var(--glass-float-shadow);
+  -webkit-backdrop-filter: var(--glass-float-filter);
+  backdrop-filter: var(--glass-float-filter);
+}
+
+/* ---------- Bar ---------- */
+.glass-bar,
+.ws-topbar,
+.as-topbar {
+  background: var(--glass-bar-fill);
+  box-shadow:
+    0 1px 0 var(--glass-bar-edge),
+    0 8px 24px -18px rgba(58, 15, 52, 0.35);
+  -webkit-backdrop-filter: var(--glass-1-filter);
+  backdrop-filter: var(--glass-1-filter);
+}
+
+/* ---------- Smoked ---------- */
+.glass-dark,
+.timecard,
+.gate-code,
+.login-story,
+.ws-tabbar,
+.ws-rail,
+.as-sidebar {
+  --focus-color: var(--fs-marigold);
+  background: var(--glass-dark-glint), var(--glass-dark-fill);
+  box-shadow: var(--glass-dark-shadow);
+  color: var(--fs-on-dark);
+  -webkit-backdrop-filter: var(--glass-dark-filter);
+  backdrop-filter: var(--glass-dark-filter);
+}
+
+/* ---------- Control ---------- */
+.glass-control,
+.btn-secondary,
+.check,
+.chip-toggle,
+.lang-button,
+.bell,
+.as-menu,
+.demo-account,
+.rating-option,
+.heat-preset,
+.version,
+.range-picker > summary,
+.btn-oauth {
+  background: var(--glass-control-fill);
+  border-color: var(--glass-control-edge);
+  box-shadow: var(--glass-control-shadow);
+}
+:is(
+    .glass-control,
+    .btn-secondary,
+    .check,
+    .chip-toggle,
+    .lang-button,
+    .bell,
+    .as-menu,
+    .demo-account,
+    .rating-option,
+    .heat-preset,
+    .version,
+    .range-picker > summary,
+    .btn-oauth
+  ):hover:not(:disabled, [aria-pressed='true']) {
+  background: var(--glass-control-hover);
+  border-color: var(--fs-ink-3);
+}
+
+/* Glass inside glass never filters again: the outer pane already frosts the backdrop. */
+:is(.card, .case, .jar, .heat, .signal, .sheet, .dialog-card, .statement) :is(.card, .table-wrap, .row-list, .passport, .state-empty, .statement) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.card .table-wrap,
+.sheet .table-wrap {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+
+/* ---------- Well ---------- */
+.glass-well,
+.explain,
+.privacy-note,
+.case-done,
+.signal-empty,
+.qr-url,
+.receipt-facts > div,
+.timeline-note,
+.receipt-tech code,
+.segmented {
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}

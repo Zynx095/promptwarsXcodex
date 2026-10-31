@@ -20,6 +20,8 @@ import './styles/login.css';
 import './styles/voice.css';
 import './styles/dispute.css';
 import './styles/console.css';
+// Materials last: glass.css applies them to surfaces defined above.
+import './styles/glass.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';

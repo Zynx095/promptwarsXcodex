@@ -10,13 +10,14 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--topbar-h) + var(--sp-4));
+  background: var(--fs-canvas);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--fs-canvas);
+  background: transparent;
   color: var(--fs-ink);
   font-family: var(--fs-font-text);
   font-size: var(--fs-text-md);
@@ -25,6 +26,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+}
+
+/* Atmosphere: two fixed layers painted once and composited, never animated or filtered.
+   ::before holds the light (dusk wash, orchid light, marigold lamp, silver sheen); ::after holds
+   the ledger rules, fading out down the screen, which glass panels visibly frost. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+body::before {
+  background:
+    radial-gradient(70% 55% at 0% 0%, var(--atmo-orchid), transparent 70%), radial-gradient(60% 50% at 100% 100%, var(--atmo-lamp), transparent 72%),
+    radial-gradient(45% 35% at 92% 6%, var(--atmo-sheen), transparent 70%), linear-gradient(180deg, var(--atmo-dusk) 0%, var(--fs-canvas) 60%);
+}
+body::after {
+  background: repeating-linear-gradient(180deg, transparent 0 31px, var(--atmo-rule) 31px 32px);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 85%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 45%, transparent 85%);
 }
 
 /* Indic scripts need more vertical room for stacked vowel signs and conjuncts. */
@@ -196,6 +219,21 @@ svg.icon[data-size='lg'] {
   to {
     opacity: 1;
   }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Expandable sections: what opens settles into place */
+details[open] > :not(summary) {
+  animation: panelIn var(--m-base) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -444,9 +482,28 @@ svg.icon[data-size='lg'] {
 
 /* Print: records on white paper, without controls */
 @media print {
+  html,
   body {
     background: #fff !important;
     color: #000 !important;
+  }
+  body::before,
+  body::after {
+    display: none;
+  }
+  * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  .sheet,
+  .dialog-card,
+  .statement,
+  .jar,
+  .card,
+  .case,
+  .table-wrap {
+    background: #fff !important;
   }
   .btn,
   .btn-group,
