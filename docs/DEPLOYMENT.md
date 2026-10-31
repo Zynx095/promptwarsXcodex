@@ -11,17 +11,20 @@ FairShift is a single container: the Node.js server listens on `$PORT` (Cloud Ru
   gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
   ```
 
-No other external services or credentials are required.
+No other external services or credentials are required for the demo. Speech and photo analysis providers are optional (see below).
 
 ## Environment variables
 
-| Variable         | Required                        | Description                                                                                                                                                                                                                                                                       |
-| ---------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`           | Set by Cloud Run                | HTTP port.                                                                                                                                                                                                                                                                        |
-| `NODE_ENV`       | Set in the image (`production`) | Enables `Secure` cookies, CSP/HSTS headers and static file serving.                                                                                                                                                                                                               |
-| `SESSION_SECRET` | Yes for real use                | At least 32 random characters. Signs session cookies and confidential-report references. Store it in Secret Manager. If missing while `DEMO_MODE=true`, an ephemeral secret is generated and sessions end on restart. If missing with demo mode off, the server refuses to start. |
-| `DATABASE_PATH`  | No                              | SQLite file path. The image default is `/tmp/fairshift/fairshift.db`.                                                                                                                                                                                                             |
-| `DEMO_MODE`      | No                              | `true` seeds synthetic data into an empty database and enables the demo-account list on the sign-in page.                                                                                                                                                                         |
+| Variable                             | Required                        | Description                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                               | Set by Cloud Run                | HTTP port.                                                                                                                                                                                                                                                                        |
+| `NODE_ENV`                           | Set in the image (`production`) | Enables `Secure` cookies, CSP/HSTS headers and static file serving.                                                                                                                                                                                                               |
+| `SESSION_SECRET`                     | Yes for real use                | At least 32 random characters. Signs session cookies and confidential-report references. Store it in Secret Manager. If missing while `DEMO_MODE=true`, an ephemeral secret is generated and sessions end on restart. If missing with demo mode off, the server refuses to start. |
+| `DATABASE_PATH`                      | No                              | SQLite file path. The image default is `/tmp/fairshift/fairshift.db`.                                                                                                                                                                                                             |
+| `DEMO_MODE`                          | No                              | `true` seeds synthetic data into an empty database and enables the demo-account list on the sign-in page.                                                                                                                                                                         |
+| `WEBAUTHN_RP_ID`, `WEBAUTHN_ORIGINS` | For passkeys in production      | Relying party ID (the domain, e.g. `fairshift.example.org`) and the exact origins the app is served from, comma-separated (e.g. `https://fairshift.example.org`). Without them, passkeys are off in production; in development they default to localhost.                         |
+| `GOOGLE_TTS_API_KEY`                 | No                              | Server voice for read-aloud when a phone has no voice for the worker's language. Restrict the key to the Text-to-Speech API.                                                                                                                                                      |
+| `GOOGLE_VISION_API_KEY`              | No                              | Advisory analysis of safety photos. Without it, every photo goes to manual review. Restrict the key to the Vision API.                                                                                                                                                            |
 
 ## Deploy (demo configuration)
 
@@ -75,6 +78,14 @@ docker build -t fairshift .
 docker run --rm -p 8080:8080 -e DEMO_MODE=true -e SESSION_SECRET=<32+ chars> fairshift
 ```
 
+## Persistence: what blocks a production deployment
+
+Both hosting paths documented here keep the SQLite database on the instance's own disk (`/tmp`), which the platform discards when an instance stops, scales or is replaced. That is acceptable only for the synthetic demo. Real worker records, safety photos and passkeys need a durable database, and FairShift does not have one configured yet:
+
+- The data layer (`src/server/db`, `repositories`, `services`) uses Node's synchronous SQLite driver with transactions. Moving to a managed database is either a driver swap that keeps synchronous calls (libSQL embedded replicas, e.g. Turso) or making the services asynchronous for PostgreSQL (Cloud SQL, Neon). Either needs an account and credentials for that database, which this repository does not have.
+- Safety photos are stored in the database (up to six of 1.5 MB per stage per report); with a managed database they move with it, or can move to object storage.
+- Until then, deploy only with `DEMO_MODE=true` and synthetic data, and say so on the deployment.
+
 ## Vercel (demo deployment)
 
 The Prompt Wars submission rules require Google Cloud Run for the final hosted link, so use Vercel only for an additional demo.
@@ -88,3 +99,6 @@ npx vercel deploy --prebuilt --prod   --env NODE_ENV=production --env DEMO_MODE=
 - **How requests are served:** `scripts/build-vercel.mjs` creates a Build Output API v3 directory. The client is served as static files, `/api/*` and `/healthz` go to `src/server/vercel.ts` (the same Express app), and every other path falls back to `index.html`.
 - **Data:** the database lives in `/tmp` and is re-seeded with synthetic data whenever a function instance starts. Different instances may show different demo data, and changes do not persist. This is acceptable for a demonstration only.
 - **Session secret:** set `SESSION_SECRET` so that sessions are valid across instances.
+- **Request size:** Vercel functions accept bodies up to 4.5 MB; FairShift's largest request is one resized photo (about 2 MB of base64), so uploads fit.
+- **Passkeys:** set `WEBAUTHN_RP_ID` to the deployment's domain and `WEBAUTHN_ORIGINS` to its `https://` origin. A passkey is tied to that domain, so passkeys made on a preview URL do not work on another URL.
+- **Function check:** the bundled function (`.vercel/output/functions/api.func/index.mjs`) was started locally with `NODE_ENV=production` and answered health, auth configuration and sign-in correctly.

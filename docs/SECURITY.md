@@ -97,6 +97,27 @@ This document describes the controls FairShift implements and the gaps that rema
 - **Synthetic data:** all seeded data is flagged synthetic and labelled in the UI. No real personal information is included.
 - **Secrets:** no secrets in the repository. `.env` files, keys and credentials are git-ignored, and `.env.example` contains placeholders only.
 
+### Passkeys for attendance (V5)
+
+- **What is stored:** the WebAuthn credential ID, public key, signature counter, transports, device type and a label. Fingerprints, faces, PINs and biometric templates never leave the worker's phone; the browser and operating system run that check.
+- **Challenges:** random, server-generated, bound to one user and one purpose (`register`, `check-in`, `check-out`), valid for five minutes and deleted on first use. An assertion therefore cannot be replayed or used for another action.
+- **Verification:** SimpleWebAuthn checks the signature, the origin and RP ID (from `WEBAUTHN_ORIGINS` / `WEBAUTHN_RP_ID`, never from request headers), user verification (required) and the signature counter. The credential must belong to the signed-in worker and not be revoked. Nothing is recorded unless verification succeeds.
+- **When it applies:** once a worker has a passkey, check-in and check-out require a fresh assertion. Shifts record `check_in_auth` / `check_out_auth` (`passkey` or `session`) and the audit log names the passkey label. The record says "passkey with user verification", never "fingerprint", because WebAuthn does not reveal which method the phone used.
+- **Recovery:** workers revoke a lost phone themselves; administrators can reset a worker's passkeys (audited); supervisors can still record attendance through shift corrections. Attempts are rate limited per worker.
+
+### Safety photos (V5)
+
+- **Intake:** the format is identified from the bytes (JPEG, PNG, WebP) and must match the declared type; dimensions are parsed; files over 1.5 MB or 8000 px are refused; at most six photos per stage per report and 30 uploads an hour per person. The request size limit is raised for the photo route only.
+- **Metadata:** EXIF (including GPS), XMP, IPTC, comments and PNG/WebP text chunks are removed on the server before hashing; the client also re-encodes photos, which drops metadata before upload. No original file name is kept.
+- **Integrity:** each stored photo has a SHA-256 of its stored bytes and an HMAC-SHA256 seal over the evidence record using the receipt signing key (with its key ID for rotation). A trigger refuses changes to stored photos, hashes and seals. The seal shows the photo has not changed since upload; it does not show what the photo depicts.
+- **Access:** photos are served only to people who may see the report (the reporter, or administrators of the same organisation), with `Cache-Control: private, no-store`. A confidential reporter's upload stores no user ID and is shown as "Reporter".
+- **Retention:** photos of reports verified more than 365 days ago are deleted at start-up and daily.
+- **Analysis:** optional (Google Cloud Vision). Only the cleaned image is sent: no report text, names or metadata. Results are advisory and must be confirmed or dismissed by a person; failures are recorded as failures. Provider retention follows Google Cloud's terms for the Vision API.
+
+### Server voice (V5)
+
+- Optional Google Cloud Text-to-Speech, used only when a device has no voice for the worker's language. The key is sent in a header from the server; text is limited to 2000 characters, never logged or stored; audio is not cached; 12 requests a minute and 300 a day per person.
+
 ## Known limitations
 
 - **Authentication strength:** PIN-only for phone accounts. There is no automated self-service password reset or MFA (though OAuth and SMS OTP flows are supported). The throttle resets on restart and is per instance.
@@ -107,4 +128,5 @@ This document describes the controls FairShift implements and the gaps that rema
 - **Activity timing:** the admin dashboard lists check-in/out events by worker name next to report events; timing could hint at who filed a non-confidential report.
 - **Single admin role:** any admin in an organisation can see that organisation's payslips and non-confidential reporter names.
 - **Shared rate limiting:** no WAF or distributed rate limiting; rely on Cloud Run / Cloud Armor for that.
-- **No uploads:** file uploads are not implemented, so there is no upload attack surface.
+- **Photo uploads:** images are parsed for structure and metadata but not re-encoded on the server, so a crafted image that decodes badly in a browser is possible; browsers isolate image decoding, and photos are only shown to people with access to the report.
+- **Rate limits are per instance:** the photo, passkey and voice limits are in memory, like the login throttle.
