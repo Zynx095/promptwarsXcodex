@@ -8,7 +8,13 @@ import { seedIfEmpty } from './db/seed';
 import { createApp } from './app';
 import type { AppContext } from './context';
 
-const config = loadConfig({ ...process.env, DATABASE_PATH: process.env.DATABASE_PATH ?? '/tmp/fairshift.db' });
+// A Vercel function is always a production server; NODE_ENV is not set in project settings
+// because it would also apply to the build and skip the dev dependencies the build needs.
+const config = loadConfig({
+  ...process.env,
+  NODE_ENV: process.env.NODE_ENV ?? 'production',
+  DATABASE_PATH: process.env.DATABASE_PATH ?? '/tmp/fairshift.db',
+});
 const db = openDb(config.databasePath);
 const ctx: AppContext = { db, config, now: () => new Date() };
 if (config.demoMode) seedIfEmpty(ctx);
