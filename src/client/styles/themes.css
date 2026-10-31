@@ -1,0 +1,258 @@
+/* Appearance themes: Light (tokens.css), Dark and Night.
+   Each theme redefines the same tokens, so every surface, control, table, chart, sheet and status
+   colour follows without per-component rules. Dark is deep aubergine-black glass with clear card
+   edges; Night is dimmer and warmer for night shifts and long reading: lower text brightness,
+   muted accents, almost no atmosphere and softer glows. Neither is an inversion of Light: the brand
+   stays (aubergine glass, marigold for the one action that matters) and contrast is checked in
+   tests/unit/themes.test.ts the same way as for Light.
+   The theme is set on <html data-theme> by public/theme-init.js before the first paint. */
+
+:root[data-theme='dark'] {
+  /* Brand accents as text and lines on dark glass: aubergine becomes an orchid tint */
+  --fs-aubergine: #e5b7da;
+  --fs-aubergine-700: #f0d0e8;
+  --fs-aubergine-300: #9d7b95;
+  --fs-aubergine-tint: #3b2237;
+  --fs-marigold-ink: #f4c64a;
+  --fs-marigold-tint: #3a2b08;
+
+  --fs-canvas: #150e14;
+  --fs-paper: #241a22;
+  --fs-sunk: #1c141b;
+  --fs-line: #3b2d38;
+  --fs-line-strong: #5a4856;
+  --fs-line-input: #8f7c8a;
+
+  --fs-ink: #f6eff4;
+  --fs-ink-2: #d6c7d1;
+  --fs-ink-3: #bfadb9;
+
+  --fs-good: #74d8a6;
+  --fs-good-bg: #10291d;
+  --fs-good-line: #24583f;
+  --fs-caution: #f3c76f;
+  --fs-caution-bg: #32250a;
+  --fs-caution-line: #6c5317;
+  --fs-danger: #ff94a7;
+  --fs-danger-bg: #3b1119;
+  --fs-danger-line: #7d2a39;
+  --fs-info: #a2c6f6;
+  --fs-info-bg: #13233a;
+  --fs-info-line: #2d4b77;
+
+  --atmo-dusk: #1b111a;
+  --atmo-orchid: rgba(150, 70, 135, 0.2);
+  --atmo-lamp: rgba(234, 170, 0, 0.07);
+  --atmo-sheen: rgba(255, 255, 255, 0.03);
+  --atmo-rule: rgba(255, 255, 255, 0.022);
+  --atmo-floor: #130c12;
+
+  --glass-1-fill: linear-gradient(155deg, rgba(50, 35, 48, 0.88) 0%, rgba(36, 25, 34, 0.82) 100%);
+  --glass-1-edge: rgba(255, 255, 255, 0.08);
+  --glass-1-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 6px -2px rgba(0, 0, 0, 0.5), 0 22px 44px -26px rgba(0, 0, 0, 0.85);
+  --glass-2-fill: rgba(42, 29, 40, 0.62);
+  --glass-2-edge: rgba(255, 255, 255, 0.06);
+  --glass-2-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --glass-float-fill: linear-gradient(165deg, rgba(46, 32, 44, 0.97) 0%, rgba(33, 23, 31, 0.95) 100%);
+  --glass-float-edge: rgba(255, 255, 255, 0.1);
+  --glass-float-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.09), 0 32px 64px -24px rgba(0, 0, 0, 0.85);
+  --glass-bar-fill: rgba(27, 18, 25, 0.84);
+  --glass-bar-edge: rgba(255, 255, 255, 0.08);
+  /* Smoked glass is a little more saturated than the page, so the time card still stands out */
+  --glass-dark-fill: linear-gradient(160deg, rgba(88, 33, 78, 0.94) 0%, rgba(45, 13, 39, 0.96) 100%);
+  --glass-dark-edge: rgba(255, 255, 255, 0.14);
+  --glass-dark-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 28px 48px -26px rgba(0, 0, 0, 0.9);
+  --glass-control-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.05) 100%);
+  --glass-control-hover: rgba(255, 255, 255, 0.14);
+  --glass-control-edge: rgba(255, 255, 255, 0.18);
+  --glass-control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --glass-control-pressed: linear-gradient(180deg, rgba(229, 183, 218, 0.2) 0%, rgba(229, 183, 218, 0.13) 100%);
+  --glass-well: rgba(255, 255, 255, 0.045);
+  --glass-well-edge: rgba(255, 255, 255, 0.09);
+  --glass-field: rgba(20, 13, 19, 0.92);
+  --glass-paper: rgba(36, 26, 34, 0.96);
+
+  --e-sheet: 0 -24px 64px -12px rgba(0, 0, 0, 0.75);
+  --e-lift: 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+  --e-marigold: 0 8px 20px -10px rgba(186, 128, 0, 0.55);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='night'] {
+  --fs-aubergine: #cfa6c5;
+  --fs-aubergine-700: #dbbad2;
+  --fs-aubergine-300: #8a6c83;
+  --fs-aubergine-tint: #2e1c2b;
+  /* Marigold dimmed so the main action glows less at night; still at least 7:1 under dark text */
+  --fs-marigold: #d39c1c;
+  --fs-marigold-hover: #dca733;
+  --fs-marigold-lit: #ddab3a;
+  --fs-marigold-ink: #d8b25e;
+  --fs-marigold-tint: #2c2108;
+
+  --fs-canvas: #0f0b0e;
+  --fs-paper: #1a1418;
+  --fs-sunk: #141013;
+  --fs-line: #2e252b;
+  --fs-line-strong: #493c45;
+  --fs-line-input: #7c6c77;
+
+  /* Softer whites: no pure white text anywhere */
+  --fs-ink: #e2d7dd;
+  --fs-ink-2: #bfb0b9;
+  --fs-ink-3: #a99aa3;
+  --fs-on-dark: #ebe0e7;
+  --fs-on-dark-2: #cdbac7;
+  --fs-on-dark-3: #bda9b6;
+
+  --fs-good: #82c7a3;
+  --fs-good-bg: #0f2017;
+  --fs-good-line: #1f4733;
+  --fs-caution: #d9b571;
+  --fs-caution-bg: #261d09;
+  --fs-caution-line: #574516;
+  --fs-danger: #e7969f;
+  --fs-danger-bg: #2c1015;
+  --fs-danger-line: #63262f;
+  --fs-info: #99b5db;
+  --fs-info-bg: #111b2b;
+  --fs-info-line: #263b5c;
+
+  --atmo-dusk: #120d11;
+  --atmo-orchid: rgba(120, 60, 105, 0.1);
+  --atmo-lamp: rgba(234, 170, 0, 0.035);
+  --atmo-sheen: rgba(255, 255, 255, 0.015);
+  --atmo-rule: rgba(255, 255, 255, 0.012);
+  --atmo-floor: #0d090c;
+
+  --glass-1-fill: linear-gradient(155deg, rgba(33, 25, 31, 0.9) 0%, rgba(26, 20, 24, 0.86) 100%);
+  --glass-1-edge: rgba(255, 255, 255, 0.05);
+  --glass-1-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.5), 0 18px 36px -24px rgba(0, 0, 0, 0.8);
+  --glass-2-fill: rgba(30, 23, 28, 0.66);
+  --glass-2-edge: rgba(255, 255, 255, 0.04);
+  --glass-2-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --glass-float-fill: linear-gradient(165deg, rgba(33, 25, 31, 0.97) 0%, rgba(25, 19, 23, 0.96) 100%);
+  --glass-float-edge: rgba(255, 255, 255, 0.06);
+  --glass-float-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.06), 0 28px 56px -24px rgba(0, 0, 0, 0.85);
+  --glass-bar-fill: rgba(18, 14, 17, 0.88);
+  --glass-bar-edge: rgba(255, 255, 255, 0.05);
+  --glass-dark-fill: linear-gradient(160deg, rgba(60, 26, 54, 0.95) 0%, rgba(33, 13, 29, 0.97) 100%);
+  --glass-dark-edge: rgba(255, 255, 255, 0.09);
+  --glass-dark-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 24px 44px -26px rgba(0, 0, 0, 0.9);
+  --glass-dark-glint:
+    radial-gradient(90% 70% at 0% 0%, rgba(214, 150, 200, 0.07), transparent 60%),
+    radial-gradient(70% 50% at 100% 0%, rgba(255, 200, 90, 0.03), transparent 60%);
+  --glass-control-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.035) 100%);
+  --glass-control-hover: rgba(255, 255, 255, 0.1);
+  --glass-control-edge: rgba(255, 255, 255, 0.14);
+  --glass-control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --glass-control-pressed: linear-gradient(180deg, rgba(207, 166, 197, 0.16) 0%, rgba(207, 166, 197, 0.1) 100%);
+  --glass-on-dark: rgba(255, 255, 255, 0.06);
+  --glass-on-dark-hover: rgba(255, 255, 255, 0.1);
+  --glass-on-dark-edge: rgba(255, 255, 255, 0.12);
+  --glass-well: rgba(255, 255, 255, 0.035);
+  --glass-well-edge: rgba(255, 255, 255, 0.07);
+  --glass-field: rgba(14, 10, 13, 0.94);
+  --glass-paper: rgba(26, 20, 24, 0.97);
+
+  --e-sheet: 0 -20px 56px -12px rgba(0, 0, 0, 0.8);
+  --e-lift: 0 8px 20px -14px rgba(0, 0, 0, 0.75);
+  --e-marigold: 0 6px 16px -10px rgba(186, 128, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+/* ---------- Surfaces that use literal light colours in Light ---------- */
+/* Light text on the coloured fills that carry white text in Light */
+:root:is([data-theme='dark'], [data-theme='night']) .chip-toggle[aria-pressed='true'],
+:root:is([data-theme='dark'], [data-theme='night']) .explain li::before {
+  color: var(--fs-aubergine-deep);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .btn-danger,
+:root:is([data-theme='dark'], [data-theme='night']) .bell-count {
+  color: #2a0710;
+}
+:root:is([data-theme='dark'], [data-theme='night']) .btn-danger:hover:not(:disabled) {
+  background: var(--fs-danger-line);
+  color: var(--fs-ink);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .action-row:hover,
+:root:is([data-theme='dark'], [data-theme='night']) a.row-item:hover,
+:root:is([data-theme='dark'], [data-theme='night']) button.row-item:hover,
+:root:is([data-theme='dark'], [data-theme='night']) .notif-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .notif-list,
+:root:is([data-theme='dark'], [data-theme='night']) .signal-card {
+  background: rgba(255, 255, 255, 0.035);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .chart-peak span {
+  background: var(--fs-paper);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .skeleton-shimmer {
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.04) 100%);
+}
+:root:is([data-theme='dark'], [data-theme='night']) tbody tr:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .sheet-footer {
+  background: var(--fs-paper);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .segmented-option[aria-selected='true'] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    var(--e-lift);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .row-icon {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, var(--fs-aubergine-tint) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .jar-row-total {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px var(--glass-well-edge),
+    var(--e-lift);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .seal {
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.12) 0%, var(--fs-paper) 70%);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .heat-extreme_caution {
+  --heat-bg: var(--fs-caution-bg);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .lifebar span,
+:root:is([data-theme='dark'], [data-theme='night']) .lifesteps li:not(.is-done, .is-current)::before,
+:root:is([data-theme='dark'], [data-theme='night']) .speak-progress {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .timeline-dot {
+  box-shadow: 0 0 0 3px var(--fs-paper);
+}
+:root:is([data-theme='dark'], [data-theme='night']) .table-wrap {
+  background-image:
+    linear-gradient(to right, var(--fs-paper) 30%, rgba(0, 0, 0, 0)), linear-gradient(to left, var(--fs-paper) 30%, rgba(0, 0, 0, 0)),
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.55), transparent), radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.55), transparent);
+}
+/* The square brand mark gets a hairline so it does not sink into a dark bar */
+:root:is([data-theme='dark'], [data-theme='night']) .brand-mark {
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+/* QR codes keep a white quiet zone: scanners need dark modules on light */
+:root:is([data-theme='dark'], [data-theme='night']) .qr-frame,
+:root:is([data-theme='dark'], [data-theme='night']) .qr-display-code {
+  background: #fff;
+}
+
+/* Night: fewer glows and a calmer atmosphere */
+:root[data-theme='night'] .timecard-dot,
+:root[data-theme='night'] .ruler-running,
+:root[data-theme='night'] .timeline li:last-child .timeline-dot {
+  box-shadow: none;
+}

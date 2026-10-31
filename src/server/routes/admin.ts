@@ -8,6 +8,8 @@ import {
   evidenceReviewSchema,
   orgSettingsSchema,
   paginationSchema,
+  payCheckQuerySchema,
+  paymentCreateSchema,
   payslipIssueSchema,
   reportQuerySchema,
   reportTransitionSchema,
@@ -51,6 +53,9 @@ import { listCheckpoints } from '../repositories/checkpoints';
 import { verifyIndependentBundle } from '../../domain/proof';
 import type { IndependentVerificationBundle } from '../../shared/types';
 import { getSafeSignals } from '../services/signal';
+import { getQrState, refreshQr, startQr, stopQr } from '../services/siteQr';
+import { defaultPayCheckRange, listPayments, orgPayCheck, payCheck, recordPayment } from '../services/payments';
+import { buildRetentionPanel } from '../services/retention';
 
 export function adminRoutes(ctx: AppContext): Router {
   const r = Router();
@@ -242,6 +247,54 @@ export function adminRoutes(ctx: AppContext): Router {
     });
 
     res.json({ ok: true, active });
+  });
+
+  // ---- Rotating site QR check-in display ----
+  r.get('/sites/:id/qr', (req, res) => {
+    const { org } = session(req);
+    res.json(getQrState(ctx, org, param(req, 'id')));
+  });
+  r.post('/sites/:id/qr/start', (req, res) => {
+    const { user, org } = session(req);
+    res.json(startQr(ctx, org, user.id, param(req, 'id')));
+  });
+  r.post('/sites/:id/qr/stop', (req, res) => {
+    const { user, org } = session(req);
+    res.json(stopQr(ctx, org, user.id, param(req, 'id')));
+  });
+  r.post('/sites/:id/qr/refresh', (req, res) => {
+    const { org } = session(req);
+    res.json(refreshQr(ctx, org, param(req, 'id')));
+  });
+
+  // ---- Recorded payments and the possible pay shortfall indicator ----
+  r.get('/pay-check', (req, res) => {
+    const { org } = session(req);
+    const q = parse(payCheckQuerySchema, req.query);
+    const range = { ...defaultPayCheckRange(ctx, org.timezone), ...q };
+    res.json(orgPayCheck(ctx, org, range.from, range.to));
+  });
+  r.get('/pay-check/:workerId', (req, res) => {
+    const { org } = session(req);
+    const q = parse(payCheckQuerySchema, req.query);
+    const range = { ...defaultPayCheckRange(ctx, org.timezone), ...q };
+    res.json(payCheck(ctx, org, param(req, 'workerId'), range.from, range.to));
+  });
+  r.post('/payments', (req, res) => {
+    const { user, org } = session(req);
+    res.status(201).json(recordPayment(ctx, org, user.id, parse(paymentCreateSchema, req.body)));
+  });
+  r.get('/workers/:id/payments', (req, res) => {
+    const { org } = session(req);
+    const id = param(req, 'id');
+    if (!getWorker(ctx.db, org.id, id)) throw notFound('Worker');
+    res.json({ items: listPayments(ctx, org.id, id) });
+  });
+
+  // ---- Retention attention panel (read-only, rule-based) ----
+  r.get('/retention', (req, res) => {
+    const { org } = session(req);
+    res.json(buildRetentionPanel(ctx, org));
   });
 
   // ---- Shifts ----

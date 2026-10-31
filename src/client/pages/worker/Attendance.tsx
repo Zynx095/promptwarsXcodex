@@ -115,6 +115,11 @@ export function WorkerAttendance() {
                                   <BadgeCheck className="icon-xs" aria-hidden="true" />
                                   {t('site.verified')}
                                 </span>
+                              ) : s.checkInMethod === 'site_qr' ? (
+                                <span className="st-site">
+                                  <BadgeCheck className="icon-xs" aria-hidden="true" />
+                                  {t('qr.methodLabel', { site: s.siteName ?? '' })}
+                                </span>
                               ) : null}
                             </span>
                           </td>

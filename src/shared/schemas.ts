@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { isLocalDate } from './time';
 import { FEEDBACK_STATUSES, REPORT_STATUSES, SEVERITIES } from './types';
 import { INSPECTION_CHECKS } from './industries';
+import { SITE_QR_TOKEN_RE } from './siteQr';
 
 const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
@@ -63,6 +64,11 @@ export const reportCreateSchema = z.object({
     .max(INSPECTION_CHECKS.length)
     .refine((c) => new Set(c).size === c.length, 'Each inspection point can be chosen once')
     .default([]),
+  /** Random ID from the phone so a report retried after a lost connection is stored once. */
+  clientRequestId: z
+    .string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+    .optional(),
 });
 
 export const evidenceUploadSchema = z.object({
@@ -174,17 +180,58 @@ export const passkeyRegistrationSchema = z.object({
   }),
 });
 
+export { SITE_QR_TOKEN_RE };
+export const siteQrTokenSchema = z.string().trim().regex(SITE_QR_TOKEN_RE, 'This is not a FairShift site QR code');
+
+/** When a phone saved an action while offline (its own clock): recorded for review, never used as the time. */
+const queuedAtSchema = isoInstantSchema.optional();
+
 export const checkInSchema = z.object({
   siteCode: z
     .string()
     .trim()
     .regex(/^\d{6}$/, 'Enter the 6-digit site code')
     .optional(),
+  qrToken: siteQrTokenSchema.optional(),
   passkey: passkeyAssertionSchema.optional(),
+  queuedAt: queuedAtSchema,
 });
 
 export const checkOutSchema = z.object({
   passkey: passkeyAssertionSchema.optional(),
+  queuedAt: queuedAtSchema,
+});
+
+export const qrResolveSchema = z.object({ token: siteQrTokenSchema });
+
+export const paymentCreateSchema = z
+  .object({
+    workerId: z.string().min(1).max(64),
+    periodStart: localDateSchema,
+    periodEnd: localDateSchema,
+    amountMinor: z
+      .number()
+      .int('Amount must be in whole paise')
+      .min(-100_000_000)
+      .max(100_000_000)
+      .refine((v) => v !== 0, 'Amount cannot be zero'),
+    kind: z.enum(['payment', 'adjustment']).default('payment'),
+    method: z.enum(['cash', 'bank_transfer', 'upi', 'cheque', 'other']),
+    paidOn: localDateSchema,
+    reference: z.string().trim().max(80, 'Reference must be at most 80 characters').default(''),
+    note: z.string().trim().max(300, 'Note must be at most 300 characters').default(''),
+  })
+  .refine((p) => p.periodStart <= p.periodEnd, { message: '"From" must be on or before "To"', path: ['periodEnd'] })
+  .refine((p) => (Date.parse(p.periodEnd) - Date.parse(p.periodStart)) / 86400000 <= 62, {
+    message: 'A payment can cover at most 62 days',
+    path: ['periodEnd'],
+  })
+  .refine((p) => p.kind === 'adjustment' || p.amountMinor > 0, { message: 'A payment must be more than zero', path: ['amountMinor'] })
+  .refine((p) => p.kind === 'payment' || p.note.length >= 3, { message: 'Say why the adjustment is needed', path: ['note'] });
+
+export const payCheckQuerySchema = dateRangeSchema.refine((r) => !r.from || !r.to || (Date.parse(r.to) - Date.parse(r.from)) / 86400000 <= 93, {
+  message: 'Choose a period of at most 93 days',
+  path: ['to'],
 });
 
 export const orgSettingsSchema = z.object({
@@ -301,3 +348,4 @@ export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
 export type SkillCreateInput = z.infer<typeof skillCreateSchema>;
 export type WorkerCreateInput = z.infer<typeof workerCreateSchema>;
 export type SiteCreateInput = z.infer<typeof siteCreateSchema>;
+export type PaymentCreateInput = z.infer<typeof paymentCreateSchema>;

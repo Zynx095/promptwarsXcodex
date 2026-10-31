@@ -2,7 +2,7 @@
 
 **Fair hours. Fair pay. Safe work.**
 
-FairShift is a workforce platform for frontline workers on construction sites and in campus support services (housekeeping, security, sanitation, maintenance). Workers check in and out, see exactly what they earned and why, report hazards (openly or confidentially, with photos) and follow each report until the fix is confirmed. Employers get a console for the workforce, shifts, pay, safety reports, fatigue alerts and an audit log.
+FairShift is a workforce platform for frontline workers on construction sites and in campus support services (housekeeping, security, sanitation, maintenance). Workers check in and out (also by scanning a rotating site QR code, and offline when the site has no signal), see exactly what they earned and whether what was paid matches, report hazards (openly or confidentially, with photos) and follow each report until the fix is confirmed. Employers get a console for the workforce, shifts, pay, recorded payments, safety reports, fatigue alerts, a rule-based retention attention panel and an audit log. It installs as an app on a phone and comes in Light, Dark and Night appearances.
 
 It is built around UN Sustainable Development Goal 8 (Decent Work and Economic Growth): provable working hours, transparent wages and accountable safety fixes.
 
@@ -13,6 +13,7 @@ It is built around UN Sustainable Development Goal 8 (Decent Work and Economic G
 ## Contents
 
 1. [The problems FairShift addresses](#1-the-problems-fairshift-addresses)
+   - [Feature mapping](#feature-mapping)
 2. [Try the demo](#2-try-the-demo)
 3. [Features for workers](#3-features-for-workers)
 4. [Features for employers](#4-features-for-employers)
@@ -26,7 +27,8 @@ It is built around UN Sustainable Development Goal 8 (Decent Work and Economic G
 12. [Testing and quality checks](#12-testing-and-quality-checks)
 13. [Known limitations](#13-known-limitations)
 14. [Further documentation](#14-further-documentation)
-15. [License](#15-license)
+15. [Screenshots](#15-screenshots)
+16. [License](#16-license)
 
 ---
 
@@ -42,6 +44,38 @@ It is built around UN Sustainable Development Goal 8 (Decent Work and Economic G
 | Extreme heat on outdoor sites                                   | A **heat-stress check** computes the heat index (NOAA Rothfusz) and maps it to NDMA-style guidance on water, rest and shade, with a one-tap link to report heat as a hazard.           |
 | Many workers read little English, or read little at all         | The interface is fully translated into **six languages** (English, Hindi, Kannada, Tamil, Telugu, Bengali), with **read-aloud** and **voice dictation**.                               |
 | Buddy punching (one worker checking in for another)             | Optional **passkey check-in** (WebAuthn): the worker's own phone confirms check-in and check-out with its screen lock. No fingerprint or face data ever leaves the phone.              |
+| A static gate code can be shared or photographed                | **Rotating site QR check-in:** a signed, site-bound code that changes every 30 s, expires by the server's clock and works once per worker, on top of the sign-in and passkey.          |
+| Underpayment is only noticed if someone does the sums           | The **possible pay shortfall indicator** compares verified hours at the configured rate with payments the employer recorded, shows the arithmetic and flags gaps for review.           |
+| Sites often have no mobile signal                               | An **installable app** that opens offline and keeps check-ins and reports on the phone, labelled _pending verification_ until the server confirms them.                                |
+| Employers notice problems only after people leave               | A **retention attention panel**: fixed, visible rules over overtime, open alerts, record corrections, unresolved reports and pay gaps, with reasons and follow-ups. Not a prediction.  |
+
+### Feature mapping
+
+How each need maps to what FairShift does, where it lives and what tests it. Paths are under `src/` and `tests/`.
+
+| Need                                   | FairShift functionality                                                                                 | Pages                                                            | Source modules                                                                                                           | Tests                                                                                                        |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| Provable working hours                 | Server-timed check-in/out, signed work receipts, Merkle checkpoints, audited corrections                | Worker Home, Attendance; console Shifts                          | `server/services/attendance.ts`, `server/services/receipts.ts`, `domain/merkle.ts`, `domain/proof.ts`                    | `unit/attendance`, `unit/proof*`, `unit/merkle`, `integration/proof`, `integration/workflows`                |
+| Check-in that cannot simply be shared  | Rotating site code; **rotating, signed, site-bound QR** (expiry, nonce, one use per worker); passkeys   | Worker `/c/<token>`, time card "Scan site QR"; console Sites     | `server/auth/siteQr.ts`, `server/services/siteQr.ts`, `server/services/passkeys.ts`, `client/components/SiteQrPanel.tsx` | `integration/qr-attendance`, `integration/passkeys`, `unit/site-code`, `client/final-update`                 |
+| Transparent wages                      | Money Jar, agreed vs worked vs paid, line-by-line payslips, integer paise                               | Worker Pay, payslip view; console Payslips                       | `domain/payroll.ts`, `domain/moneyJar.ts`, `shared/money.ts`                                                             | `unit/payroll`, `unit/money-jar`, `unit/time-money`                                                          |
+| Spotting underpayment                  | **Possible pay shortfall indicator** and **recorded payments** (append-only), with the full calculation | Worker Pay check, Home; console Pay check                        | `domain/payShortfall.ts`, `server/services/payments.ts`, `client/components/PayCheck.tsx`                                | `unit/pay-shortfall`, `integration/pay-check-retention`, `client/final-update`                               |
+| Raising a wage dispute                 | Wage discrepancy notice citing receipts, with legal disclaimers                                         | Worker payslip view                                              | `domain/dispute.ts`, `client/components/DisputeNoticeModal.tsx`                                                          | `unit/dispute-notice`                                                                                        |
+| Safe work and fixes that really happen | Hazard reports with photos, confidential reporting, Accountability Loop, two-key closure, Safe Signal   | Worker Safety; console Safety reports, Photo inspections         | `server/services/reports.ts`, `server/services/evidence.ts`, `domain/signal.ts`, `domain/accountability.ts`              | `integration/accountability`, `integration/safety-evidence`, `integration/signal`, `unit/signal*`            |
+| Fatigue and heat                       | Excessive-hours alerts, heat-stress check                                                               | Worker Home, Safety; console Hours alerts                        | `domain/fatigue.ts`, `domain/heat.ts`                                                                                    | `unit/safety-fatigue-feedback`, `unit/heat`                                                                  |
+| Keeping people (decent work)           | **Retention attention panel**: rule-based, explained, read-only, never punitive                         | Console Retention attention, Dashboard                           | `domain/retention.ts`, `server/services/retention.ts`, `client/pages/admin/Retention.tsx`                                | `unit/retention`, `integration/pay-check-retention`                                                          |
+| Sites with poor connectivity           | **Installable PWA**, offline shell, outbox for check-ins and reports, update prompt                     | Whole worker app; offline banner and "Saved on this phone" sheet | `client/pwa/sw.js`, `client/pwa/plugin.ts`, `client/lib/outbox.ts`, `client/lib/outboxContext.tsx`, `client/lib/pwa.ts`  | `unit/pwa`, `client/outbox`, `client/pwa-register`, `client/final-update`, `integration/pay-check-retention` |
+| Language and literacy                  | Six languages, read-aloud, dictation; Light, Dark and Night appearances                                 | Every worker screen; Appearance and Language buttons             | `client/lib/i18n.tsx`, `client/lib/speech.ts`, `client/lib/theme.tsx`, `client/styles/themes.css`                        | `unit/i18n`, `unit/speech`, `unit/themes`, `unit/design-tokens`                                              |
+| Privacy and security                   | Tenant isolation, signed sessions, CSRF guard, rate limits, metadata stripping, append-only logs        | All                                                              | `server/auth/*`, `server/app.ts`, `server/db/schema.ts`                                                                  | `unit/*-adversarial`, `integration/session-revocation`, `integration/login-throttle`, `unit/append-only`     |
+
+Quality areas and where the evidence is:
+
+| Area                  | Evidence                                                                                                                           |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| Working functionality | The live demo, the [five-minute tour](#2-try-the-demo), and 450 automated tests that drive the real API and the real React client  |
+| Security and privacy  | [Security and privacy](#11-security-and-privacy), [docs/SECURITY.md](docs/SECURITY.md), the adversarial test files                 |
+| Accessibility         | 44 px targets, WCAG contrast checked in tests for all three themes, reduced-motion and reduced-transparency support, jsx-a11y lint |
+| Honest limits         | [Known limitations](#13-known-limitations): what is not persistent, not proven, or not translated                                  |
+| Deployment            | [Deployment](#9-deployment): Vercel Build Output API, Dockerfile                                                                   |
 
 ---
 
@@ -67,6 +101,9 @@ A suggested five-minute tour:
 1. **As Ravi (worker, `9000000001`):** look at the time card on the home screen, open **Pay** to see the Money Jar and the agreed vs worked vs paid comparison, open a payslip and generate a discrepancy notice, then open **Safety** and report a hazard with a photo. Switch the language to Tamil or Hindi and press **Read aloud**.
 2. **As Priya (admin, `9000000100`):** open the dashboard, the safety report queue and the report Ravi just filed; acknowledge it, add a photo of the fix and mark it resolved. Look at **Photo inspections**, **Excessive-hours alerts** and the **Audit log**.
 3. **Back as Ravi:** confirm or dispute the fix. The report can only be verified after that.
+4. **QR check-in:** as Priya, open **Sites & QR check-in**, choose **QR check-in** on a site and **Start QR check-in**. Sign in as Lakshmi (`9000000002`) on a phone and scan the code with the camera (or **Scan site QR** on the time card): FairShift shows which site it is and checks in only when she confirms.
+5. **Pay check:** as Lakshmi, open **Pay**: the **Pay check** compares her verified hours with the payment recorded for last week and shows the possible shortfall. As Priya, open **Pay check** to see every worker's status and record a payment, then **Retention attention** to see who may need follow-up and why.
+6. **Offline and appearance:** install FairShift from the browser menu, switch the phone to airplane mode and check in: the check-in is saved as _pending verification_ and sent when the connection returns. Use the moon/sun button in the top bar to switch between System, Light, Dark and Night.
 
 The two organisations are fully separated: an admin of one never sees the other's workers, reports or photos.
 
@@ -79,6 +116,7 @@ The two organisations are fully separated: an admin of one never sees the other'
 - Check in and check out from the home screen. Timestamps always come from the server, never the phone.
 - Check-in can require the 6-digit **site code** shown on the employer's console. It rotates every five minutes, so a worker must have seen the current code (it proves presence at the gate display, not GPS location).
 - Shift history with each shift's hours and its signed **work receipt**, which can be opened and verified.
+- **Site QR check-in:** scan the rotating QR code on the site screen with the phone camera or with **Scan site QR** on the time card. FairShift shows the site name and the code's expiry, and records nothing until the worker confirms. The server checks the signature, the site, the expiry by its own clock, that the display is still running and that this worker has not used this code before; the worker's sign-in (and passkey, if they have one) is still required. Shifts started this way show the site in the history.
 - **Passkey check-in (optional):** once a worker adds a passkey under _More → Passkey for check-in_, check-in and check-out each ask the phone to confirm with its own screen lock (fingerprint, face or PIN). A worker can hold up to five passkeys and remove a lost phone; an employer can reset them. Workers without a passkey simply use their sign-in.
 
 ### Pay and the Money Jar
@@ -87,6 +125,7 @@ The two organisations are fully separated: an admin of one never sees the other'
 - **Agreed vs worked vs paid:** contracted rate and schedule, recorded hours, and what was paid, side by side, with any gap stated in rupees.
 - Payslips with a full line-by-line breakdown and a preview of the current period.
 - All money is stored and computed in integer paise.
+- **Pay check (possible pay shortfall indicator):** for a payslip period, this month or last month, it shows expected earnings (closed shifts at the worker's configured rate, overtime and deductions exactly as on a payslip), the payments the employer recorded, and the difference: _No discrepancy identified_, _Possible shortfall_ (under 10% of expected), or _Payment discrepancy requires review_ (10% or more, or nothing recorded). The calculation is shown step by step. Without a configured rate it says the amount cannot be calculated reliably. It applies no statutory minimum wage (rates vary by state, sector, category and date), is not a legal finding, and never moves money.
 
 ### Wage discrepancy notice
 
@@ -117,6 +156,20 @@ The two organisations are fully separated: an admin of one never sees the other'
 - If the device has no voice for a language, it says so plainly and explains how to add one. If `GOOGLE_TTS_API_KEY` is configured, the server provides the voice instead.
 - **Dictation:** speak into report and feedback fields where the browser supports speech recognition.
 
+### Offline and installable app
+
+- FairShift is a Progressive Web App: a web app manifest, app icons (including a maskable icon), standalone display and a service worker. It can be installed from the browser and opens without a connection once it has been used online.
+- **Offline outbox:** a check-in, check-out or safety report made without a connection is saved on the phone and shown as _Waiting to send_ / _Pending verification_. It is sent automatically when the connection returns; each item then shows _Recorded by FairShift_, _Needs you_ (expired sign-in, or a passkey confirmation that needs the person), _Not added: already recorded_ or _Not sent_ with **Try again** and **Remove**.
+- Nothing saved offline counts until the server confirms it. A saved check-in is recorded at the time the server receives it; the phone's own time is kept in the audit log, marked as unverified, for the supervisor to review. Reports carry a random request ID so a retried report is stored once. QR check-in needs a connection (codes expire within a minute).
+- Report forms are saved as a draft while typing. Photos are not stored offline.
+- The service worker caches only the application shell and static files. It never caches `/api` responses, so pay, records, sessions and passkey challenges are never stored by it. Signing out deletes anything unsent from the phone, after a warning.
+- When a new version is deployed, a banner offers **Update now**; nothing reloads by itself.
+
+### Appearance
+
+- **System** (follows the phone), **Light**, **Dark** and **Night**, from the round button in the top bar of both the worker app and the console. The choice is kept on the device and applied before the first paint, so the wrong theme never flashes.
+- Dark is deep aubergine-black glass with clear card edges. Night is dimmer and warmer for night shifts and long reading: no pure white text, a dimmed marigold, a quieter background and fewer glows. All three keep the brand (Deep Aubergine `#3A0F34`, Ice Silver `#DDE3E8`, Marigold `#EAAA00`) and the Glassmorphism V2 materials, and their text contrast is checked in tests.
+
 ### More
 
 - Notifications (shift, pay and report updates), a skills passport with employer-verified skills, and ratings or comments as feedback to the employer.
@@ -129,7 +182,9 @@ The console loads only when an administrator signs in, so the worker app stays s
 
 - **Dashboard:** workforce on shift, hours this week, open safety reports, alerts and accountability metrics (time to acknowledge, time to resolve).
 - **Workforce:** add workers, set rates, activate or deactivate (deactivation signs the worker out everywhere immediately), verify skills, reset a worker's passkeys.
-- **Sites:** sites and locations, and the organisation's rotating check-in code to show at the gate.
+- **Sites & QR check-in:** sites and locations, the organisation's rotating 6-digit check-in code, and per site a **rotating QR display** for a phone, tablet or screen at the entrance: a visible countdown, **New code now**, **Full screen**, **Stop**, active/inactive status, today's QR check-ins and instructions. Starting and stopping are audited.
+- **Retention attention:** counts of workers at _Low_, _Moderate_ and _High_ attention, search, level filter, sorting, and a detail view per worker with each triggered rule, the records behind it (with links) and suggested follow-up. Rules (last 30 days): overtime days, open hours alerts, corrected or over-long shifts, named safety reports still unresolved or disputed, and issued pay periods with a recorded pay gap. Confidential reports and anonymous feedback are never attributed; wage dispute notices are not stored, so they are not counted. It is read-only, says it is not a prediction, and never changes wages, attendance or employment status.
+- **Pay check and recorded payments:** every worker's expected pay, recorded payments and possible shortfall for a period, with status tiles, search and filters; the full calculation per worker; and a form to record a payment made outside FairShift (cash, bank transfer, UPI, cheque). Payment records are append-only (corrections are adjustments with a reason) and audited. FairShift never transfers or deducts money.
 - **Shifts:** all attendance records, with audited corrections.
 - **Safety report queue and case view:** move reports through the lifecycle, add fix photos, review the advisory photo analysis, see Safe Signal patterns.
 - **Photo inspections:** every report with photos, with before/after thumbnails, advisory outcomes, pending reviews and the state of each two-key closure.
@@ -171,13 +226,15 @@ flowchart LR
         I18n[6 languages, lazy loaded]
         Speech[Read-aloud and dictation]
         Passkey[WebAuthn client]
+        PWA[Service worker: app shell only, never /api]
+        Outbox[Offline outbox on the phone]
     end
 
     subgraph Server [Node.js: Express 5]
         Routes[REST API under /api]
         Auth[Signed cookie sessions, CSRF guard, rate limits]
-        Services[Services: attendance, payslips, reports, evidence, passkeys, checkpoints]
-        Domain[Pure domain logic: payroll, heat, fatigue, Merkle, Safe Signal, accountability]
+        Services[Services: attendance, site QR, payments, retention, payslips, reports, evidence, passkeys, checkpoints]
+        Domain[Pure domain logic: payroll, pay shortfall, retention rules, heat, fatigue, Merkle, Safe Signal, accountability]
     end
 
     subgraph Storage [Data]
@@ -222,12 +279,14 @@ Design choices worth knowing:
 .
 ├── src/
 │   ├── client/            React app
-│   │   ├── pages/worker/  Home, Attendance, Payslips, Reports, Feedback, Skills, Security (passkeys)
-│   │   ├── pages/admin/   Dashboard, Workers, Sites, Shifts, Reports, Inspections, Alerts, Payslips, PayRules, Feedback, Audit
+│   │   ├── pages/worker/  Home, Attendance, Payslips, Reports, Feedback, Skills, Security (passkeys), QrCheckIn
+│   │   ├── pages/admin/   Dashboard, Workers, Retention, Sites, Shifts, Reports, Inspections, Alerts, Payslips, PayCheck, PayRules, Feedback, Audit
 │   │   ├── components/    MoneyJar, DisputeNoticeModal, HeatSafetyWidget, PhotoCapture, Evidence, Voice, ReceiptView, ...
-│   │   ├── lib/           API client, i18n, speech, passkeys, image processing
+│   │   ├── lib/           API client, i18n, speech, passkeys, image processing, theme, offline outbox, service worker registration
+│   │   ├── pwa/           service worker template and the build step that writes dist/client/sw.js
+│   │   ├── public/        web app manifest, icons, offline page, pre-paint theme script
 │   │   ├── locales/       en, hi, kn, ta, te, bn
-│   │   └── styles/        design tokens, primitives, glass materials
+│   │   └── styles/        design tokens, Dark and Night themes, primitives, glass materials
 │   ├── server/
 │   │   ├── main.ts        long-running server (local and containers)
 │   │   ├── vercel.ts      the same app as a Vercel function
@@ -244,6 +303,7 @@ Design choices worth knowing:
 │   ├── unit/              domain, client and component tests
 │   └── integration/       API workflows, security, tenancy, passkeys, evidence, sessions
 ├── scripts/build-vercel.mjs   writes .vercel/output (Build Output API v3)
+├── scripts/generate-icons.mjs draws the app icons (PNG) without image tooling
 ├── docs/                  design, security, deployment and release documents
 ├── vercel.json            build settings for Vercel
 └── Dockerfile             container image for other hosts
@@ -390,13 +450,20 @@ npm run check     # format, lint, typecheck, tests
 npm run build     # production builds
 ```
 
-The suite has **44 test files and 381 tests**, covering:
+The suite has **53 test files and 450 tests** (all passing at the time of writing), covering:
 
 - **Domain logic:** payroll and overtime, the Money Jar, heat index tiers, fatigue rules, Merkle proofs, receipt canonicalisation, Safe Signal suppression, the accountability state machine.
 - **API workflows:** sign-in, attendance, payslips, reports from submission to verified outcome, two-key closure and escalation, feedback, skills, CSV export.
 - **Security:** tenant isolation, session revocation, CSRF, rate limits, CSV injection, photo validation and metadata removal, tampered evidence detection, confidential reporter anonymity.
 - **Passkeys:** replayed assertions, expired challenges, wrong action, wrong origin or RP ID, tampered signatures, counter rollback, revoked or foreign passkeys.
 - **Client:** read-aloud voice selection, sentence splitting and failure states, translation coverage across all six locales, design tokens, components.
+- **QR attendance:** token signature and edits, expiry by the server clock, replay by the same worker, refreshed and stopped displays, swapped site codes, other organisations, inactive sites, no session, passkey still required.
+- **Pay shortfall:** integer paise, the 10% boundary, zero, partial, full and over-payment, missing rates, rounding identical to payslips, append-only payment records, validation.
+- **Retention:** rule boundaries, explanations, no attention without records, confidential reports never counted, read-only, no predictive or punitive wording.
+- **PWA and offline:** manifest and icon sizes, the service worker run in a simulated scope (precache, cache cleanup, API never cached, offline fallback, update on request), registration, the outbox (ordering, duplicates, network failure, expired sign-in and passkey, conflicts, retry, sign-out cleanup) and idempotent report retries.
+- **Themes:** all three themes complete, WCAG contrast through every glass material, Night distinct from Dark, opaque fallbacks, the pre-paint script matching the React provider, and switching and persistence in the rendered app.
+
+No coverage percentage is published: coverage is not measured in this project.
 
 CI (`.github/workflows/ci.yml`) runs `npm ci`, the format check, lint, typecheck, tests, the production build and `npm audit --omit=dev` on every push to `main` and every pull request.
 
@@ -410,6 +477,12 @@ CI (`.github/workflows/ci.yml`) runs `npm ci`, the format check, lint, typecheck
 - **Read-aloud** depends on the voices installed on the device; it was tested in Microsoft Edge on Windows.
 - **Photo analysis** is label-based and advisory; before/after comparison is for a person to judge. Photos are not yet included in Merkle checkpoints.
 - Rate limits are per server instance.
+- **QR check-in proves recency, not location.** A photo of the code relayed to someone off site works for up to 60 seconds, once per person; the sign-in (and passkey where enrolled) still has to be that worker. Use it with a supervised screen, as with the 6-digit site code.
+- **Offline check-ins are timed when they reach the server.** The phone's time is recorded for review only, so a worker who checks in offline at 8:00 and reconnects at 8:45 starts at 8:45 unless a supervisor corrects it (audited). QR check-in cannot be queued offline.
+- **The PWA and offline mode were tested** with a simulated service worker scope, happy-dom and headless Microsoft Edge on Windows, not on physical phones. In-app QR scanning needs the browser's `BarcodeDetector` (for example Chrome on Android); elsewhere the phone's camera app opens the code's link instead.
+- **Pay check** uses the rates configured in FairShift and the payments recorded in it. It does not know statutory minimum wages or payments made outside FairShift, and it is not a legal finding.
+- **Retention attention** cannot use worker feedback (anonymous by design) or wage dispute notices (not stored); it lists both as not included.
+- **The employer console is in English.** New console pages are English only; the worker app, including every new worker screen, is in all six languages.
 
 ---
 
@@ -433,6 +506,27 @@ CI (`.github/workflows/ci.yml`) runs `npm ci`, the format check, lint, typecheck
 
 ---
 
-## 15. License
+## 15. Screenshots
+
+Synthetic demo data. Phone screenshots are 390 px wide.
+
+| Screenshot                                                                                  | What it shows                                                                                                   |
+| :------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| [Worker home, Light](docs/screenshots/final-update/01-worker-home-light-390.jpg)            | Time card with **Scan site QR**, the week so far and the theme button in the top bar.                           |
+| [Worker home, Dark](docs/screenshots/final-update/02-worker-home-dark-390.jpg)              | The same screen in Dark: aubergine-black glass, orchid accents, marigold kept for the main action.              |
+| [Worker home, Night](docs/screenshots/final-update/03-worker-home-night-390.jpg)            | Night: dimmer, warmer, no pure white text, during an open shift.                                                |
+| [Appearance sheet](docs/screenshots/final-update/04-appearance-sheet-390.jpg)               | System, Light, Dark and Night, each with a preview swatch.                                                      |
+| [Offline check-in](docs/screenshots/final-update/05-offline-check-in-390.jpg)               | Offline banner and a check-in saved on the phone as _pending verification_.                                     |
+| [Worker pay check](docs/screenshots/final-update/06-pay-check-worker-390.jpg)               | Expected earnings, recorded payment and possible shortfall for last week's payslip.                             |
+| [Site QR display](docs/screenshots/final-update/07-qr-display-console-1280.jpg)             | Console: rotating site QR with countdown, instructions and controls.                                            |
+| [QR check-in on the phone](docs/screenshots/final-update/08-qr-check-in-worker-390.jpg)     | After scanning: the verified site and its expiry; nothing is recorded until the worker confirms.                |
+| [Retention attention](docs/screenshots/final-update/09-retention-console-1280.jpg)          | Console: workers by attention level with the rules that triggered, search, filters and sorting.                 |
+| [Retention detail, Night](docs/screenshots/final-update/10-retention-detail-night-1280.jpg) | One worker's reasons, points, records and suggested follow-ups.                                                 |
+| [Console pay check, Dark](docs/screenshots/final-update/11-pay-check-console-dark-1280.jpg) | Every worker's expected and recorded pay with status, and the record-payment action.                            |
+| [Earlier screens (V4.2)](docs/screenshots/v4.2)                                             | 32 screenshots of sign-in, time card, Money Jar, payslip, dispute notice, reports and the console (Light only). |
+
+---
+
+## 16. License
 
 [MIT](LICENSE).

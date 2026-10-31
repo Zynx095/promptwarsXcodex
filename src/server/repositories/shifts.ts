@@ -17,10 +17,16 @@ export interface ShiftRow {
   checkOutAuth?: AttendanceAuth | null;
   corrected: number;
   synthetic: number;
+  siteId?: string | null;
+  siteName?: string | null;
 }
 
+// A shift with a site_id was checked in by scanning that site's QR code (stored as 'site_code' so
+// databases created before QR check-in keep their CHECK constraint).
 const COLS = `s.id, s.org_id AS orgId, s.worker_id AS workerId, s.check_in_at AS checkInAt, s.check_out_at AS checkOutAt,
-  s.source, s.check_in_method AS checkInMethod, s.check_in_auth AS checkInAuth, s.check_out_auth AS checkOutAuth, s.corrected, s.is_synthetic AS synthetic`;
+  s.source, CASE WHEN s.site_id IS NOT NULL THEN 'site_qr' ELSE s.check_in_method END AS checkInMethod, s.check_in_auth AS checkInAuth,
+  s.check_out_auth AS checkOutAuth, s.corrected, s.is_synthetic AS synthetic, s.site_id AS siteId,
+  (SELECT name FROM sites WHERE sites.id = s.site_id) AS siteName`;
 
 export function toShiftDTO(row: ShiftRow, timeZone: string): ShiftDTO {
   return {
@@ -38,6 +44,8 @@ export function toShiftDTO(row: ShiftRow, timeZone: string): ShiftDTO {
     checkOutAuth: row.checkOutAuth ?? null,
     corrected: Boolean(row.corrected),
     synthetic: Boolean(row.synthetic),
+    siteId: row.siteId ?? null,
+    siteName: row.siteName ?? null,
   };
 }
 
@@ -63,14 +71,16 @@ export function insertShift(
     method?: CheckInMethod;
     auth?: AttendanceAuth;
     synthetic?: boolean;
+    siteId?: string | null;
     at: string;
   },
 ): string {
   const id = randomUUID();
+  const method = s.method === 'site_qr' ? 'site_code' : (s.method ?? 'app');
   db.run(
-    `INSERT INTO shifts (id, org_id, worker_id, check_in_at, check_out_at, source, check_in_method, check_in_auth, is_synthetic, created_at, updated_at)
-     VALUES (@id, @orgId, @workerId, @checkInAt, @checkOutAt, @source, @method, @auth, @synthetic, @at, @at)`,
-    { id, ...s, checkOutAt: s.checkOutAt ?? null, method: s.method ?? 'app', auth: s.auth ?? 'session', synthetic: s.synthetic ?? false },
+    `INSERT INTO shifts (id, org_id, worker_id, check_in_at, check_out_at, source, check_in_method, check_in_auth, is_synthetic, site_id, created_at, updated_at)
+     VALUES (@id, @orgId, @workerId, @checkInAt, @checkOutAt, @source, @method, @auth, @synthetic, @siteId, @at, @at)`,
+    { id, ...s, checkOutAt: s.checkOutAt ?? null, method, auth: s.auth ?? 'session', synthetic: s.synthetic ?? false, siteId: s.siteId ?? null },
   );
   return id;
 }

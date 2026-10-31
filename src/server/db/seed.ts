@@ -12,6 +12,7 @@ import { requireOrg, type OrgRow } from '../repositories/orgs';
 import { recordAudit } from '../repositories/audit';
 import { evaluateWorkerFatigue } from '../services/fatigue';
 import { issuePayslip } from '../services/payslips';
+import { recordPayment } from '../services/payments';
 import { generateReceiptForShift } from '../services/receipts';
 import { createReport, transitionReport } from '../services/reports';
 import { submitFeedback } from '../services/feedback';
@@ -250,6 +251,38 @@ function seedOrg(ctx: AppContext, spec: SeedOrg) {
       // A worker with an open shift in the period gets no issued payslip, as in real use.
     }
   }
+
+  // ---- Recorded payments for that week (synthetic): most paid in full, one short, one partly,
+  // one not recorded at all, so the pay check shows each state ----
+  const paidOn = addDays(lastSunday, 2) <= today ? addDays(lastSunday, 2) : today;
+  spec.workers.forEach((w, wi) => {
+    const slip = ctx.db.get<{ net: number }>(`SELECT net_pay_minor AS net FROM payslips WHERE worker_id = @id AND period_start = @from AND period_end = @to`, {
+      id: w.id,
+      from: lastMonday,
+      to: lastSunday,
+    });
+    if (!slip || slip.net <= 0) return;
+    const share = [100, 82, 96, 100, 0, 100][wi % 6]!;
+    const amountMinor = Math.floor((slip.net * share) / 100);
+    if (amountMinor <= 0) return;
+    recordPayment(
+      ctx,
+      org,
+      spec.admin.id,
+      {
+        workerId: w.id,
+        periodStart: lastMonday,
+        periodEnd: lastSunday,
+        amountMinor,
+        kind: 'payment',
+        method: wi % 2 ? 'upi' : 'bank_transfer',
+        paidOn,
+        reference: `DEMO-${lastSunday.replace(/-/g, '')}-${wi + 1}`,
+        note: '',
+      },
+      { synthetic: true, notify: false },
+    );
+  });
 
   // ---- Safety reports with history ----
   const admin = { id: spec.admin.id, orgId: org.id, role: 'admin' as const };

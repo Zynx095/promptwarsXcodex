@@ -243,3 +243,57 @@
     --glass-dark-filter: none;
   }
 }
+
+/* Dark and Night (themes.css): opaque versions of their glass for the same two cases */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-theme='dark'] {
+    --glass-1-fill: linear-gradient(155deg, #2e212c 0%, #241a22 100%);
+    --glass-2-fill: #261b24;
+    --glass-float-fill: #2a1e28;
+    --glass-bar-fill: #1b1219;
+    --glass-dark-fill: linear-gradient(160deg, #56214c 0%, #2d0d27 100%);
+    --glass-control-fill: #30232d;
+    --glass-field: #140d13;
+    --glass-paper: #241a22;
+  }
+  :root[data-theme='night'] {
+    --glass-1-fill: linear-gradient(155deg, #201a1e 0%, #1a1418 100%);
+    --glass-2-fill: #1c161a;
+    --glass-float-fill: #1f181d;
+    --glass-bar-fill: #120e11;
+    --glass-dark-fill: linear-gradient(160deg, #3c1a36 0%, #210d1d 100%);
+    --glass-control-fill: #251d22;
+    --glass-field: #0e0a0d;
+    --glass-paper: #1a1418;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme='dark'] {
+    --glass-1-fill: linear-gradient(155deg, #2e212c 0%, #241a22 100%);
+    --glass-2-fill: #261b24;
+    --glass-float-fill: #2a1e28;
+    --glass-bar-fill: #1b1219;
+    --glass-dark-fill: linear-gradient(160deg, #56214c 0%, #2d0d27 100%);
+    --glass-control-fill: #30232d;
+    --glass-field: #140d13;
+    --glass-paper: #241a22;
+    --glass-1-filter: none;
+    --glass-2-filter: none;
+    --glass-float-filter: none;
+    --glass-dark-filter: none;
+  }
+  :root[data-theme='night'] {
+    --glass-1-fill: linear-gradient(155deg, #201a1e 0%, #1a1418 100%);
+    --glass-2-fill: #1c161a;
+    --glass-float-fill: #1f181d;
+    --glass-bar-fill: #120e11;
+    --glass-dark-fill: linear-gradient(160deg, #3c1a36 0%, #210d1d 100%);
+    --glass-control-fill: #251d22;
+    --glass-field: #0e0a0d;
+    --glass-paper: #1a1418;
+    --glass-1-filter: none;
+    --glass-2-filter: none;
+    --glass-float-filter: none;
+    --glass-dark-filter: none;
+  }
+}

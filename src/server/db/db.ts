@@ -84,6 +84,9 @@ function migrate(raw: DatabaseSync): void {
     raw.exec(`ALTER TABLE shifts ADD COLUMN check_in_auth TEXT NOT NULL DEFAULT 'session' CHECK (check_in_auth IN ('session', 'passkey'))`);
     raw.exec(`ALTER TABLE shifts ADD COLUMN check_out_auth TEXT CHECK (check_out_auth IN ('session', 'passkey'))`);
   }
+  if (!cols.some((c) => c.name === 'site_id')) {
+    raw.exec(`ALTER TABLE shifts ADD COLUMN site_id TEXT REFERENCES sites(id)`);
+  }
   const reportCols = raw.prepare(`SELECT name FROM pragma_table_info('safety_reports')`).all() as { name: string }[];
   if (!reportCols.some((c) => c.name === 'action_taken')) {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN action_taken TEXT`);
@@ -111,6 +114,11 @@ function migrate(raw: DatabaseSync): void {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN worker_response_note TEXT`);
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN worker_response_at TEXT`);
   }
+  // A random ID the phone attaches to a report it may send more than once (offline retries)
+  if (!reportCols.some((c) => c.name === 'client_request_id')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN client_request_id TEXT`);
+  }
+  raw.exec(`CREATE UNIQUE INDEX IF NOT EXISTS uq_reports_client_request ON safety_reports(org_id, client_request_id) WHERE client_request_id IS NOT NULL`);
   const userCols = raw.prepare(`SELECT name FROM pragma_table_info('users')`).all() as { name: string }[];
   if (!userCols.some((c) => c.name === 'session_version')) {
     raw.exec(`ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0`);

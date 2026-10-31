@@ -20,12 +20,18 @@ import './styles/login.css';
 import './styles/voice.css';
 import './styles/dispute.css';
 import './styles/console.css';
+import './styles/features.css';
 // Materials last: glass.css applies them to surfaces defined above.
 import './styles/glass.css';
+// Dark and Night redefine the tokens and fix the few literal light colours above.
+import './styles/themes.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';
 import { SessionProvider } from './lib/session';
+import { registerServiceWorker } from './lib/pwa';
+
+registerServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

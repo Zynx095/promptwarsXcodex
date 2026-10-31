@@ -43,7 +43,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
         `${t('jar.workedLabel')}: ${m(model.grossPayMinor)}`,
         model.totalDeductionsMinor > 0 ? `${t('pay.deductions')}: ${m(model.totalDeductionsMinor)}` : '',
         `${t('pay.net')}: ${m(model.netPayMinor)}`,
-        `${t('jar.paidLabel')}: ${t('jar.paymentNotRecorded')}`,
+        `${t('jar.paidLabel')}: ${t('jar.paymentSeeCheck')}`,
       ]
         .filter(Boolean)
         .join('. ');
@@ -177,7 +177,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
           </div>
           <div className="jar-row jar-row-paid">
             <dt>{t('jar.paidLabel')}</dt>
-            <dd className="jar-explain">{paid.paymentRecorded ? null : t('jar.paymentNotRecorded')}</dd>
+            <dd className="jar-explain">{paid.paymentRecorded ? null : t('jar.paymentSeeCheck')}</dd>
           </div>
         </dl>
       </div>

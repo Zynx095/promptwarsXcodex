@@ -14,6 +14,8 @@ import { WorkerReportNew, WorkerReports, WorkerReportView } from './pages/worker
 import { WorkerFeedback } from './pages/worker/Feedback';
 import { WorkerSkills } from './pages/worker/Skills';
 import { WorkerSecurity } from './pages/worker/Security';
+import { WorkerQrCheckIn } from './pages/worker/QrCheckIn';
+import { ThemeProvider } from './lib/theme';
 
 // The employer console is loaded only when an administrator opens it, so workers' phones never
 // download it.
@@ -31,6 +33,8 @@ const AdminPayslipView = lazy(() => import('./pages/admin/Payslips').then((m) =>
 const AdminPayRules = lazy(() => import('./pages/admin/PayRules').then((m) => ({ default: m.AdminPayRules })));
 const AdminFeedback = lazy(() => import('./pages/admin/Feedback').then((m) => ({ default: m.AdminFeedback })));
 const AdminAudit = lazy(() => import('./pages/admin/Audit').then((m) => ({ default: m.AdminAudit })));
+const AdminRetention = lazy(() => import('./pages/admin/Retention').then((m) => ({ default: m.AdminRetention })));
+const AdminPayCheck = lazy(() => import('./pages/admin/PayCheck').then((m) => ({ default: m.AdminPayCheck })));
 
 interface Route {
   path: string;
@@ -49,6 +53,8 @@ const ROUTES: Route[] = [
   { path: '/worker/feedback', role: 'worker', render: () => <WorkerFeedback /> },
   { path: '/worker/skills', role: 'worker', render: () => <WorkerSkills /> },
   { path: '/worker/security', role: 'worker', render: () => <WorkerSecurity /> },
+  // Opened by the phone's camera from a site QR code: /c/<token>
+  { path: '/c/:token', role: 'worker', render: (p) => <WorkerQrCheckIn token={p.token!} /> },
   { path: '/admin', role: 'admin', render: () => <AdminDashboard /> },
   { path: '/admin/workers', role: 'admin', render: () => <AdminWorkers /> },
   { path: '/admin/workers/:id/skills', role: 'admin', render: (p) => <AdminWorkerSkills id={p.id!} /> },
@@ -64,6 +70,8 @@ const ROUTES: Route[] = [
   { path: '/admin/pay-rules', role: 'admin', render: () => <AdminPayRules /> },
   { path: '/admin/feedback', role: 'admin', render: () => <AdminFeedback /> },
   { path: '/admin/audit', role: 'admin', render: () => <AdminAudit /> },
+  { path: '/admin/retention', role: 'admin', render: () => <AdminRetention /> },
+  { path: '/admin/pay-check', role: 'admin', render: () => <AdminPayCheck /> },
 ];
 
 function resolve(path: string) {
@@ -86,6 +94,14 @@ function Message({ text }: { text: string }) {
 }
 
 export function App() {
+  return (
+    <ThemeProvider>
+      <Routes />
+    </ThemeProvider>
+  );
+}
+
+function Routes() {
   const { me, loading, error, refresh } = useSession();
   const { path, navigate } = useRouter();
   const { t } = useI18n();

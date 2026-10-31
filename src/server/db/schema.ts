@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS shifts (
   is_synthetic INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  -- Set only when the worker checked in by scanning that site's rotating QR code (check_in_method is then 'site_code')
+  site_id TEXT REFERENCES sites(id),
   CHECK (check_out_at IS NULL OR check_out_at > check_in_at)
 );
 CREATE INDEX IF NOT EXISTS idx_shifts_org_time ON shifts(org_id, check_in_at);
@@ -97,6 +99,7 @@ CREATE TABLE IF NOT EXISTS safety_reports (
   worker_response TEXT CHECK (worker_response IN ('confirmed', 'disputed')),
   worker_response_note TEXT,
   worker_response_at TEXT,
+  client_request_id TEXT,
   CHECK ((confidential = 1 AND reporter_id IS NULL AND reporter_ref IS NOT NULL) OR (confidential = 0 AND reporter_id IS NOT NULL))
 );
 CREATE INDEX IF NOT EXISTS idx_reports_org ON safety_reports(org_id, status, created_at);
@@ -342,6 +345,63 @@ CREATE TABLE IF NOT EXISTS webauthn_challenges (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_webauthn_challenges_user ON webauthn_challenges(user_id, purpose);
+
+-- Rotating site QR check-in. An administrator starts the QR display for a site; while it is active the
+-- server issues short-lived signed tokens (one row per token, keyed by its random nonce). A token is
+-- accepted only before expires_at by the server's clock, only while the display is active and never
+-- twice by the same worker. The QR proves the code was seen recently, not where the phone was.
+CREATE TABLE IF NOT EXISTS site_qr_sessions (
+  site_id TEXT PRIMARY KEY REFERENCES sites(id),
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  active INTEGER NOT NULL DEFAULT 0,
+  started_by TEXT REFERENCES users(id),
+  started_at TEXT,
+  stopped_at TEXT
+);
+CREATE TABLE IF NOT EXISTS site_qr_tokens (
+  nonce TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  site_id TEXT NOT NULL REFERENCES sites(id),
+  issued_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_site_qr_tokens_site ON site_qr_tokens(site_id, issued_at);
+CREATE TABLE IF NOT EXISTS site_qr_uses (
+  nonce TEXT NOT NULL REFERENCES site_qr_tokens(nonce),
+  worker_id TEXT NOT NULL REFERENCES users(id),
+  shift_id TEXT NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+  used_at TEXT NOT NULL,
+  PRIMARY KEY (nonce, worker_id)
+);
+
+-- Wage payments recorded by the employer (cash, bank transfer, UPI...). FairShift does not move money;
+-- these rows only record what the employer says was paid, for a stated pay period. Corrections are new
+-- 'adjustment' rows with a note, never edits.
+CREATE TABLE IF NOT EXISTS wage_payments (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  worker_id TEXT NOT NULL REFERENCES users(id),
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  amount_minor INTEGER NOT NULL CHECK (amount_minor <> 0),
+  kind TEXT NOT NULL CHECK (kind IN ('payment', 'adjustment')),
+  method TEXT NOT NULL CHECK (method IN ('cash', 'bank_transfer', 'upi', 'cheque', 'other')),
+  paid_on TEXT NOT NULL,
+  reference TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL DEFAULT '',
+  recorded_by TEXT REFERENCES users(id),
+  created_at TEXT NOT NULL,
+  is_synthetic INTEGER NOT NULL DEFAULT 0,
+  CHECK (kind = 'adjustment' OR amount_minor > 0),
+  CHECK (period_end >= period_start)
+);
+CREATE INDEX IF NOT EXISTS idx_wage_payments_worker ON wage_payments(worker_id, period_start);
+CREATE INDEX IF NOT EXISTS idx_wage_payments_org ON wage_payments(org_id, period_start);
+CREATE TRIGGER IF NOT EXISTS wage_payments_no_update BEFORE UPDATE ON wage_payments
+BEGIN SELECT RAISE(ABORT, 'wage_payments is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS wage_payments_no_delete BEFORE DELETE ON wage_payments
+BEGIN SELECT RAISE(ABORT, 'wage_payments is append-only'); END;
 
 -- Append-only history: audit events, report status events and proof checkpoints can be added but
 -- never edited or deleted through the application (or any other SQL run against this database).

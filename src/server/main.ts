@@ -30,7 +30,16 @@ setInterval(purge, 24 * 60 * 60 * 1000).unref();
 const app = await createApp(ctx, async (app) => {
   if (config.production) {
     const clientDir = resolve(dirname(fileURLToPath(import.meta.url)), '../client');
-    app.use(express.static(clientDir, { index: false, maxAge: '1h' }));
+    app.use(
+      express.static(clientDir, {
+        index: false,
+        maxAge: '1h',
+        // The service worker and the files it checks for updates are always revalidated
+        setHeaders: (res, file) => {
+          if (/[\\/](sw\.js|manifest\.webmanifest|theme-init\.js|offline\.html)$/.test(file)) res.setHeader('Cache-Control', 'no-cache');
+        },
+      }),
+    );
     app.use((req, res, next) => {
       if (req.method !== 'GET' || req.path.startsWith('/api')) return next();
       res.setHeader('Cache-Control', 'no-cache');

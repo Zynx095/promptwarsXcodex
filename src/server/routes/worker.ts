@@ -10,6 +10,8 @@ import {
   feedbackCreateSchema,
   fixResponseSchema,
   paginationSchema,
+  payCheckQuerySchema,
+  qrResolveSchema,
   reportCreateSchema,
   skillCreateSchema,
 } from '../../shared/schemas';
@@ -45,6 +47,8 @@ import { getShiftReceipts, verifyReceipt } from '../services/receipts';
 import { getIndependentVerificationBundle } from '../services/checkpoints';
 import { getShift } from '../repositories/shifts';
 import { canViewWorkerRecord } from '../../domain/access';
+import { describeQr, resolveQrToken } from '../services/siteQr';
+import { defaultPayCheckRange, payCheck } from '../services/payments';
 
 export function workerRoutes(ctx: AppContext): Router {
   const r = Router();
@@ -80,16 +84,27 @@ export function workerRoutes(ctx: AppContext): Router {
 
   r.post('/attendance/check-in', worker, async (req, res) => {
     const { user, org } = session(req);
-    const { siteCode, passkey } = parse(checkInSchema, req.body ?? {});
+    const { siteCode, qrToken, passkey, queuedAt } = parse(checkInSchema, req.body ?? {});
+    // A bad or expired QR code fails before the passkey check, so the worker is not asked twice
+    if (qrToken) resolveQrToken(ctx, org, qrToken);
     const proof = await attendanceProof(user, 'check-in', passkey);
-    res.status(201).json(checkIn(ctx, org, user.id, siteCode, proof));
+    res.status(201).json(checkIn(ctx, org, user.id, siteCode, proof, { qrToken, queuedAt }));
   });
 
   r.post('/attendance/check-out', worker, async (req, res) => {
     const { user, org } = session(req);
-    const { passkey } = parse(checkOutSchema, req.body ?? {});
+    const { passkey, queuedAt } = parse(checkOutSchema, req.body ?? {});
     const proof = await attendanceProof(user, 'check-out', passkey);
-    res.json(checkOut(ctx, org, user.id, proof));
+    res.json(checkOut(ctx, org, user.id, proof, queuedAt));
+  });
+
+  // What a scanned site QR code points to, so the worker can confirm before anything is recorded
+  const qrLookups = new RateLimiter(30, 15 * 60_000, 'Too many QR scans. Wait a few minutes and try again.');
+  r.post('/attendance/qr/resolve', worker, (req, res) => {
+    const { user, org } = session(req);
+    const { token } = parse(qrResolveSchema, req.body ?? {});
+    qrLookups.take(user.id, ctx.now().getTime());
+    res.json(describeQr(ctx, org, user.id, token));
   });
 
   // ---- Passkeys: register, list and remove this worker's own ----
@@ -123,6 +138,14 @@ export function workerRoutes(ctx: AppContext): Router {
     const { start, end } = localRangeToUtc(range.from, range.to, org.timezone);
     const shifts = listWorkerShifts(ctx.db, user.id, start, end, 200).map((s) => toShiftDTO(s, org.timezone));
     res.json({ range, items: shifts });
+  });
+
+  // ---- Pay check: verified hours at the configured rate vs payments recorded by the employer ----
+  r.get('/pay-check', worker, (req, res) => {
+    const { user, org } = session(req);
+    const q = parse(payCheckQuerySchema, req.query);
+    const range = { ...defaultPayCheckRange(ctx, org.timezone), ...q };
+    res.json(payCheck(ctx, org, user.id, range.from, range.to));
   });
 
   // ---- Payslips ----

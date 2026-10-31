@@ -9,16 +9,23 @@ import { Async, Empty, Page } from '../../components/ui';
 import { PayslipBreakdown } from '../../components/PayslipBreakdown';
 import { MoneyJar } from '../../components/MoneyJar';
 import { DisputeNoticeModal } from '../../components/DisputeNoticeModal';
+import { PayCheckCard, payPeriodOptions } from '../../components/PayCheck';
+import { useMe } from '../../lib/session';
+import { localDate } from '../../../shared/time';
 
 export function WorkerPayslips() {
   const { t, locale } = useI18n();
+  const me = useMe();
   const money = useMoney();
   const preview = useApi<PayslipDTO>('/payslips/preview');
   const issued = useApi<Paged<PayslipListItem>>('/payslips?limit=50');
+  const options = issued.data ? payPeriodOptions(localDate(new Date(), me.org.timezone), issued.data.items, t, locale) : null;
 
   return (
     <Page title={t('pay.title')}>
       <Async state={preview}>{(slip) => <MoneyJar slip={slip} />}</Async>
+
+      {options ? <PayCheckCard key={options.map((o) => o.key).join('|')} options={options} /> : null}
 
       <section aria-labelledby="pay-issued">
         <div className="section-head">
@@ -67,7 +74,7 @@ export function WorkerPayslips() {
 }
 
 export function WorkerPayslipView({ id }: { id: string }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const slip = useApi<PayslipDTO>(`/payslips/${encodeURIComponent(id)}`);
   const [showDispute, setShowDispute] = useState(false);
 
@@ -96,6 +103,7 @@ export function WorkerPayslipView({ id }: { id: string }) {
         {(s) => (
           <>
             <MoneyJar slip={s} />
+            <PayCheckCard options={[{ key: 'slip', label: formatPeriod(s.periodStart, s.periodEnd, locale), from: s.periodStart, to: s.periodEnd }]} />
             <PayslipBreakdown slip={s} />
             {showDispute ? <DisputeNoticeModal slip={s} isOpen={showDispute} onClose={() => setShowDispute(false)} /> : null}
           </>

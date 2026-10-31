@@ -1,9 +1,10 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowDownToLine,
   Biohazard,
   ChevronRight,
   CircleHelp,
+  CloudUpload,
   Cog,
   Construction,
   EyeOff,
@@ -32,6 +33,9 @@ import { ReportDetail } from '../../components/ReportDetail';
 import { HeatSafetyWidget } from '../../components/HeatSafetyWidget';
 import { LifecycleBar } from '../../components/Lifecycle';
 import { PhotoCapture, uploadPhotos, type DraftPhoto } from '../../components/PhotoCapture';
+import { useOutbox } from '../../lib/outboxContext';
+import { isOnline } from '../../lib/online';
+import { isUnsent, loadReportDraft, newId, saveReportDraft } from '../../lib/outbox';
 
 const HAZARD_ICONS: Record<string, LucideIcon> = {
   fall: ArrowDownToLine,
@@ -51,7 +55,15 @@ const HAZARD_ICONS: Record<string, LucideIcon> = {
 export function WorkerReports() {
   const { t, locale } = useI18n();
   const me = useMe();
+  const { search } = useRouter();
+  const outbox = useOutbox();
   const mine = useApi<{ items: SafetyReportDTO[] }>('/reports/mine');
+  const { reload } = mine;
+  const syncedVersion = outbox?.syncedVersion ?? 0;
+  useEffect(() => {
+    if (syncedVersion > 0) reload();
+  }, [syncedVersion, reload]);
+  const waiting = (outbox?.items ?? []).filter((i) => i.kind === 'report' && isUnsent(i));
   return (
     <Page
       title={t('rep.title')}
@@ -62,6 +74,41 @@ export function WorkerReports() {
         </Link>
       }
     >
+      {search.get('saved') ? (
+        <Notice kind="info">
+          {t('off.reportSaved')}
+          {search.get('photos') ? ` ${t('off.photosOffline')}` : ''}
+        </Notice>
+      ) : null}
+      {waiting.length ? (
+        <section aria-labelledby="rep-waiting">
+          <div className="section-head">
+            <h2 id="rep-waiting">{t('off.panelTitle')}</h2>
+          </div>
+          <ul className="row-list">
+            {waiting.map((i) => (
+              <li key={i.id}>
+                <div className="row-item row-static">
+                  <span className="row-icon tone-caution" aria-hidden="true">
+                    <CloudUpload className="icon" />
+                  </span>
+                  <span className="row-text">
+                    <strong>{i.report?.title}</strong>
+                    <span>
+                      {i.status === 'failed'
+                        ? `${t('off.statusFailed')}: ${i.error ?? ''}`
+                        : i.status === 'needs_action'
+                          ? t('off.actionSignin')
+                          : t('off.statusPending')}
+                    </span>
+                    <span className="row-meta">{t('off.savedAt', { time: formatDateTime(i.createdAt, me.org.timezone, locale) })}</span>
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section aria-labelledby="rep-mine">
         <div className="section-head">
           <h2 id="rep-mine">{t('rep.mine')}</h2>
@@ -110,11 +157,54 @@ export function WorkerReportNew() {
   const me = useMe();
   const { navigate } = useRouter();
   const industry = getIndustry(me.org.industry);
-  const [form, setForm] = useState({ category: '', severity: '' as Severity | '', title: '', location: '', description: '' });
-  const [identity, setIdentity] = useState<Identity>('named');
+  const outbox = useOutbox();
+  // An unsent draft of this worker's, kept on this phone as it is typed
+  const [draft] = useState(() => loadReportDraft(me.user.id));
+  const [form, setForm] = useState({
+    category: draft?.category ?? '',
+    severity: (draft?.severity ?? '') as Severity | '',
+    title: draft?.title ?? '',
+    location: draft?.location ?? '',
+    description: draft?.description ?? '',
+  });
+  const [identity, setIdentity] = useState<Identity>(draft?.identity ?? 'named');
   const [photos, setPhotos] = useState<DraftPhoto[]>([]);
-  const [checks, setChecks] = useState<string[]>([]);
-  const [siteId, setSiteId] = useState('');
+  const [checks, setChecks] = useState<string[]>(draft?.checks ?? []);
+  const [siteId, setSiteId] = useState(draft?.siteId ?? '');
+  const [restored, setRestored] = useState(Boolean(draft));
+  // One ID per report: a retry after a lost connection is stored once by the server
+  const [clientRequestId] = useState(newId);
+
+  useEffect(() => {
+    const empty = !form.category && !form.severity && !form.title && !form.location && !form.description && checks.length === 0;
+    const timer = window.setTimeout(() => {
+      saveReportDraft(me.user.id, empty ? null : { ...form, identity, checks, siteId, savedAt: new Date().toISOString() });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [form, identity, checks, siteId, me.user.id]);
+
+  function saveForLater(): boolean {
+    if (!outbox) return false;
+    if (!form.category || !form.severity || form.title.trim().length < 3 || form.description.trim().length < 10 || form.location.trim().length < 2) {
+      setError(new ApiError(400, 'VALIDATION', t('off.reportIncomplete')));
+      requestAnimationFrame(() => errorRef.current?.focus());
+      return true;
+    }
+    outbox.enqueue({
+      kind: 'report',
+      report: {
+        ...form,
+        severity: form.severity as Severity,
+        confidential: identity === 'confidential',
+        inspectionChecks: checks,
+        siteId: siteId || null,
+        clientRequestId,
+      },
+    });
+    saveReportDraft(me.user.id, null);
+    navigate(`/worker/reports?saved=1${photos.length ? '&photos=1' : ''}`);
+    return true;
+  }
   const sites = useApi<{ items: { id: string; name: string }[] }>('/sites');
   const [uploaded, setUploaded] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -124,13 +214,15 @@ export function WorkerReportNew() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError(null);
+    if (!isOnline() && saveForLater()) return;
+    setBusy(true);
     try {
       const created = await api<SafetyReportDTO>('/reports', {
         method: 'POST',
-        body: { ...form, confidential: identity === 'confidential', inspectionChecks: checks, siteId: siteId || null },
+        body: { ...form, confidential: identity === 'confidential', inspectionChecks: checks, siteId: siteId || null, clientRequestId },
       });
+      saveReportDraft(me.user.id, null);
       let failed = 0;
       if (photos.length) {
         setUploaded(0);
@@ -138,7 +230,10 @@ export function WorkerReportNew() {
       }
       navigate(`/worker/reports/${created.id}?created=1${failed ? `&photosFailed=${failed}` : ''}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err : new ApiError(0, 'ERROR', t('common.error')));
+      const apiErr = err instanceof ApiError ? err : new ApiError(0, 'ERROR', t('common.error'));
+      // The connection dropped: keep the report on the phone and send it later (same request ID)
+      if (apiErr.status === 0 && apiErr.code === 'NETWORK' && saveForLater()) return;
+      setError(apiErr);
       requestAnimationFrame(() => errorRef.current?.focus());
     } finally {
       setBusy(false);
@@ -151,6 +246,25 @@ export function WorkerReportNew() {
         <div ref={errorRef} tabIndex={-1} className="form-error-anchor">
           {error ? <ErrorBox error={error} /> : null}
         </div>
+        {restored ? (
+          <Notice kind="info">
+            {t('off.draftRestored')}{' '}
+            <button
+              type="button"
+              className="btn btn-link"
+              onClick={() => {
+                saveReportDraft(me.user.id, null);
+                setForm({ category: '', severity: '', title: '', location: '', description: '' });
+                setChecks([]);
+                setSiteId('');
+                setIdentity('named');
+                setRestored(false);
+              }}
+            >
+              {t('off.discardDraft')}
+            </button>
+          </Notice>
+        ) : null}
 
         <fieldset className={`form-step${f['category'] ? ' has-error' : ''}`}>
           <legend id="category-legend">{t('rep.category')}</legend>

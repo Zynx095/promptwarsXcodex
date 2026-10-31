@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, QrCode } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { api } from '../../lib/api';
 import { Async, Badge, Button, ConfirmDialog, Empty, Field, Notice, Page } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
 import type { SiteDTO } from '../../../shared/types';
+import { SiteQrPanel } from '../../components/SiteQrPanel';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -21,6 +22,7 @@ export function AdminSites() {
   const [toggling, setToggling] = useState<SiteDTO | null>(null);
   const [toggleBusy, setToggleBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: 'success' | 'warning'; text: string } | null>(null);
+  const [qrSite, setQrSite] = useState<SiteDTO | null>(null);
 
   async function handleAddSite(e: FormEvent) {
     e.preventDefault();
@@ -74,8 +76,8 @@ export function AdminSites() {
 
   return (
     <Page
-      title="Sites & Locations"
-      description="A reference list of the worksites, yards and campus buildings in your organisation. Shifts and reports are not linked to a site yet."
+      title="Sites & QR check-in"
+      description="The worksites, yards and campus buildings in your organisation. Workers can name a site in a safety report, and each active site can show a rotating QR code for check-in at its entrance."
       actions={
         <Button variant="primary" onClick={() => setShowAddModal(true)} aria-haspopup="dialog">
           <Plus className="icon-sm" aria-hidden="true" />
@@ -134,6 +136,17 @@ export function AdminSites() {
                       <td>{s.address || <span className="muted">—</span>}</td>
                       <td>{s.active ? <Badge tone="good">Active</Badge> : <Badge tone="neutral">Inactive</Badge>}</td>
                       <td className="cell-end">
+                        <Button
+                          variant="secondary"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setQrSite(s)}
+                          aria-haspopup="dialog"
+                          disabled={!s.active}
+                        >
+                          <QrCode className="icon-sm" aria-hidden="true" />
+                          QR check-in
+                          <span className="visually-hidden"> for {s.name}</span>
+                        </Button>{' '}
                         <Button variant="secondary" className="btn btn-secondary btn-sm" onClick={() => setToggling(s)} aria-haspopup="dialog">
                           {s.active ? 'Deactivate' : 'Activate'}
                           <span className="visually-hidden"> {s.name}</span>
@@ -160,6 +173,10 @@ export function AdminSites() {
         onConfirm={() => toggling && void handleToggleStatus(toggling)}
         onCancel={() => setToggling(null)}
       />
+
+      <Sheet open={qrSite !== null} onClose={() => setQrSite(null)} title="QR check-in" className="qr-sheet">
+        {qrSite ? <SiteQrPanel site={qrSite} /> : null}
+      </Sheet>
 
       <Sheet
         open={showAddModal}

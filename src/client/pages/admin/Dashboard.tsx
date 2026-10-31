@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { AlertTriangle, CalendarClock, ChevronRight, ShieldAlert, Siren, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, CalendarClock, ChevronRight, Scale, ShieldAlert, Siren, UserRoundSearch, type LucideIcon } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { qs } from '../../lib/api';
 import { Link } from '../../lib/router';
 import { useMe } from '../../lib/session';
 import { formatDate, formatDateTime, formatMinutes } from '../../lib/format';
-import type { AccountabilityMetricsDTO, DashboardDTO } from '../../../shared/types';
+import type { AccountabilityMetricsDTO, DashboardDTO, PayCheckSummaryDTO, RetentionPanelDTO } from '../../../shared/types';
+import { lastFullWeek } from '../../components/PayCheck';
+import { localDate } from '../../../shared/time';
 import { Async, BarChart, Button, Card, Empty, Field, Notice, Page } from '../../components/ui';
 
 type Tone = 'default' | 'warn' | 'bad';
@@ -42,6 +44,9 @@ export function AdminDashboard() {
   const [draft, setDraft] = useState({ from: '', to: '' });
   const dash = useApi<DashboardDTO>(`/admin/dashboard${qs(range)}`);
   const accountability = useApi<AccountabilityMetricsDTO>('/admin/reports/accountability');
+  const retention = useApi<RetentionPanelDTO>('/admin/retention');
+  const week = lastFullWeek(localDate(new Date(), me.org.timezone));
+  const payCheck = useApi<PayCheckSummaryDTO>(`/admin/pay-check${qs(week)}`);
 
   return (
     <Page title="Workforce dashboard" description="Every figure is calculated from recorded shifts, hazard reports and alerts for the selected dates.">
@@ -97,6 +102,24 @@ export function AdminDashboard() {
               label: 'Follow-up checks overdue',
               note: 'The date set to check a fix has passed.',
               count: acc.overdueFollowUps,
+            });
+          if (retention.data && retention.data.counts.high > 0)
+            actions.push({
+              to: '/admin/retention',
+              icon: UserRoundSearch,
+              tone: 'tone-caution',
+              label: 'Workers with high retention attention',
+              note: 'Long hours, open reports or pay gaps to follow up. Not a prediction.',
+              count: retention.data.counts.high,
+            });
+          if (payCheck.data && payCheck.data.counts.requires_review > 0)
+            actions.push({
+              to: `/admin/pay-check?from=${week.from}&to=${week.to}`,
+              icon: Scale,
+              tone: 'tone-caution',
+              label: 'Pay records needing review (last week)',
+              note: 'Recorded payments below verified hours at the configured rate.',
+              count: payCheck.data.counts.requires_review,
             });
           if (d.openAlerts > 0)
             actions.push({

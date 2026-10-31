@@ -1,0 +1,678 @@
+/* Final update features: appearance picker, offline status and outbox, app update prompt, site QR
+   check-in (worker and console), pay check and retention attention. Colours come from tokens, so
+   every theme applies; materials are assigned in glass.css. */
+
+/* ---------- Appearance picker ---------- */
+.theme-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--fs-line-strong);
+  border-radius: 50%;
+  color: var(--fs-aubergine);
+  cursor: pointer;
+  transition:
+    background-color var(--m-fast) ease,
+    border-color var(--m-fast) ease;
+}
+.theme-button .icon {
+  width: 20px;
+  height: 20px;
+}
+.theme-options {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  border: 0;
+}
+.theme-option {
+  align-items: center;
+  margin: 0;
+}
+.theme-option input {
+  flex: none;
+}
+.theme-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--fs-line-strong);
+}
+/* Each swatch previews its theme whatever theme is active */
+.theme-swatch[data-swatch='light'] {
+  background: linear-gradient(160deg, #ffffff 0%, #eef1f4 100%);
+  color: #3a0f34;
+}
+.theme-swatch[data-swatch='dark'] {
+  background: linear-gradient(160deg, #2e212c 0%, #150e14 100%);
+  color: #e5b7da;
+}
+.theme-swatch[data-swatch='night'] {
+  background: linear-gradient(160deg, #1f181d 0%, #0f0b0e 100%);
+  color: #cfa6c5;
+}
+.theme-swatch[data-swatch='system'] {
+  background: linear-gradient(135deg, #ffffff 0 50%, #241a22 50% 100%);
+  color: #eaaa00;
+}
+.theme-option-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tile-hint {
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+
+/* ---------- Banners: offline and new version ---------- */
+.offline-banner,
+.update-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-record);
+  border: 1px solid var(--fs-caution-line);
+  background: var(--fs-caution-bg);
+  color: var(--fs-ink);
+  font-size: var(--fs-text-sm);
+  line-height: 1.45;
+}
+.offline-banner p,
+.update-banner p {
+  flex: 1 1 14rem;
+  margin: 0;
+  min-width: 0;
+}
+.offline-banner > .icon,
+.update-banner > .icon {
+  flex: none;
+  color: var(--fs-caution);
+}
+.offline-banner.is-online {
+  border-color: var(--fs-info-line);
+  background: var(--fs-info-bg);
+}
+.offline-banner.is-online > .icon {
+  color: var(--fs-info);
+}
+.offline-banner.needs-you {
+  border-color: var(--fs-danger-line);
+  background: var(--fs-danger-bg);
+}
+.offline-count {
+  font-weight: 650;
+}
+.update-banner {
+  border-color: var(--fs-info-line);
+  background: var(--fs-info-bg);
+}
+.update-banner > .icon {
+  color: var(--fs-info);
+}
+.update-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-left: auto;
+}
+
+/* ---------- Outbox list ---------- */
+.outbox-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.outbox-item {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-record);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+.outbox-item.outbox-needs_action,
+.outbox-item.outbox-failed {
+  box-shadow: inset 0 0 0 1px var(--fs-danger-line);
+}
+.outbox-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.outbox-head strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.outbox-head .badge::before {
+  display: none;
+}
+.outbox-meta,
+.outbox-note {
+  margin: var(--sp-1) 0 0;
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+.outbox-pending-verify {
+  display: inline-block;
+  margin-left: var(--sp-2);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-chip);
+  background: var(--fs-caution-bg);
+  color: var(--fs-caution);
+  font-weight: 650;
+  font-size: var(--fs-text-xs);
+}
+.outbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ---------- Time card: offline and QR ---------- */
+.timecard-offline .timecard-state .icon-sm {
+  color: var(--fs-marigold);
+}
+.timecard-checkin .timecard-qr {
+  width: 100%;
+  margin-top: var(--sp-2);
+}
+.timecard .timecard-qr,
+.timecard-offline .btn-secondary {
+  background: var(--glass-on-dark);
+  border-color: var(--glass-on-dark-edge);
+  color: var(--fs-on-dark);
+}
+.timecard .timecard-qr:hover:not(:disabled),
+.timecard-offline .btn-secondary:hover:not(:disabled) {
+  background: var(--glass-on-dark-hover);
+}
+.timecard-offline .btn-quiet {
+  color: var(--fs-on-dark-2);
+}
+
+/* ---------- Worker: QR scanning and check-in ---------- */
+.qr-scanner {
+  display: grid;
+  gap: var(--sp-3);
+}
+.qr-viewfinder {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  max-width: 22rem;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: var(--r-slab);
+  background: #000;
+}
+.qr-viewfinder video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.qr-target {
+  position: absolute;
+  inset: 18%;
+  border: 3px solid var(--fs-marigold);
+  border-radius: var(--r-record);
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+}
+.qr-scan-fallback {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+.qr-scan-fallback p {
+  margin: 0;
+}
+.qr-checkin {
+  display: grid;
+  gap: var(--sp-3);
+}
+.qr-site {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+  padding: var(--sp-4);
+  border-radius: var(--r-record);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+.qr-site-name {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-xl);
+  color: var(--fs-ink);
+}
+.qr-site-name .icon {
+  color: var(--fs-aubergine);
+}
+.qr-confirm {
+  display: grid;
+  gap: var(--sp-3);
+}
+.qr-confirm p {
+  margin: 0;
+}
+.qr-result {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+  margin: 0;
+}
+.qr-result .icon-lg {
+  width: 40px;
+  height: 40px;
+}
+.qr-result-good .icon-lg {
+  color: var(--fs-good);
+}
+.qr-result-bad > .icon-lg,
+.qr-result-bad > .icon {
+  color: var(--fs-danger);
+}
+p.qr-result {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+
+/* ---------- Console: QR display ---------- */
+.qr-sheet {
+  width: min(100%, 40rem);
+}
+.qr-panel {
+  display: grid;
+  gap: var(--sp-4);
+}
+.qr-panel:fullscreen {
+  align-content: center;
+  justify-items: center;
+  padding: var(--sp-7);
+  background: var(--fs-canvas);
+  overflow: auto;
+}
+.qr-panel:fullscreen .qr-display-code svg {
+  width: min(70vh, 80vw);
+  height: auto;
+}
+.qr-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.qr-panel-site {
+  margin: 0;
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-xl);
+  font-weight: 650;
+  color: var(--fs-ink);
+}
+.qr-display {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  margin: 0;
+}
+.qr-display-code {
+  padding: var(--sp-4);
+  border-radius: var(--r-slab);
+  background: #fff;
+  box-shadow: var(--e-lift);
+  line-height: 0;
+}
+.qr-display-code svg {
+  display: block;
+  width: min(320px, 72vw);
+  height: auto;
+}
+.qr-display figcaption {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: center;
+  width: min(320px, 72vw);
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+.qr-rotate-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--glass-well-edge);
+  overflow: hidden;
+}
+.qr-rotate-bar span {
+  display: block;
+  height: 100%;
+  background: var(--fs-marigold);
+  transition: width 1s linear;
+}
+.qr-instructions {
+  margin: 0;
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+
+/* ---------- Pay check ---------- */
+.paycheck-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.paycheck-head .card-title {
+  margin: 0;
+}
+.paycheck-period {
+  max-width: 22rem;
+}
+.paycheck {
+  display: grid;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.paycheck-verdict {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  border: 1px solid;
+  font-size: var(--fs-text-md);
+}
+.paycheck-verdict.tone-good {
+  color: var(--fs-good);
+  background: var(--fs-good-bg);
+  border-color: var(--fs-good-line);
+}
+.paycheck-verdict.tone-warn {
+  color: var(--fs-caution);
+  background: var(--fs-caution-bg);
+  border-color: var(--fs-caution-line);
+}
+.paycheck-verdict.tone-bad {
+  color: var(--fs-danger);
+  background: var(--fs-danger-bg);
+  border-color: var(--fs-danger-line);
+}
+.paycheck-verdict.tone-neutral {
+  color: var(--fs-info);
+  background: var(--fs-info-bg);
+  border-color: var(--fs-info-line);
+}
+.paycheck-figures {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+}
+/* Phones: one ruled row per figure, label left and amount right, like a statement */
+.paycheck-figures > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-control);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+@media (min-width: 720px) {
+  .paycheck-figures {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .paycheck-figures > div {
+    display: block;
+  }
+}
+.paycheck-card .card-sub {
+  margin-top: var(--sp-2);
+}
+.paycheck-figures dt {
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.paycheck-figures dd {
+  margin: 0;
+  font-size: var(--fs-text-xl);
+  color: var(--fs-ink);
+}
+.paycheck-figures .is-gap {
+  box-shadow: inset 0 0 0 1px var(--fs-danger-line);
+}
+.paycheck-figures .is-gap dd {
+  color: var(--fs-danger);
+}
+.paycheck-note,
+.paycheck-unavailable {
+  margin: 0;
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+}
+.paycheck-calc > summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 650;
+  color: var(--fs-aubergine);
+}
+.paycheck-subhead {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-text-md);
+}
+.paycheck-payments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+.paycheck-payments li {
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--fs-aubergine);
+  background: var(--glass-well);
+  border-radius: 0 var(--r-control) var(--r-control) 0;
+}
+.paycheck-pay-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: baseline;
+}
+.paycheck-pay-meta {
+  color: var(--fs-ink-3);
+  font-size: var(--fs-text-xs);
+}
+.paycheck-disclaimer {
+  margin: 0;
+  color: var(--fs-ink-3);
+  font-size: var(--fs-text-xs);
+}
+.payment-form .segmented-field {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  border: 0;
+}
+.payment-form legend {
+  font-weight: 650;
+  margin-bottom: var(--sp-2);
+}
+td.tone-bad {
+  color: var(--fs-danger);
+  font-weight: 650;
+}
+
+/* ---------- Attention tiles (retention and pay check summaries) ---------- */
+.attention-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--sp-3);
+  margin: 0 0 var(--sp-4);
+}
+.attention-tile {
+  display: grid;
+  gap: var(--sp-1);
+  min-height: 84px;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--glass-control-edge);
+  border-left: 5px solid var(--fs-line-strong);
+  border-radius: var(--r-record);
+  background: var(--glass-control-fill);
+  color: var(--fs-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.attention-tile.tone-bad {
+  border-left-color: var(--fs-danger);
+}
+.attention-tile.tone-warn {
+  border-left-color: var(--fs-marigold);
+}
+.attention-tile.tone-good {
+  border-left-color: var(--fs-good);
+}
+.attention-tile.tone-neutral {
+  border-left-color: var(--fs-info);
+}
+.attention-tile[aria-pressed='true'] {
+  background: var(--glass-control-pressed);
+  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
+}
+.attention-tile-label {
+  color: var(--fs-ink-2);
+  font-size: var(--fs-text-sm);
+  font-weight: 650;
+}
+.attention-tile-value {
+  font-family: var(--fs-font-display);
+  font-size: var(--fs-text-2xl);
+  font-weight: 700;
+}
+
+/* ---------- Retention attention ---------- */
+.retention-list .row-item .badge {
+  flex: none;
+}
+.retention-detail {
+  display: grid;
+  gap: var(--sp-3);
+}
+.retention-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin: 0;
+}
+.retention-factors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.retention-factor {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-record);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+.retention-factor-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.retention-factor details > summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--fs-aubergine);
+  font-weight: 650;
+  font-size: var(--fs-text-sm);
+}
+.retention-records {
+  margin: 0;
+  padding-left: var(--sp-5);
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--fs-text-sm);
+}
+.retention-records li span.muted {
+  margin-right: var(--sp-2);
+}
+.retention-followup {
+  margin: 0;
+  font-size: var(--fs-text-sm);
+}
+.retention-followup-label {
+  display: inline-block;
+  margin-right: var(--sp-1);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-chip);
+  background: var(--fs-info-bg);
+  color: var(--fs-info);
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+}
+.retention-rules ul {
+  margin: 0 0 var(--sp-3);
+  padding-left: var(--sp-5);
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--fs-text-sm);
+}
+.retention-subhead {
+  font-size: var(--fs-text-md);
+  margin: var(--sp-3) 0 var(--sp-2);
+}
+.retention-sheet,
+.paycheck-sheet {
+  width: min(100%, 40rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+  .qr-rotate-bar span {
+    transition: none;
+  }
+}

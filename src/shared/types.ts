@@ -40,8 +40,8 @@ export interface DemoAccount {
 
 export type AttendanceState = 'not_started' | 'on_shift' | 'completed';
 export type ShiftSource = 'app' | 'seed' | 'correction';
-/** How a check-in was made: plain app tap, or with the rotating site code shown at the workplace. */
-export type CheckInMethod = 'app' | 'site_code';
+/** How a check-in was made: plain app tap, the rotating 6-digit site code, or a site's rotating QR code. */
+export type CheckInMethod = 'app' | 'site_code' | 'site_qr';
 
 export interface ShiftDTO {
   id: string;
@@ -59,6 +59,9 @@ export interface ShiftDTO {
   checkOutAuth?: AttendanceAuth | null;
   corrected: boolean;
   synthetic: boolean;
+  /** The site whose QR code was scanned at check-in, if any. */
+  siteId?: string | null;
+  siteName?: string | null;
 }
 
 /** "passkey": a passkey assertion with user verification, checked by the server. "session": the signed-in session only. */
@@ -147,6 +150,35 @@ export interface SiteCodeDTO {
   /** Last instant at which this code is accepted (UTC ISO). */
   validUntil: string;
   requireSiteCode: boolean;
+}
+
+/** The QR display for one site, as the employer console shows it. Times come from the server clock. */
+export interface SiteQrStateDTO {
+  site: SiteDTO;
+  active: boolean;
+  startedAt: string | null;
+  /** Present only while the display is active. */
+  token: string | null;
+  issuedAt: string | null;
+  /** When the display will show a new code. */
+  rotatesAt: string | null;
+  /** Last instant at which this code is accepted. */
+  expiresAt: string | null;
+  serverNow: string;
+  rotateSeconds: number;
+  ttlSeconds: number;
+  /** Check-ins made by scanning this site's QR code today. */
+  checkInsToday: number;
+}
+
+/** What a worker sees after scanning, before confirming the check-in. Nothing is recorded yet. */
+export interface QrResolveDTO {
+  siteId: string;
+  siteName: string;
+  siteAddress: string;
+  expiresAt: string;
+  /** True if this worker already used this exact code. */
+  alreadyUsed: boolean;
 }
 
 export interface TrendPoint {
@@ -695,4 +727,145 @@ export interface InspectionDTO {
   beforeId: string | null;
   afterId: string | null;
   closure: ClosureDTO;
+}
+
+// ---- Recorded wage payments and the possible pay shortfall indicator ----
+
+export const PAYMENT_METHODS = ['cash', 'bank_transfer', 'upi', 'cheque', 'other'] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export interface PaymentDTO {
+  id: string;
+  workerId: string;
+  periodStart: string;
+  periodEnd: string;
+  /** Integer paise. Adjustments may be negative (a correction of an earlier entry). */
+  amountMinor: number;
+  kind: 'payment' | 'adjustment';
+  method: PaymentMethod;
+  paidOn: string;
+  reference: string;
+  note: string;
+  recordedByName: string | null;
+  createdAt: string;
+  synthetic: boolean;
+}
+
+/**
+ * none: no discrepancy identified. possible_shortfall: less was recorded than expected.
+ * requires_review: a large gap, or nothing recorded at all. unavailable: the calculation cannot be made reliably.
+ */
+export type ShortfallStatus = 'no_discrepancy' | 'possible_shortfall' | 'requires_review' | 'unavailable';
+
+export type ShortfallReason =
+  | 'rate_missing'
+  | 'calculation_failed'
+  | 'nothing_due'
+  | 'no_payment_recorded'
+  | 'paid_in_full'
+  | 'recorded_exceeds_expected'
+  | 'small_shortfall'
+  | 'large_shortfall'
+  | 'open_shifts_excluded'
+  | 'payments_outside_period';
+
+export interface ShortfallResultDTO {
+  status: ShortfallStatus;
+  reasons: ShortfallReason[];
+  /** Expected earnings from verified (closed) shifts at the configured rate; null when unavailable. */
+  expected: {
+    regularMinutes: number;
+    overtimeMinutes: number;
+    basePayMinor: number;
+    overtimePayMinor: number;
+    grossPayMinor: number;
+    totalDeductionsMinor: number;
+    netPayMinor: number;
+  } | null;
+  recordedMinor: number;
+  outstandingMinor: number;
+  overpaidMinor: number;
+  paymentCount: number;
+  /** Shortfalls at or above this share of expected pay (basis points) are marked for review. */
+  reviewThresholdBp: number;
+}
+
+export interface PayCheckDTO {
+  workerId: string;
+  workerName: string;
+  jobTitle: string;
+  period: { from: string; to: string };
+  currency: string;
+  rate: { hourlyRateMinor: number; overtimeMultiplierBp: number; scheduledDailyMinutes: number; deductions: DeductionRule[] };
+  shiftsCounted: number;
+  openShiftsExcluded: number;
+  result: ShortfallResultDTO;
+  payments: PaymentDTO[];
+  /** Recorded payments that cover dates outside this period; shown, not counted. */
+  excludedPayments: PaymentDTO[];
+  synthetic: boolean;
+}
+
+export interface PayCheckSummaryItem {
+  workerId: string;
+  workerName: string;
+  jobTitle: string;
+  team: string;
+  status: ShortfallStatus;
+  expectedNetMinor: number | null;
+  recordedMinor: number;
+  outstandingMinor: number;
+  paymentCount: number;
+}
+
+export interface PayCheckSummaryDTO {
+  period: { from: string; to: string };
+  currency: string;
+  counts: Record<ShortfallStatus, number>;
+  items: PayCheckSummaryItem[];
+  /** False when no payment has ever been recorded for this organisation. */
+  paymentsRecorded: boolean;
+}
+
+// ---- Retention attention panel (rule-based, explainable; never a prediction) ----
+
+export type AttentionLevel = 'low' | 'moderate' | 'high';
+export type AttentionFactorKey = 'overtime' | 'hours_alerts' | 'attendance' | 'safety' | 'pay';
+export type AttentionUnavailableKey = 'feedback' | 'wage_disputes' | 'pay';
+
+export interface AttentionRecord {
+  at: string;
+  label: string;
+  link: string | null;
+}
+
+export interface AttentionFactorDTO {
+  key: AttentionFactorKey;
+  label: string;
+  points: number;
+  maxPoints: number;
+  observed: number;
+  reason: string;
+  followUp: string;
+  records: AttentionRecord[];
+}
+
+export interface RetentionWorkerDTO {
+  workerId: string;
+  name: string;
+  jobTitle: string;
+  team: string;
+  level: AttentionLevel;
+  score: number;
+  factors: AttentionFactorDTO[];
+}
+
+export interface RetentionPanelDTO {
+  window: { from: string; to: string; days: number };
+  thresholds: { moderate: number; high: number };
+  counts: Record<AttentionLevel, number>;
+  workers: RetentionWorkerDTO[];
+  unavailable: { key: AttentionUnavailableKey; reason: string }[];
+  disclaimer: string;
+  synthetic: boolean;
 }

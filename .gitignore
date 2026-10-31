@@ -23,3 +23,6 @@ Thumbs.db
 .eslintcache
 test-results/
 playwright-report/
+
+# Local pitch material, not part of the submission
+pitch-preparation/

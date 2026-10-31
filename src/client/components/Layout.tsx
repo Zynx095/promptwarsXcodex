@@ -17,7 +17,9 @@ import {
   ShieldAlert,
   Camera,
   KeyRound,
+  Scale,
   SlidersHorizontal,
+  UserRoundSearch,
   Users,
   Wallet,
   type LucideIcon,
@@ -30,6 +32,12 @@ import { getIndustry } from '../../shared/industries';
 import { NotificationBell } from './NotificationBell';
 import { OverlayLayer, Sheet } from './Sheet';
 import { LanguagePicker } from './LanguagePicker';
+import { ThemePicker } from './ThemePicker';
+import { OfflineBanner } from './OfflineStatus';
+import { AppUpdateBanner } from './AppUpdateBanner';
+import { ConfirmDialog } from './ui';
+import { OutboxProvider } from '../lib/outboxContext';
+import { isUnsent, loadOutbox } from '../lib/outbox';
 
 interface WorkerDestination {
   to: string;
@@ -59,12 +67,14 @@ function isActive(path: string, d: WorkerDestination): boolean {
 const ADMIN_NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/workers', label: 'Workforce', icon: Users },
-  { to: '/admin/sites', label: 'Sites & Locations', icon: MapPin },
+  { to: '/admin/retention', label: 'Retention attention', icon: UserRoundSearch },
+  { to: '/admin/sites', label: 'Sites & QR check-in', icon: MapPin },
   { to: '/admin/shifts', label: 'Shifts', icon: CalendarCheck },
   { to: '/admin/reports', label: 'Safety reports', icon: ShieldAlert },
   { to: '/admin/inspections', label: 'Photo inspections', icon: Camera },
   { to: '/admin/alerts', label: 'Hours alerts', icon: BarChart3 },
   { to: '/admin/payslips', label: 'Payslips', icon: Wallet },
+  { to: '/admin/pay-check', label: 'Pay check', icon: Scale },
   { to: '/admin/pay-rules', label: 'Pay & hours rules', icon: SlidersHorizontal },
   { to: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
   { to: '/admin/audit', label: 'Audit log', icon: ClipboardList },
@@ -98,22 +108,42 @@ function Wordmark() {
 }
 
 function SignOut({ className = 'btn btn-secondary', onDone, compact = true }: { className?: string; onDone?: () => void; compact?: boolean }) {
-  const { logout } = useSession();
+  const { logout, me } = useSession();
   const { t } = useI18n();
   const { navigate } = useRouter();
+  const [confirm, setConfirm] = useState<number | null>(null);
+  const finish = async () => {
+    setConfirm(null);
+    onDone?.();
+    await logout();
+    navigate('/', { replace: true });
+  };
   return (
-    <button
-      type="button"
-      className={className}
-      onClick={async () => {
-        onDone?.();
-        await logout();
-        navigate('/', { replace: true });
-      }}
-    >
-      <LogOut className="icon" aria-hidden="true" />
-      <span className={compact ? 'label-sm-hidden' : undefined}>{t('action.signOut')}</span>
-    </button>
+    <>
+      <button
+        type="button"
+        className={className}
+        onClick={() => {
+          // Unsent check-ins or reports are deleted from the phone at sign-out, so ask first
+          const unsent = me && me.user.role === 'worker' ? loadOutbox(me.user.id).filter(isUnsent).length : 0;
+          if (unsent > 0) setConfirm(unsent);
+          else void finish();
+        }}
+      >
+        <LogOut className="icon" aria-hidden="true" />
+        <span className={compact ? 'label-sm-hidden' : undefined}>{t('action.signOut')}</span>
+      </button>
+      <ConfirmDialog
+        isOpen={confirm !== null}
+        title={t('off.signOutTitle')}
+        message={t('off.signOutBody', { count: confirm ?? 0 })}
+        confirmLabel={t('off.signOutConfirm')}
+        cancelLabel={t('action.cancel')}
+        variant="danger"
+        onConfirm={() => void finish()}
+        onCancel={() => setConfirm(null)}
+      />
+    </>
   );
 }
 
@@ -179,11 +209,14 @@ function WorkerShell({ children }: { children: ReactNode }) {
           ) : null}
           <div className="ws-topbar-tools">
             <LanguagePicker />
+            <ThemePicker />
             <NotificationBell />
           </div>
         </header>
 
         <main id="main" tabIndex={-1}>
+          <AppUpdateBanner />
+          <OfflineBanner />
           {children}
         </main>
       </div>
@@ -313,10 +346,12 @@ function AdminShell({ children }: { children: ReactNode }) {
           ) : null}
           <div className="as-topbar-tools">
             <LanguagePicker />
+            <ThemePicker />
             <NotificationBell />
           </div>
         </header>
         <main id="main" tabIndex={-1}>
+          <AppUpdateBanner />
           {children}
         </main>
       </div>
@@ -354,6 +389,14 @@ export function Layout({ children }: { children: ReactNode }) {
   const { me } = useSession();
   if (!me) return <>{children}</>;
   return (
-    <NotificationsProvider>{me.user.role === 'admin' ? <AdminShell>{children}</AdminShell> : <WorkerShell>{children}</WorkerShell>}</NotificationsProvider>
+    <NotificationsProvider>
+      {me.user.role === 'admin' ? (
+        <AdminShell>{children}</AdminShell>
+      ) : (
+        <OutboxProvider userId={me.user.id}>
+          <WorkerShell>{children}</WorkerShell>
+        </OutboxProvider>
+      )}
+    </NotificationsProvider>
   );
 }

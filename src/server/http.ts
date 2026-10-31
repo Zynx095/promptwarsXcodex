@@ -46,6 +46,7 @@ const DOMAIN_STATUS: Partial<Record<DomainErrorCode, number>> = {
   CONFLICT: 409,
   PASSKEY_REQUIRED: 403,
   PASSKEY_FAILED: 403,
+  QR_ALREADY_USED: 409,
 };
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {

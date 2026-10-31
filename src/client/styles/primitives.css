@@ -409,7 +409,7 @@ fieldset.has-error .check {
   color: var(--fs-aubergine-700);
 }
 .btn-sm {
-  min-height: 40px;
+  min-height: 44px;
   padding: 6px var(--sp-3);
   font-size: var(--fs-text-sm);
 }

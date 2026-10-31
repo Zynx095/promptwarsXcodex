@@ -142,3 +142,13 @@ Pressed controls scale down slightly; row chevrons nudge on hover. There are no 
 ## Verification
 
 See [GLASSMORPHISM_V2_FINAL_REPORT.md](GLASSMORPHISM_V2_FINAL_REPORT.md) for the browser sweep, accessibility, rendered contrast and test results.
+
+## Appearance themes (final update)
+
+Three appearances share one set of tokens. Light is the `:root` block in `src/client/styles/tokens.css`; Dark and Night redefine the same tokens under `:root[data-theme='dark']` and `:root[data-theme='night']` in `src/client/styles/themes.css`, which also fixes the few surfaces that used literal light colours (sheet footers, table hovers, chart labels, skeletons, the danger button). Their opaque fallbacks (no `backdrop-filter`, or reduced transparency) sit at the end of `tokens.css`.
+
+- **Dark:** deep aubergine-black glass with clear card edges; aubergine text and lines become an orchid tint (`#e5b7da`); marigold is unchanged and still carries dark text.
+- **Night:** for night shifts and long reading. Darker canvas, no pure white text (`#e2d7dd`), a dimmed marigold (`#d39c1c`, still 7:1 under dark text), a quieter atmosphere and no glows.
+- **System** follows `prefers-color-scheme`. The choice is stored as `fairshift.theme` on the device; `public/theme-init.js` applies it before the first paint and `src/client/lib/theme.tsx` takes over.
+- QR codes always keep a white quiet zone so scanners can read them.
+- `tests/unit/themes.test.ts` checks every theme's text against every glass material over its darkest background (WCAG AA, 7:1 for body text and the main action).

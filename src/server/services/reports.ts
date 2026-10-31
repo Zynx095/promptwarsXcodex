@@ -154,17 +154,31 @@ export function createReport(
   if (siteId && !ctx.db.get(`SELECT 1 AS ok FROM sites WHERE id = @siteId AND org_id = @orgId AND active = 1`, { siteId, orgId: org.id })) {
     throw new DomainError('INVALID_CATEGORY', 'Choose one of the listed sites.');
   }
+  // A phone retrying after a lost connection sends the same random ID: return the report it already
+  // created instead of storing it twice. Only the same submitter gets it back.
+  const ownRef = scopedReporterRef(ctx.config.signalPseudonymSecret, org.id, actor.id);
+  if (input.clientRequestId) {
+    const existing = ctx.db.get<{ id: string; reporterId: string | null; reporterRef: string | null }>(
+      `SELECT id, reporter_id AS reporterId, reporter_ref AS reporterRef FROM safety_reports WHERE org_id = @orgId AND client_request_id = @key`,
+      { orgId: org.id, key: input.clientRequestId },
+    );
+    if (existing) {
+      if (existing.reporterId === actor.id || existing.reporterRef === ownRef) return getReport(ctx, actor, existing.id)!;
+      throw new DomainError('CONFLICT', 'This report was already sent.');
+    }
+  }
   const id = randomUUID();
   const at = opts.at ?? nowIso(ctx);
   ctx.db.tx(() => {
     ctx.db.run(
-      `INSERT INTO safety_reports (id, org_id, reporter_id, reporter_ref, confidential, category, severity, title, description, location, status, created_at, updated_at, is_synthetic, site_id, inspection_checks)
-       VALUES (@id, @orgId, @reporterId, @reporterRef, @confidential, @category, @severity, @title, @description, @location, 'submitted', @at, @at, @synthetic, @siteId, @checks)`,
+      `INSERT INTO safety_reports (id, org_id, reporter_id, reporter_ref, confidential, category, severity, title, description, location, status, created_at, updated_at, is_synthetic, site_id, inspection_checks, client_request_id)
+       VALUES (@id, @orgId, @reporterId, @reporterRef, @confidential, @category, @severity, @title, @description, @location, 'submitted', @at, @at, @synthetic, @siteId, @checks, @clientRequestId)`,
       {
+        clientRequestId: input.clientRequestId ?? null,
         id,
         orgId: org.id,
         reporterId: input.confidential ? null : actor.id,
-        reporterRef: input.confidential ? scopedReporterRef(ctx.config.signalPseudonymSecret, org.id, actor.id) : null,
+        reporterRef: input.confidential ? ownRef : null,
         confidential: input.confidential,
         category: input.category,
         severity: input.severity,

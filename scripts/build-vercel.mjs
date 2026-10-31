@@ -38,6 +38,8 @@ writeFileSync(
         { src: '/healthz', dest: '/api' },
         { handle: 'filesystem' },
         { src: '/assets/(.*)', headers: { 'cache-control': 'public, max-age=31536000, immutable' }, continue: true },
+        // The service worker and its shell files must be revalidated, so a new release is noticed
+        { src: '/(sw\\.js|manifest\\.webmanifest|theme-init\\.js|offline\\.html)', headers: { 'cache-control': 'no-cache' }, continue: true },
         { src: '/(.*)', dest: '/index.html' },
       ],
     },

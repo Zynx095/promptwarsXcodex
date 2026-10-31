@@ -1,14 +1,16 @@
 // Worker home: answers, in order, "what is my status?", "what have I earned this week?",
 // "what is recorded?", "does anything need me?" and "where are my records?".
 import type { ReactNode } from 'react';
-import { BellRing, ChevronRight, CircleCheck, Clock, IndianRupee, ShieldAlert, TriangleAlert } from 'lucide-react';
+import { BellRing, ChevronRight, CircleCheck, Clock, IndianRupee, Scale, ShieldAlert, TriangleAlert } from 'lucide-react';
 import { useI18n, useMoney } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { useApi, type ApiState } from '../../lib/useApi';
 import { Link, useRouter } from '../../lib/router';
 import { useNotifications } from '../../lib/notifications';
 import { formatDateTime, formatMinutes, formatPeriod } from '../../lib/format';
-import type { AlertDTO, Paged, PayslipDTO, PayslipListItem, SafetyReportDTO } from '../../../shared/types';
+import type { AlertDTO, Paged, PayCheckDTO, PayslipDTO, PayslipListItem, SafetyReportDTO } from '../../../shared/types';
+import { qs } from '../../lib/api';
+import { SHORTFALL_STATUS } from '../../components/PayCheck';
 import { ErrorBox, Skeleton } from '../../components/ui';
 import { ShiftCard } from '../../components/ShiftCard';
 import { WeekStrip } from '../../components/WeekStrip';
@@ -136,10 +138,12 @@ function RecordsSection({
   preview,
   latest,
   reports,
+  payCheck,
 }: {
   preview: ApiState<PayslipDTO>;
   latest: ApiState<Paged<PayslipListItem>>;
   reports: ApiState<{ items: SafetyReportDTO[] }>;
+  payCheck: ApiState<PayCheckDTO>;
 }) {
   const { t, locale } = useI18n();
   const money = useMoney();
@@ -186,6 +190,25 @@ function RecordsSection({
             <ChevronRight className="icon chevron" aria-hidden="true" />
           </Link>
         </li>
+        {payCheck.data ? (
+          <li>
+            <Link to="/worker/payslips" className="row-item">
+              <span
+                className={`row-icon tone-${SHORTFALL_STATUS[payCheck.data.result.status].tone === 'good' ? 'good' : SHORTFALL_STATUS[payCheck.data.result.status].tone === 'neutral' ? 'info' : 'caution'}`}
+                aria-hidden="true"
+              >
+                <Scale className="icon" />
+              </span>
+              <span className="row-text">
+                <strong>{t('paycheck.title')}</strong>
+                <span>
+                  {t(SHORTFALL_STATUS[payCheck.data.result.status].key)}, {formatPeriod(payCheck.data.period.from, payCheck.data.period.to, locale)}
+                </span>
+              </span>
+              <ChevronRight className="icon chevron" aria-hidden="true" />
+            </Link>
+          </li>
+        ) : null}
         <li>
           <Link to="/worker/reports" className="row-item">
             <span className="row-icon" aria-hidden="true">
@@ -214,6 +237,9 @@ export function WorkerHome() {
   const alerts = useApi<{ items: AlertDTO[] }>('/alerts/mine');
   const latest = useApi<Paged<PayslipListItem>>('/payslips?limit=1');
   const reports = useApi<{ items: SafetyReportDTO[] }>('/reports/mine');
+  // Payment status for the most recent issued pay period
+  const lastSlip = latest.data?.items[0];
+  const payCheck = useApi<PayCheckDTO>(lastSlip ? `/pay-check${qs({ from: lastSlip.periodStart, to: lastSlip.periodEnd })}` : null);
   const role = [me.user.jobTitle, me.user.team].filter(Boolean).join(', ');
 
   return (
@@ -230,7 +256,7 @@ export function WorkerHome() {
       />
       <WeekSection preview={preview} />
       <AttentionSection alerts={alerts} />
-      <RecordsSection preview={preview} latest={latest} reports={reports} />
+      <RecordsSection preview={preview} latest={latest} reports={reports} payCheck={payCheck} />
     </div>
   );
 }
