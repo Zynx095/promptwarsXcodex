@@ -181,7 +181,7 @@
 }
 
 @media print {
-  body:has(.dispute-sheet) main > :not(.sheet-backdrop),
+  body:has(.dispute-sheet) :is(.worker-shell, .admin-shell) > :not(.overlay-layer),
   .dispute-sheet .sheet-head,
   .dispute-language {
     display: none !important;

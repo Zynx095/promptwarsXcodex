@@ -218,7 +218,7 @@
 
 /* Printing a receipt prints the receipt alone. */
 @media print {
-  body:has(.receipt-sheet) main > :not(.sheet-backdrop) {
+  body:has(.receipt-sheet) :is(.worker-shell, .admin-shell) > :not(.overlay-layer) {
     display: none !important;
   }
   .sheet-backdrop {

@@ -8,6 +8,7 @@ import type { AuthConfigResponse, DemoAccount } from '../../shared/types';
 import { Button, ErrorBox, Field, Notice } from '../components/ui';
 import { BrandMark, DemoBanner } from '../components/Layout';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { OverlayLayer } from '../components/Sheet';
 import { MobileDemoQrModal } from '../components/MobileDemoQrModal';
 import { Clock, KeyRound, Languages, MessageSquare, MessageSquareText, QrCode, ShieldAlert, Users } from 'lucide-react';
 
@@ -423,6 +424,7 @@ export function LoginPage() {
         </div>
       </main>
       <MobileDemoQrModal isOpen={showQr} onClose={() => setShowQr(false)} />
+      <OverlayLayer />
     </div>
   );
 }

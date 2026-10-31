@@ -978,3 +978,8 @@ td.num .cell-action {
     flex: 1 1 auto;
   }
 }
+
+/* The layer sheets render into; it takes no space of its own */
+.overlay-layer {
+  display: contents;
+}

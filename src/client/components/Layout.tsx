@@ -26,7 +26,7 @@ import { useSession } from '../lib/session';
 import { NotificationsProvider } from '../lib/notifications';
 import { getIndustry } from '../../shared/industries';
 import { NotificationBell } from './NotificationBell';
-import { Sheet } from './Sheet';
+import { OverlayLayer, Sheet } from './Sheet';
 import { LanguagePicker } from './LanguagePicker';
 
 interface WorkerDestination {
@@ -233,6 +233,7 @@ function WorkerShell({ children }: { children: ReactNode }) {
           <SignOut className="btn btn-secondary sheet-signout" compact={false} onDone={() => setMoreOpen(false)} />
         </div>
       </Sheet>
+      <OverlayLayer />
     </div>
   );
 }
@@ -340,6 +341,7 @@ function AdminShell({ children }: { children: ReactNode }) {
           <SignOut className="btn btn-secondary sheet-signout" compact={false} onDone={() => setMenuOpen(false)} />
         </div>
       </Sheet>
+      <OverlayLayer />
     </div>
   );
 }

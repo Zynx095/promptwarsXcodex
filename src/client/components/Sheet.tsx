@@ -1,9 +1,20 @@
 // Modal sheet: rises from the bottom edge on phones, centred dialog on wider screens.
 // Traps focus while open, closes on Escape or a backdrop press, and returns focus to the
-// element that opened it. Rendered in place (no portal) so it stays inside the app tree.
+// element that opened it. It renders into the shell's overlay layer: glass panels use
+// backdrop-filter, which makes them the containing block for fixed descendants, so a sheet
+// opened from inside a panel (the time card, a table row, the top bar) would otherwise be
+// positioned and clipped by that panel instead of the viewport.
 import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+
+const OVERLAY_LAYER_ID = 'fs-overlays';
+
+/** Where sheets render. Each shell (worker, console, sign-in) places one, outside any glass panel. */
+export function OverlayLayer() {
+  return <div id={OVERLAY_LAYER_ID} className="overlay-layer" />;
+}
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -81,7 +92,7 @@ export function Sheet({
 
   if (!open) return null;
 
-  return (
+  const sheet = (
     <div
       className="sheet-backdrop"
       role="presentation"
@@ -105,4 +116,6 @@ export function Sheet({
       </div>
     </div>
   );
+  const layer = document.getElementById(OVERLAY_LAYER_ID);
+  return layer ? createPortal(sheet, layer) : sheet;
 }
