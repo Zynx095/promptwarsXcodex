@@ -88,16 +88,19 @@ Both hosting paths documented here keep the SQLite database on the instance's ow
 
 ## Vercel (demo deployment)
 
-The Prompt Wars submission rules require Google Cloud Run for the final hosted link, so use Vercel only for an additional demo.
+The hosted demo runs on Vercel at <https://fairshift-nine-red.vercel.app>. The Vercel project is connected to the GitHub repository: every push to `main` deploys to production and pull requests get preview deployments. `vercel.json` sets the install command (`npm ci`) and build command (`npm run build:vercel`), whose `.vercel/output` Vercel deploys as-is.
+
+Project environment variables: `SESSION_SECRET` (sensitive) and `DEMO_MODE=true` for Production and Preview; `WEBAUTHN_RP_ID=fairshift-nine-red.vercel.app` and `WEBAUTHN_ORIGINS=https://fairshift-nine-red.vercel.app` for Production. Do not set `NODE_ENV` in the project: it would also apply to the build and skip the dev dependencies the build needs. `src/server/vercel.ts` defaults it to `production`.
+
+Manual deploys:
 
 ```bash
-npm ci
-npm run build:vercel        # writes .vercel/output (static client + one bundled API function)
-npx vercel deploy --prebuilt --prod   --env NODE_ENV=production --env DEMO_MODE=true --env SESSION_SECRET=<48+ random chars>
+npx vercel deploy --prod                                    # remote build with vercel.json
+npm ci && npm run build:vercel && npx vercel deploy --prebuilt --prod
 ```
 
 - **How requests are served:** `scripts/build-vercel.mjs` creates a Build Output API v3 directory. The client is served as static files, `/api/*` and `/healthz` go to `src/server/vercel.ts` (the same Express app), and every other path falls back to `index.html`.
-- **Data:** the database lives in `/tmp` and is re-seeded with synthetic data whenever a function instance starts. Different instances may show different demo data, and changes do not persist. This is acceptable for a demonstration only.
+- **Data:** the database lives in `/tmp` and is re-seeded with synthetic data whenever a function instance starts. Instances do not share data, so a request may reach an instance that has not seen a change made through another, and changes are lost when an instance is recycled or a new deployment goes live. Sign-in works across instances because demo users are identical everywhere and a session cookie's version is adopted by an instance that has an older one. This is acceptable for a demonstration only.
 - **Session secret:** set `SESSION_SECRET` so that sessions are valid across instances.
 - **Request size:** Vercel functions accept bodies up to 4.5 MB; FairShift's largest request is one resized photo (about 2 MB of base64), so uploads fit.
 - **Passkeys:** set `WEBAUTHN_RP_ID` to the deployment's domain and `WEBAUTHN_ORIGINS` to its `https://` origin. A passkey is tied to that domain, so passkeys made on a preview URL do not work on another URL.
