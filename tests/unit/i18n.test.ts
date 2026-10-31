@@ -50,6 +50,32 @@ describe('FairShift Multilingual Architecture & Localization Completeness', () =
     }
   });
 
+  it('writes each language in its own script, with no Hindi left in another language', () => {
+    // Devanagari letters. The danda (U+0964, U+0965) is shared with Bengali, so it is allowed.
+    const devanagari = /[ऀ-ॣ०-ॿ]/;
+    const ownScript: Record<string, RegExp> = {
+      kn: /[ಀ-೿]/,
+      hi: /[ऀ-ॿ]/,
+      ta: /[஀-௿]/,
+      te: /[ఀ-౿]/,
+      bn: /[ঀ-৿]/,
+    };
+
+    for (const l of LANGUAGES) {
+      if (l.code === 'en') continue;
+      const dict = JSON.parse(fs.readFileSync(path.join(localesDir, `${l.code}.json`), 'utf8')) as Record<string, string>;
+      if (l.code !== 'hi') {
+        for (const [key, value] of Object.entries(dict)) {
+          // Language names are written in their own scripts on purpose (for example in the language list).
+          expect(devanagari.test(value.replace(/हिन्दी/g, '')), `"${key}" in ${l.code} contains Devanagari`).toBe(false);
+        }
+      }
+      const values = Object.values(dict);
+      const inScript = values.filter((v) => ownScript[l.code]!.test(v)).length;
+      expect(inScript / values.length, `share of ${l.code} strings written in its own script`).toBeGreaterThanOrEqual(0.95);
+    }
+  });
+
   it('covers core product differentiators: Money Jar, Dispute Notice, Heat Safety, and Proof', () => {
     const requiredPrefixes = ['jar.', 'dispute.', 'heat.', 'proof.', 'rep.', 'pay.', 'att.'];
 
