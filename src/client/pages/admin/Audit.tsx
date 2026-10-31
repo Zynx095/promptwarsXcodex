@@ -49,7 +49,8 @@ export function AdminAudit() {
               <Empty>No audit events.</Empty>
             ) : (
               <>
-                <div className="table-wrap">
+                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the table scrolls sideways on phones and has no links, so keyboard users need to reach it */}
+                <div className="table-wrap" tabIndex={0} role="region" aria-label="Audit log entries">
                   <table>
                     <thead>
                       <tr>

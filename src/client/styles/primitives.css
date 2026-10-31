@@ -944,8 +944,14 @@ td.num .cell-action {
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 2px var(--sp-3);
+  gap: var(--sp-1) var(--sp-3);
   font-size: var(--fs-text-sm);
+}
+/* At least 24 x 24 px per link (WCAG 2.5.8) */
+.cell-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
 }
 .cell-end {
   text-align: right;
