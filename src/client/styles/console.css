@@ -64,6 +64,15 @@
     display: none;
   }
 }
+/* The smallest phones: the menu button, sample-data chip, language and notifications must fit */
+@media (max-width: 399px) {
+  .as-topbar {
+    gap: var(--sp-2);
+  }
+  .as-topbar-brand {
+    display: none;
+  }
+}
 
 .admin-shell main {
   max-width: 1240px;

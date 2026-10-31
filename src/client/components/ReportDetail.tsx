@@ -90,7 +90,8 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
           </section>
         ) : null}
 
-        {open ? <Notice kind="info">{t('rep.reportedHazardNote')}</Notice> : null}
+        {/* Addressed to the worker ("your employer"), so administrators do not see it */}
+        {open && me.user.role !== 'admin' ? <Notice kind="info">{t('rep.reportedHazardNote')}</Notice> : null}
         {report.synthetic ? <p className="case-foot">{t('rep.syntheticNote')}</p> : null}
       </article>
 
