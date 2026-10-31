@@ -2,13 +2,15 @@
 // one action that matters (check in or check out). Hours come from the server; the only value
 // computed here is how long the open shift has been running, shown as "so far".
 import { useEffect, useRef, useState } from 'react';
-import { BadgeCheck, CircleCheck, LogIn, LogOut } from 'lucide-react';
+import { BadgeCheck, CircleCheck, KeyRound, LogIn, LogOut, ShieldCheck } from 'lucide-react';
+import { attendanceAssertion, isCancelled } from '../lib/passkey';
+import { Link } from '../lib/router';
 import { api, ApiError } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { useApi } from '../lib/useApi';
 import { formatDateTime, formatMinutes, formatTime } from '../lib/format';
 import { useMe } from '../lib/session';
-import type { AttendanceStatusDTO, ShiftDTO } from '../../shared/types';
+import type { AttendanceStatusDTO, PasskeysResponse, ShiftDTO } from '../../shared/types';
 import { Button, ConfirmDialog, ErrorBox, Field, Skeleton } from './ui';
 import { ReadAloudButton } from './Voice';
 
@@ -32,6 +34,9 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
   const me = useMe();
   const tz = me.org.timezone;
   const status = useApi<AttendanceStatusDTO>('/attendance/status');
+  const passkeys = useApi<PasskeysResponse>('/passkeys');
+  const passkeyOn = Boolean(passkeys.data?.required);
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -48,7 +53,22 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
     setError(null);
     setMessage(null);
     try {
-      const body = kind === 'check-in' && siteCode ? { siteCode } : {};
+      const body: Record<string, unknown> = kind === 'check-in' && siteCode ? { siteCode } : {};
+      if (passkeyOn) {
+        // The phone's own check (fingerprint, face or PIN); the server verifies the answer
+        setConfirming(true);
+        try {
+          body.passkey = await attendanceAssertion(kind);
+        } catch (err) {
+          throw isCancelled(err)
+            ? new ApiError(0, 'PASSKEY_CANCELLED', t('pk.cancelled'))
+            : err instanceof ApiError
+              ? err
+              : new ApiError(0, 'PASSKEY_FAILED', t('pk.deviceFailed'));
+        } finally {
+          setConfirming(false);
+        }
+      }
       const shift = await api<ShiftDTO>(`/attendance/${kind}`, { method: 'POST', body });
       setMessage(kind === 'check-in' ? t('att.checkedIn') : t('att.checkedOut', { hours: formatMinutes(shift.durationMinutes ?? 0) }));
       setSiteCode('');
@@ -160,6 +180,12 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
       )}
 
       <div className="timecard-feedback" aria-live="polite">
+        {confirming ? (
+          <p className="timecard-message timecard-confirming">
+            <KeyRound className="icon" aria-hidden="true" />
+            {t('pk.confirming')}
+          </p>
+        ) : null}
         {message ? (
           <p className="timecard-message">
             <CircleCheck className="icon" aria-hidden="true" />
@@ -195,7 +221,19 @@ export function ShiftCard({ onChange }: { onChange?: () => void }) {
       )}
 
       <div className="timecard-foot">
-        <p className="timecard-note">{t('att.scheduled', { hours: formatMinutes(scheduled) })}</p>
+        <p className="timecard-note">
+          {t('att.scheduled', { hours: formatMinutes(scheduled) })}{' '}
+          {passkeyOn ? (
+            <span className="timecard-passkey">
+              <ShieldCheck className="icon-xs" aria-hidden="true" />
+              {t('pk.protected')}
+            </span>
+          ) : passkeys.data?.available ? (
+            <Link to="/worker/security" className="timecard-passkey-link">
+              {t('pk.offer')}
+            </Link>
+          ) : null}
+        </p>
         <ReadAloudButton text={spoken} className="timecard-voice" />
       </div>
 

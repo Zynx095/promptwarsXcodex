@@ -342,3 +342,20 @@
 .timecard .timecard-voice select {
   color: var(--fs-ink);
 }
+
+/* Passkey state under the check-in action */
+.timecard-passkey {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c8f0d9;
+  font-weight: 650;
+}
+.timecard .timecard-passkey-link {
+  color: var(--fs-marigold);
+  font-weight: 650;
+}
+.timecard-confirming {
+  background: var(--glass-on-dark);
+  color: var(--fs-on-dark);
+}

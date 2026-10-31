@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ShieldAlert,
   Camera,
+  KeyRound,
   SlidersHorizontal,
   Users,
   Wallet,
@@ -48,6 +49,7 @@ const WORKER_PRIMARY: WorkerDestination[] = [
 const WORKER_SECONDARY: WorkerDestination[] = [
   { to: '/worker/feedback', key: 'nav.feedback', short: 'navShort.feedback', icon: MessageSquare },
   { to: '/worker/skills', key: 'nav.skills', short: 'navShort.skills', icon: Award },
+  { to: '/worker/security', key: 'nav.security', short: 'nav.security', icon: KeyRound },
 ];
 
 function isActive(path: string, d: WorkerDestination): boolean {

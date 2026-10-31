@@ -13,6 +13,7 @@ import { WorkerPayslips, WorkerPayslipView } from './pages/worker/Payslips';
 import { WorkerReportNew, WorkerReports, WorkerReportView } from './pages/worker/Reports';
 import { WorkerFeedback } from './pages/worker/Feedback';
 import { WorkerSkills } from './pages/worker/Skills';
+import { WorkerSecurity } from './pages/worker/Security';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminWorkers, AdminWorkerSkills } from './pages/admin/Workers';
 import { AdminSites } from './pages/admin/Sites';
@@ -42,6 +43,7 @@ const ROUTES: Route[] = [
   { path: '/worker/reports/:id', role: 'worker', render: (p) => <WorkerReportView id={p.id!} /> },
   { path: '/worker/feedback', role: 'worker', render: () => <WorkerFeedback /> },
   { path: '/worker/skills', role: 'worker', render: () => <WorkerSkills /> },
+  { path: '/worker/security', role: 'worker', render: () => <WorkerSecurity /> },
   { path: '/admin', role: 'admin', render: () => <AdminDashboard /> },
   { path: '/admin/workers', role: 'admin', render: () => <AdminWorkers /> },
   { path: '/admin/workers/:id/skills', role: 'admin', render: (p) => <AdminWorkerSkills id={p.id!} /> },

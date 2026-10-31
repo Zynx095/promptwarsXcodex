@@ -24,6 +24,7 @@ export function AdminWorkers() {
   const [saved, setSaved] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [toggling, setToggling] = useState<WorkerDTO | null>(null);
+  const [resetting, setResetting] = useState<WorkerDTO | null>(null);
   const [toggleBusy, setToggleBusy] = useState(false);
 
   // Add-worker sheet
@@ -90,6 +91,23 @@ export function AdminWorkers() {
     } finally {
       setToggleBusy(false);
       setToggling(null);
+    }
+  }
+
+  async function resetPasskeys(w: WorkerDTO) {
+    setToggleBusy(true);
+    try {
+      const { revoked } = await api<{ revoked: number }>(`/admin/workers/${w.id}/passkeys/revoke`, { method: 'POST', body: {} });
+      setSaved(
+        revoked
+          ? `Removed ${revoked} passkey${revoked === 1 ? '' : 's'} for ${w.name}. They can check in with their sign-in and add a new phone.`
+          : `${w.name} had no passkeys.`,
+      );
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not reset passkeys.');
+    } finally {
+      setToggleBusy(false);
+      setResetting(null);
     }
   }
 
@@ -229,6 +247,10 @@ export function AdminWorkers() {
                           {w.active ? 'Deactivate' : 'Reactivate'}
                           <span className="visually-hidden"> {w.name}</span>
                         </Button>
+                        <Button variant="link" className="btn btn-link btn-sm cell-action" onClick={() => setResetting(w)} aria-haspopup="dialog">
+                          Reset passkeys
+                          <span className="visually-hidden"> for {w.name}</span>
+                        </Button>
                       </td>
                       <td>
                         <ul className="cell-links">
@@ -268,6 +290,17 @@ export function AdminWorkers() {
         busy={toggleBusy}
         onConfirm={() => toggling && void toggleWorkerActive(toggling)}
         onCancel={() => setToggling(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={resetting !== null}
+        title={`Reset passkeys for ${resetting?.name ?? ''}?`}
+        message="Use this when the worker lost or replaced their phone. Their passkeys stop working, check-in falls back to their sign-in, and they can add the new phone. This is recorded in the audit log."
+        confirmLabel="Reset passkeys"
+        variant="danger"
+        busy={toggleBusy}
+        onConfirm={() => resetting && void resetPasskeys(resetting)}
+        onCancel={() => setResetting(null)}
       />
 
       <Sheet
