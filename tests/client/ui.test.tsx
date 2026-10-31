@@ -226,6 +226,8 @@ describe('web client', () => {
     }
 
     await nav('Shifts');
+    // Console pages load on demand: wait for the page, as the loop above does for the others
+    await waitForText('Shift and attendance records');
     await type(fieldByLabel('Status'), 'completed');
     await submit('Filter');
     await waitFor(() => window.location.search.includes('status=completed') && container.querySelectorAll('tbody tr').length > 0, 'completed shift rows');

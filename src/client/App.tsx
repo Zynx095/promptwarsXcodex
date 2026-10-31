@@ -1,5 +1,5 @@
 // Route table and role-aware routing. Guards here are for navigation only; the API enforces access.
-import { useEffect, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { Link, matchPath, useRouter } from './lib/router';
 import { useSession } from './lib/session';
 import { useI18n } from './lib/i18n';
@@ -14,18 +14,23 @@ import { WorkerReportNew, WorkerReports, WorkerReportView } from './pages/worker
 import { WorkerFeedback } from './pages/worker/Feedback';
 import { WorkerSkills } from './pages/worker/Skills';
 import { WorkerSecurity } from './pages/worker/Security';
-import { AdminDashboard } from './pages/admin/Dashboard';
-import { AdminWorkers, AdminWorkerSkills } from './pages/admin/Workers';
-import { AdminSites } from './pages/admin/Sites';
-import { AdminShifts } from './pages/admin/Shifts';
 
-import { AdminReports, AdminReportView } from './pages/admin/Reports';
-import { AdminInspections } from './pages/admin/Inspections';
-import { AdminAlerts } from './pages/admin/Alerts';
-import { AdminPayslips, AdminPayslipView } from './pages/admin/Payslips';
-import { AdminPayRules } from './pages/admin/PayRules';
-import { AdminFeedback } from './pages/admin/Feedback';
-import { AdminAudit } from './pages/admin/Audit';
+// The employer console is loaded only when an administrator opens it, so workers' phones never
+// download it.
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard').then((m) => ({ default: m.AdminDashboard })));
+const AdminWorkers = lazy(() => import('./pages/admin/Workers').then((m) => ({ default: m.AdminWorkers })));
+const AdminWorkerSkills = lazy(() => import('./pages/admin/Workers').then((m) => ({ default: m.AdminWorkerSkills })));
+const AdminSites = lazy(() => import('./pages/admin/Sites').then((m) => ({ default: m.AdminSites })));
+const AdminShifts = lazy(() => import('./pages/admin/Shifts').then((m) => ({ default: m.AdminShifts })));
+const AdminReports = lazy(() => import('./pages/admin/Reports').then((m) => ({ default: m.AdminReports })));
+const AdminReportView = lazy(() => import('./pages/admin/Reports').then((m) => ({ default: m.AdminReportView })));
+const AdminInspections = lazy(() => import('./pages/admin/Inspections').then((m) => ({ default: m.AdminInspections })));
+const AdminAlerts = lazy(() => import('./pages/admin/Alerts').then((m) => ({ default: m.AdminAlerts })));
+const AdminPayslips = lazy(() => import('./pages/admin/Payslips').then((m) => ({ default: m.AdminPayslips })));
+const AdminPayslipView = lazy(() => import('./pages/admin/Payslips').then((m) => ({ default: m.AdminPayslipView })));
+const AdminPayRules = lazy(() => import('./pages/admin/PayRules').then((m) => ({ default: m.AdminPayRules })));
+const AdminFeedback = lazy(() => import('./pages/admin/Feedback').then((m) => ({ default: m.AdminFeedback })));
+const AdminAudit = lazy(() => import('./pages/admin/Audit').then((m) => ({ default: m.AdminAudit })));
 
 interface Route {
   path: string;
@@ -105,5 +110,9 @@ export function App() {
   else if (match.route.role !== me.user.role) content = <Message text={t('err.notAllowed')} />;
   else content = match.route.render(match.params);
 
-  return <Layout>{content}</Layout>;
+  return (
+    <Layout>
+      <Suspense fallback={<Loading />}>{content}</Suspense>
+    </Layout>
+  );
 }
