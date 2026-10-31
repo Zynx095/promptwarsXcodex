@@ -5,6 +5,7 @@ import { seedIfEmpty } from '../../src/server/db/seed';
 import { createApp } from '../../src/server/app';
 import { invalidateSignalCache } from '../../src/server/services/signal';
 import type { AppContext } from '../../src/server/context';
+import type { AppConfig } from '../../src/server/config';
 
 export const PHONES = {
   constructionAdmin: '9000000100',
@@ -24,7 +25,7 @@ export interface TestEnv {
 }
 
 /** Fresh in-memory database seeded at a fixed instant (Tuesday 27 Oct 2026, 09:00 IST). */
-export async function setup(start = '2026-10-27T03:30:00.000Z'): Promise<TestEnv> {
+export async function setup(start = '2026-10-27T03:30:00.000Z', overrides: Partial<AppConfig> = {}, fetchImpl?: typeof fetch): Promise<TestEnv> {
   invalidateSignalCache();
   const clock = { now: new Date(start) };
   const ctx: AppContext = {
@@ -43,8 +44,10 @@ export async function setup(start = '2026-10-27T03:30:00.000Z'): Promise<TestEnv
       databasePath: ':memory:',
       demoMode: true,
       smsProvider: 'mock',
+      ...overrides,
     },
     now: () => clock.now,
+    fetch: fetchImpl,
   };
   seedIfEmpty(ctx);
   const app = await createApp(ctx);

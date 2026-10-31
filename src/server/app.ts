@@ -6,17 +6,19 @@ import { authRoutes } from './routes/auth';
 import { workerRoutes } from './routes/worker';
 import { adminRoutes } from './routes/admin';
 import { notificationRoutes } from './routes/notifications';
+import { speechRoutes } from './routes/speech';
 
 function securityHeaders(production: boolean): RequestHandler {
   return (_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'same-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // Camera for safety evidence and microphone for dictation are allowed for this site only
+    res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
     if (production) {
       res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
       );
       res.setHeader('Strict-Transport-Security', 'max-age=31536000');
     }
@@ -50,6 +52,7 @@ export async function createApp(ctx: AppContext, frontend?: (app: Express) => Pr
   app.use('/api/admin', adminRoutes(ctx));
   app.use('/api', workerRoutes(ctx));
   app.use('/api', notificationRoutes(ctx));
+  app.use('/api', speechRoutes(ctx));
 
   app.use('/api', (_req, _res, next) => {
     next(new HttpError(404, 'NOT_FOUND', 'Unknown API endpoint.'));

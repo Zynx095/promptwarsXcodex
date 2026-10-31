@@ -23,6 +23,13 @@ export interface AppConfig {
   twilioAccountSid?: string;
   twilioAuthToken?: string;
   twilioFromPhone?: string;
+  /** Server text-to-speech fallback (Google Cloud Text-to-Speech). Unset: no server voice. */
+  googleTtsApiKey?: string;
+  /** Advisory image analysis (Google Cloud Vision). Unset: evidence goes to manual review only. */
+  googleVisionApiKey?: string;
+  /** WebAuthn relying party ID (the site's registrable domain) and allowed origins. */
+  webauthnRpId?: string;
+  webauthnOrigins?: string[];
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -98,5 +105,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     twilioAccountSid: env.TWILIO_ACCOUNT_SID?.trim() || undefined,
     twilioAuthToken: env.TWILIO_AUTH_TOKEN?.trim() || undefined,
     twilioFromPhone: env.TWILIO_FROM_PHONE?.trim() || undefined,
+    googleTtsApiKey: env.GOOGLE_TTS_API_KEY?.trim() || undefined,
+    googleVisionApiKey: env.GOOGLE_VISION_API_KEY?.trim() || undefined,
+    webauthnRpId: env.WEBAUTHN_RP_ID?.trim() || undefined,
+    webauthnOrigins: (env.WEBAUTHN_ORIGINS ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
   };
 }
