@@ -4,6 +4,29 @@
 export const INDUSTRY_KEYS = ['construction', 'education'] as const;
 export type IndustryKey = (typeof INDUSTRY_KEYS)[number];
 
+/** Things a worker can point out in a safety photo (multi-select on the report form). */
+export const INSPECTION_CHECKS = [
+  'helmet',
+  'vest',
+  'footwear',
+  'eye',
+  'gloves',
+  'electrical',
+  'fire',
+  'machinery',
+  'structure',
+  'housekeeping',
+  'restricted',
+  'chemical',
+  'heat',
+  'emergency',
+] as const;
+export type InspectionCheck = (typeof INSPECTION_CHECKS)[number];
+
+/** Protective gear that photo analysis can look for. Which of it is required depends on the work. */
+export const PPE_ITEMS = ['helmet', 'vest', 'footwear', 'eye', 'gloves'] as const;
+export type PpeItem = (typeof PPE_ITEMS)[number];
+
 export interface IndustryConfig {
   key: IndustryKey;
   label: string;
@@ -13,6 +36,13 @@ export interface IndustryConfig {
   teamLabel: string;
   hazardCategories: { key: string; label: string }[];
   feedbackCategories: { key: string; label: string }[];
+  /** Inspection points offered on the report form, in this order. */
+  inspectionChecks: readonly InspectionCheck[];
+  /**
+   * Gear expected on everyone at work. Photo analysis says "may be missing" only for these; an
+   * organisation can override the list in its safety settings.
+   */
+  requiredPpe: readonly PpeItem[];
 }
 
 const commonFeedback = [
@@ -38,6 +68,22 @@ export const INDUSTRIES: Record<IndustryKey, IndustryConfig> = {
       { key: 'other', label: 'Other' },
     ],
     feedbackCategories: [...commonFeedback, { key: 'equipment', label: 'Tools and equipment' }],
+    inspectionChecks: [
+      'helmet',
+      'vest',
+      'footwear',
+      'eye',
+      'gloves',
+      'electrical',
+      'fire',
+      'machinery',
+      'structure',
+      'housekeeping',
+      'restricted',
+      'heat',
+      'emergency',
+    ],
+    requiredPpe: ['helmet', 'vest', 'footwear'],
   },
   education: {
     key: 'education',
@@ -54,6 +100,9 @@ export const INDUSTRIES: Record<IndustryKey, IndustryConfig> = {
       { key: 'other', label: 'Other' },
     ],
     feedbackCategories: [...commonFeedback, { key: 'workload', label: 'Workload and staffing' }],
+    // Campus support work: gloves and eye protection depend on the task, so none is required everywhere
+    inspectionChecks: ['gloves', 'eye', 'chemical', 'electrical', 'fire', 'housekeeping', 'emergency', 'restricted', 'heat'],
+    requiredPpe: [],
   },
 };
 

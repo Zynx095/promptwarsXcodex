@@ -1,5 +1,5 @@
 // Data contracts shared between the API and the web client.
-import type { IndustryKey } from './industries';
+import type { IndustryKey, PpeItem } from './industries';
 
 export type Role = 'worker' | 'admin';
 
@@ -107,6 +107,8 @@ export interface AttendanceRules {
 export interface SafetyRules {
   /** When true, self-verification by the resolving administrator is disallowed and requires an independent party. */
   requireIndependentVerification?: boolean;
+  /** Overrides the industry's list of gear photo analysis expects everyone to wear. */
+  requiredPpe?: PpeItem[];
 }
 
 export interface OrgSettings {
@@ -221,6 +223,77 @@ export interface SafetyReportDTO {
   verificationNote?: string | null;
   synthetic: boolean;
   history?: ReportEventDTO[];
+  siteName?: string | null;
+  /** What the reporter pointed out in the photos (see INSPECTION_CHECKS). */
+  inspectionChecks?: string[];
+  /** Photo metadata only; the image itself is fetched separately with access checks. */
+  evidence?: EvidenceDTO[];
+  closure?: ClosureDTO;
+}
+
+export type EvidenceStage = 'hazard' | 'remediation';
+/** Advisory outcomes, most to least serious. None of them certifies that a place is safe. */
+export type EvidenceOutcome = 'potential_hazard' | 'ppe_may_be_missing' | 'manual_inspection_required' | 'unable_to_determine' | 'no_visible_issue';
+
+export interface EvidenceFinding {
+  /** fire, electrical, machinery, structure, chemical, or a PPE item (helmet, vest, …). */
+  kind: string;
+  outcome: EvidenceOutcome;
+  /** The provider's own labels and confidence (0–1) that raised the finding. */
+  signals: { name: string; score: number }[];
+}
+
+export interface EvidenceAnalysisDTO {
+  provider: string;
+  outcome: EvidenceOutcome;
+  findings: EvidenceFinding[];
+  labels: { name: string; score: number }[];
+  analyzedAt: string;
+}
+
+export interface EvidenceDTO {
+  id: string;
+  stage: EvidenceStage;
+  mime: string;
+  sizeBytes: number;
+  width: number;
+  height: number;
+  sha256: string;
+  caption: string;
+  /** "Reporter" or the administrator's name; never a confidential reporter's name. */
+  uploadedBy: string;
+  createdAt: string;
+  analysisStatus: 'not_configured' | 'completed' | 'failed';
+  analysis: EvidenceAnalysisDTO | null;
+  reviewStatus: 'pending' | 'confirmed' | 'dismissed';
+  reviewNote: string | null;
+  reviewedAt: string | null;
+}
+
+export interface EvidenceVerificationDTO {
+  evidenceId: string;
+  /** The stored bytes still hash to the recorded SHA-256. */
+  hashMatches: boolean;
+  /** The seal over the evidence record checks out with the signing key it names. */
+  sealValid: boolean;
+  keyId: string;
+  sha256: string;
+  checkedAt: string;
+}
+
+/**
+ * Two-key closure for reports with photos: the fix needs an after photo, and the outcome is
+ * verified only once the reporter confirms it, or, if they do not answer in time, by an
+ * administrator other than the one who resolved it.
+ */
+export interface ClosureDTO {
+  policy: 'two_key' | 'standard';
+  workerResponse: 'confirmed' | 'disputed' | null;
+  workerResponseNote: string | null;
+  workerResponseAt: string | null;
+  /** When an independent administrator may verify without the reporter's answer (UTC ISO). */
+  escalationAt: string | null;
+  remediationPhotos: number;
 }
 
 // ---- Feedback ----
@@ -580,4 +653,20 @@ export interface NotificationDTO {
 export interface NotificationsResponse {
   items: NotificationDTO[];
   unreadCount: number;
+}
+
+/** One report with photos, as listed in the console's inspection view. */
+export interface InspectionDTO {
+  report: SafetyReportDTO;
+  hazardPhotos: number;
+  remediationPhotos: number;
+  /** The most serious advisory outcome across the report's analysed photos; null if none was analysed. */
+  worstOutcome: EvidenceOutcome | null;
+  analysedPhotos: number;
+  /** Photos whose advisory result nobody has confirmed or dismissed yet. */
+  pendingReviews: number;
+  /** First hazard photo and latest photo of the fix, for the before/after thumbnails. */
+  beforeId: string | null;
+  afterId: string | null;
+  closure: ClosureDTO;
 }

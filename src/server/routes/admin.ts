@@ -5,6 +5,7 @@ import {
   dateRangeSchema,
   feedbackQuerySchema,
   feedbackStatusSchema,
+  evidenceReviewSchema,
   orgSettingsSchema,
   paginationSchema,
   payslipIssueSchema,
@@ -38,7 +39,8 @@ import { correctShift, defaultRange } from '../services/attendance';
 import { buildDashboard } from '../services/dashboard';
 import { getPayslip, issuePayslip, listPayslips, previewPayslip } from '../services/payslips';
 import { buildPayrollCsv, type PayrollCsvRow } from '../services/payrollCsv';
-import { getAccountabilityMetrics, getReport, listOrgReports, transitionReport } from '../services/reports';
+import { getAccountabilityMetrics, getReport, listInspections, listOrgReports, transitionReport } from '../services/reports';
+import { reviewEvidence } from '../services/evidence';
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
@@ -374,6 +376,21 @@ export function adminRoutes(ctx: AppContext): Router {
     const report = getReport(ctx, user, param(req, 'id'));
     if (!report) throw notFound('Report');
     res.json(report);
+  });
+
+  // A person's decision on the advisory analysis of one photo
+  r.post('/reports/:id/evidence/:evidenceId/review', (req, res) => {
+    const { user } = session(req);
+    const report = getReport(ctx, user, param(req, 'id'));
+    if (!report) throw notFound('Report');
+    const { decision, note } = parse(evidenceReviewSchema, req.body);
+    res.json(reviewEvidence(ctx, user, report.id, param(req, 'evidenceId'), decision, note));
+  });
+
+  // Reports that came with photos, for the inspection view
+  r.get('/inspections', (req, res) => {
+    const { user, org } = session(req);
+    res.json({ items: listInspections(ctx, org, user) });
   });
 
   // ---- Feedback ----

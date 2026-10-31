@@ -47,6 +47,8 @@ export async function createApp(ctx: AppContext, frontend?: (app: Express) => Pr
     res.json({ status: 'ok' });
   });
 
+  // Photo uploads are the one place a larger body is accepted (base64 of a resized photo)
+  app.use('/api/reports/:id/evidence', express.json({ limit: '2200kb' }));
   app.use('/api', noStore, express.json({ limit: '32kb' }), csrfGuard, sessionMiddleware(ctx));
   app.use('/api', authRoutes(ctx));
   app.use('/api/admin', adminRoutes(ctx));

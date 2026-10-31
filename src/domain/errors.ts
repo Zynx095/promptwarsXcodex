@@ -20,7 +20,9 @@ export type DomainErrorCode =
   | 'SELF_VERIFICATION_DISALLOWED'
   | 'INACTIVE_ACCOUNT'
   | 'DUPLICATE_SITE_CODE'
-  | 'INVALID_DISPUTE_INPUT';
+  | 'INVALID_DISPUTE_INPUT'
+  | 'REMEDIATION_PHOTO_REQUIRED'
+  | 'AWAITING_REPORTER';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {

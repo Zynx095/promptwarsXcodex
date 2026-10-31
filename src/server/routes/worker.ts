@@ -1,6 +1,15 @@
 // Worker-facing API. Every handler acts on the signed-in worker's own records only.
 import { Router, type Request } from 'express';
-import { checkInSchema, dateRangeSchema, feedbackCreateSchema, paginationSchema, reportCreateSchema, skillCreateSchema } from '../../shared/schemas';
+import {
+  checkInSchema,
+  dateRangeSchema,
+  evidenceUploadSchema,
+  feedbackCreateSchema,
+  fixResponseSchema,
+  paginationSchema,
+  reportCreateSchema,
+  skillCreateSchema,
+} from '../../shared/schemas';
 import { addDays, localDate, localRangeToUtc } from '../../shared/time';
 import type { AppContext } from '../context';
 import { notFound, param, parse } from '../http';
@@ -9,7 +18,10 @@ import { requireOrg } from '../repositories/orgs';
 import { listWorkerShifts, toShiftDTO } from '../repositories/shifts';
 import { attendanceStatus, checkIn, checkOut, defaultRange } from '../services/attendance';
 import { getPayslip, listPayslips, previewPayslip } from '../services/payslips';
-import { createReport, getReport, listMyReports } from '../services/reports';
+import { createReport, getReport, listMyReports, respondToFix } from '../services/reports';
+import { addEvidence, getEvidenceImage, verifyEvidence } from '../services/evidence';
+import { listSites } from '../repositories/sites';
+import { RateLimiter } from '../rateLimit';
 import { submitFeedback } from '../services/feedback';
 import { listAlerts } from '../services/fatigue';
 import { addSkill, listSkills } from '../services/skills';
@@ -96,6 +108,57 @@ export function workerRoutes(ctx: AppContext): Router {
     const report = getReport(ctx, user, param(req, 'id'));
     if (!report) throw notFound('Report');
     res.json(report);
+  });
+
+  // ---- Safety photos (reporters add the hazard, administrators the fix) ----
+  const uploads = new RateLimiter(30, 60 * 60_000, 'Too many photos in the last hour. Try again later.');
+  r.post('/reports/:id/evidence', async (req, res) => {
+    const user = requireUser(req);
+    const org = requireOrg(ctx.db, user.orgId);
+    const report = getReport(ctx, user, param(req, 'id'));
+    if (!report) throw notFound('Report');
+    const upload = parse(evidenceUploadSchema, req.body);
+    uploads.take(user.id, ctx.now().getTime());
+    res.status(201).json(await addEvidence(ctx, org, user, report, upload));
+  });
+
+  r.get('/reports/:id/evidence/:evidenceId/image', (req, res) => {
+    const user = requireUser(req);
+    const report = getReport(ctx, user, param(req, 'id'));
+    if (!report) throw notFound('Photo');
+    const image = getEvidenceImage(ctx, user.orgId, report.id, param(req, 'evidenceId'));
+    if (!image) throw notFound('Photo');
+    // Private to this person's session: never stored by shared caches, never sniffed as another type
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Content-Type', image.mime);
+    res.setHeader('Content-Disposition', 'inline; filename="safety-photo"');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.end(image.bytes);
+  });
+
+  r.get('/reports/:id/evidence/:evidenceId/verify', (req, res) => {
+    const user = requireUser(req);
+    const report = getReport(ctx, user, param(req, 'id'));
+    if (!report) throw notFound('Photo');
+    const result = verifyEvidence(ctx, user.orgId, report.id, param(req, 'evidenceId'));
+    if (!result) throw notFound('Photo');
+    res.json(result);
+  });
+
+  r.post('/reports/:id/response', worker, (req, res) => {
+    const { user } = session(req);
+    const { decision, note } = parse(fixResponseSchema, req.body);
+    res.json(respondToFix(ctx, user, param(req, 'id'), decision, note));
+  });
+
+  // Active sites, so a report can say where the hazard is
+  r.get('/sites', worker, (req, res) => {
+    const { org } = session(req);
+    res.json({
+      items: listSites(ctx.db, org.id)
+        .filter((s) => s.active)
+        .map((s) => ({ id: s.id, name: s.name })),
+    });
   });
 
   // ---- Feedback ----

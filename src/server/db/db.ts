@@ -96,6 +96,17 @@ function migrate(raw: DatabaseSync): void {
   if (!reportCols.some((c) => c.name === 'verification_note')) {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN verification_note TEXT`);
   }
+  if (!reportCols.some((c) => c.name === 'site_id')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN site_id TEXT REFERENCES sites(id)`);
+  }
+  if (!reportCols.some((c) => c.name === 'inspection_checks')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN inspection_checks TEXT NOT NULL DEFAULT '[]'`);
+  }
+  if (!reportCols.some((c) => c.name === 'worker_response')) {
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN worker_response TEXT CHECK (worker_response IN ('confirmed', 'disputed'))`);
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN worker_response_note TEXT`);
+    raw.exec(`ALTER TABLE safety_reports ADD COLUMN worker_response_at TEXT`);
+  }
   const userCols = raw.prepare(`SELECT name FROM pragma_table_info('users')`).all() as { name: string }[];
   if (!userCols.some((c) => c.name === 'session_version')) {
     raw.exec(`ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0`);

@@ -6,6 +6,7 @@ import { loadConfig } from './config';
 import { openDb } from './db/db';
 import { seedIfEmpty } from './db/seed';
 import { createApp } from './app';
+import { purgeExpiredEvidence } from './services/evidence';
 import type { AppContext } from './context';
 
 if (process.env.NODE_ENV !== 'production' && existsSync('.env')) process.loadEnvFile('.env');
@@ -17,6 +18,14 @@ const ctx: AppContext = { db, config, now: () => new Date() };
 if (config.demoMode && seedIfEmpty(ctx)) {
   console.log('[fairshift] Seeded synthetic demonstration data.');
 }
+
+// Safety photos of reports verified more than a year ago are deleted, at start-up and daily
+const purge = () => {
+  const n = purgeExpiredEvidence(ctx);
+  if (n > 0) console.log(`[fairshift] Deleted ${n} safety photo(s) past their retention period.`);
+};
+purge();
+setInterval(purge, 24 * 60 * 60 * 1000).unref();
 
 const app = await createApp(ctx, async (app) => {
   if (config.production) {

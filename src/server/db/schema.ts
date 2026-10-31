@@ -89,6 +89,11 @@ CREATE TABLE IF NOT EXISTS safety_reports (
   verified_by TEXT,
   verification_note TEXT,
   is_synthetic INTEGER NOT NULL DEFAULT 0,
+  site_id TEXT REFERENCES sites(id),
+  inspection_checks TEXT NOT NULL DEFAULT '[]',
+  worker_response TEXT CHECK (worker_response IN ('confirmed', 'disputed')),
+  worker_response_note TEXT,
+  worker_response_at TEXT,
   CHECK ((confidential = 1 AND reporter_id IS NULL AND reporter_ref IS NOT NULL) OR (confidential = 0 AND reporter_id IS NOT NULL))
 );
 CREATE INDEX IF NOT EXISTS idx_reports_org ON safety_reports(org_id, status, created_at);
@@ -268,6 +273,41 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read, created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_org ON notifications(org_id, created_at);
+
+-- Safety photos. Bytes are stored after metadata removal; sha256 is of those exact bytes, and
+-- seal is an HMAC-SHA256 (receipt signing key, key_id for rotation) over the canonical evidence
+-- record. uploader_id is NULL when a confidential reporter uploads, so the photo never points
+-- back to them. No original file name is kept. Advisory analysis and human review are separate
+-- columns that may change; the photo, its hash and its seal may not (see triggers below).
+CREATE TABLE IF NOT EXISTS report_evidence (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  report_id TEXT NOT NULL REFERENCES safety_reports(id),
+  stage TEXT NOT NULL CHECK (stage IN ('hazard', 'remediation')),
+  mime TEXT NOT NULL CHECK (mime IN ('image/jpeg', 'image/png', 'image/webp')),
+  bytes BLOB NOT NULL,
+  size_bytes INTEGER NOT NULL CHECK (size_bytes > 0),
+  width INTEGER NOT NULL,
+  height INTEGER NOT NULL,
+  sha256 TEXT NOT NULL,
+  caption TEXT NOT NULL DEFAULT '',
+  uploader_role TEXT NOT NULL CHECK (uploader_role IN ('reporter', 'admin')),
+  uploader_id TEXT REFERENCES users(id),
+  seal TEXT NOT NULL,
+  seal_key_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  analysis_status TEXT NOT NULL DEFAULT 'not_configured' CHECK (analysis_status IN ('not_configured', 'completed', 'failed')),
+  analysis_json TEXT,
+  analysis_at TEXT,
+  review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'confirmed', 'dismissed')),
+  review_note TEXT,
+  reviewed_by TEXT REFERENCES users(id),
+  reviewed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_evidence_report ON report_evidence(report_id, stage, created_at);
+CREATE INDEX IF NOT EXISTS idx_evidence_org ON report_evidence(org_id, created_at);
+CREATE TRIGGER IF NOT EXISTS report_evidence_immutable BEFORE UPDATE OF org_id, report_id, stage, mime, bytes, size_bytes, sha256, seal, seal_key_id, created_at, uploader_role, uploader_id ON report_evidence
+BEGIN SELECT RAISE(ABORT, 'report_evidence photos are immutable'); END;
 
 -- Append-only history: audit events, report status events and proof checkpoints can be added but
 -- never edited or deleted through the application (or any other SQL run against this database).

@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { isLocalDate } from './time';
 import { FEEDBACK_STATUSES, REPORT_STATUSES, SEVERITIES } from './types';
+import { INSPECTION_CHECKS } from './industries';
 
 const ISO_INSTANT_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
@@ -56,7 +57,32 @@ export const reportCreateSchema = z.object({
   description: text(10, 2000, 'Description'),
   location: text(2, 120, 'Location'),
   confidential: z.boolean().default(false),
+  siteId: z.string().trim().max(64).nullable().optional(),
+  inspectionChecks: z
+    .array(z.enum(INSPECTION_CHECKS))
+    .max(INSPECTION_CHECKS.length)
+    .refine((c) => new Set(c).size === c.length, 'Each inspection point can be chosen once')
+    .default([]),
 });
+
+export const evidenceUploadSchema = z.object({
+  stage: z.enum(['hazard', 'remediation']),
+  mime: z.enum(['image/jpeg', 'image/png', 'image/webp'], { error: 'Only JPEG, PNG or WebP photos can be added' }),
+  data: z.string().min(1).max(2_100_000, 'The photo is too large'),
+  caption: z.string().trim().max(200, 'Caption must be at most 200 characters').optional(),
+});
+
+export const evidenceReviewSchema = z.object({
+  decision: z.enum(['confirmed', 'dismissed']),
+  note: z.string().trim().max(500, 'Note must be at most 500 characters').default(''),
+});
+
+export const fixResponseSchema = z
+  .object({
+    decision: z.enum(['confirmed', 'disputed']),
+    note: z.string().trim().max(1000, 'Note must be at most 1000 characters').default(''),
+  })
+  .refine((r) => r.decision === 'confirmed' || r.note.length >= 3, { message: 'Say what is still wrong', path: ['note'] });
 
 export const reportQuerySchema = paginationSchema.extend({
   status: z.enum([...REPORT_STATUSES, 'unresolved']).optional(),
