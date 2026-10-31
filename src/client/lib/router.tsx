@@ -47,19 +47,21 @@ export function matchPath(pattern: string, path: string): Record<string, string>
   return params;
 }
 
-export function Link({ to, children, ...rest }: { to: string; children: ReactNode } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) {
+export function Link({ to, children, onClick, ...rest }: { to: string; children: ReactNode } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) {
   const { navigate, path } = useRouter();
   const current = to === path || (to !== '/' && to.split('?')[0] === path);
   return (
     <a
       href={to}
       aria-current={current ? 'page' : undefined}
+      {...rest}
       onClick={(e) => {
+        // A caller's handler (for example, closing the sheet the link sits in) runs first.
+        onClick?.(e);
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
         navigate(to);
       }}
-      {...rest}
     >
       {children}
     </a>
