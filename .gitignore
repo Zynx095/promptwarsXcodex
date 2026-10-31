@@ -6,6 +6,8 @@ data/
 *.db-journal
 *.db-wal
 *.db-shm
+*.sqlite
+*.sqlite3
 .env
 .env.*
 !.env.example
@@ -16,3 +18,8 @@ service-account*.json
 Thumbs.db
 *.log
 .vercel/
+.vite/
+*.tsbuildinfo
+.eslintcache
+test-results/
+playwright-report/
