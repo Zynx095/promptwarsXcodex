@@ -11,7 +11,6 @@
   padding: 0 var(--sp-4);
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-chip);
-  background: var(--fs-paper);
   color: var(--fs-aubergine);
   font-weight: 650;
   cursor: pointer;
@@ -22,14 +21,13 @@
 }
 .range-picker[open] > summary {
   margin-bottom: var(--sp-3);
-  background: var(--fs-aubergine-tint);
+  background: var(--glass-control-pressed);
   border-color: var(--fs-aubergine);
 }
 .range-picker form {
   padding: var(--sp-4) var(--sp-4) 0;
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
+  animation: panelIn var(--m-base) var(--ease-out);
 }
 .att-summary {
   margin: 0 0 var(--sp-3);
@@ -103,7 +101,7 @@
     align-items: center;
     column-gap: var(--sp-3);
     padding: var(--sp-3) var(--sp-4);
-    border-bottom: 1px solid var(--fs-line);
+    border-bottom: 1px solid var(--glass-well-edge);
   }
   .shift-table tbody tr:last-child {
     border-bottom: 0;

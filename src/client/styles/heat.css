@@ -4,9 +4,7 @@
   --heat-tone: var(--fs-good);
   --heat-bg: var(--fs-good-bg);
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 @media (min-width: 600px) {
   .heat {
@@ -83,18 +81,14 @@
   padding: 6px 14px;
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-chip);
-  background: var(--fs-paper);
   color: var(--fs-ink);
   font: 600 var(--fs-text-sm) / 1.3 var(--fs-font-text);
   text-align: left;
   cursor: pointer;
 }
-.heat-preset:hover {
-  border-color: var(--fs-ink-3);
-}
 .heat-preset[aria-pressed='true'] {
   border-color: var(--fs-aubergine);
-  background: var(--fs-aubergine-tint);
+  background: var(--glass-control-pressed);
   color: var(--fs-aubergine);
 }
 
@@ -105,6 +99,10 @@
   border-radius: var(--r-control);
   background: var(--heat-bg);
   border-left: 6px solid var(--heat-tone);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    var(--e-lift);
+  transition: background-color var(--m-base) ease;
 }
 .heat-extreme_danger .heat-result {
   border-left: 0;
@@ -194,5 +192,5 @@
   gap: var(--sp-2);
   margin-top: var(--sp-4);
   padding-top: var(--sp-3);
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }

@@ -1,17 +1,15 @@
 /* Record rows and the week strip, shared by the worker screens. */
 
-/* ---------- Row lists: one white record holding plain rows, not a grid of cards ---------- */
+/* ---------- Row lists: one glass record holding plain rows, not a grid of cards ---------- */
 .row-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
   overflow: hidden;
 }
 .row-list > li + li {
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .row-item {
   display: flex;
@@ -27,11 +25,16 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color var(--m-fast) ease;
 }
 a.row-item:hover,
 button.row-item:hover {
-  background: #fafbfc;
+  background: rgba(255, 255, 255, 0.6);
   color: var(--fs-ink);
+}
+a.row-item:hover .chevron,
+button.row-item:hover .chevron {
+  transform: translateX(2px);
 }
 .row-item:focus-visible {
   outline-offset: -3px;
@@ -48,7 +51,10 @@ button.row-item:hover {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--fs-aubergine-tint);
+  background: linear-gradient(180deg, #fcf7fb 0%, var(--fs-aubergine-tint) 100%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 0 0 1px rgba(58, 15, 52, 0.08);
   color: var(--fs-aubergine);
 }
 .row-icon.tone-caution {
@@ -88,6 +94,7 @@ button.row-item:hover {
 .row-item .chevron {
   flex: none;
   color: var(--fs-ink-3);
+  transition: transform var(--m-base) var(--ease-glide);
 }
 .row-link {
   display: inline-flex;
@@ -131,17 +138,19 @@ button.row-item:hover {
   width: 100%;
   max-width: 36px;
   height: 72px;
-  border-radius: 8px;
-  background: var(--fs-sunk);
-  box-shadow: inset 0 0 0 1px var(--fs-line);
+  border-radius: 10px;
+  background: var(--glass-well);
+  box-shadow:
+    inset 0 1px 2px rgba(58, 15, 52, 0.1),
+    inset 0 0 0 1px var(--glass-well-edge);
   overflow: hidden;
 }
 .weekday-fill {
-  background: var(--fs-aubergine);
+  background: linear-gradient(90deg, var(--fs-aubergine-700) 0%, var(--fs-aubergine) 60%);
   flex: none;
 }
 .weekday-ot {
-  background: var(--fs-marigold);
+  background: linear-gradient(90deg, var(--fs-marigold-lit) 0%, var(--fs-marigold) 70%);
   flex: none;
 }
 .weekday-mark {

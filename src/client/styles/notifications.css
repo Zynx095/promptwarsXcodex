@@ -9,12 +9,11 @@
   height: 44px;
   border: 1px solid var(--fs-line-strong);
   border-radius: 50%;
-  background: var(--fs-paper);
   color: var(--fs-aubergine);
   cursor: pointer;
-}
-.bell:hover {
-  border-color: var(--fs-ink-3);
+  transition:
+    background-color var(--m-fast) ease,
+    border-color var(--m-fast) ease;
 }
 .bell-count {
   position: absolute;
@@ -26,6 +25,7 @@
   border-radius: var(--r-chip);
   border: 2px solid var(--fs-paper);
   background: var(--fs-danger);
+  box-shadow: 0 4px 10px -4px rgba(163, 18, 47, 0.8);
   color: #fff;
   font: 700 11px/16px var(--fs-font-display);
   text-align: center;
@@ -49,15 +49,21 @@
   margin: 0;
   padding: 0;
 }
+.notif-list {
+  border-radius: var(--r-record);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+  overflow: hidden;
+}
 .notif-list li + li {
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .notif-item {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-3);
   width: 100%;
-  padding: var(--sp-3) var(--sp-1);
+  padding: var(--sp-3);
   border: 0;
   background: none;
   color: var(--fs-ink);
@@ -65,8 +71,14 @@
   text-align: left;
   cursor: pointer;
 }
+.notif-item {
+  transition: background-color var(--m-fast) ease;
+}
 .notif-item:hover {
-  background: #fafbfc;
+  background: rgba(255, 255, 255, 0.85);
+}
+.notif-item.is-unread {
+  background: linear-gradient(90deg, rgba(234, 170, 0, 0.1), transparent 60%);
 }
 .notif-item:focus-visible {
   outline-offset: -3px;

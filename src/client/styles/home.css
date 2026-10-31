@@ -21,16 +21,12 @@
   display: grid;
   gap: var(--sp-2);
   padding: var(--sp-4);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 
 .week-record {
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 .week-amount {
   display: flex;
@@ -66,9 +62,7 @@
   gap: var(--sp-3);
   margin: 0;
   padding: var(--sp-4);
-  border-radius: var(--r-record);
-  background: var(--fs-paper);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
   color: var(--fs-ink-2);
 }
 .home-clear svg {

@@ -97,10 +97,10 @@
 .lifebar span {
   height: 6px;
   border-radius: 3px;
-  background: var(--fs-line);
+  background: rgba(58, 15, 52, 0.12);
 }
 .lifebar span.is-done {
-  background: var(--fs-aubergine);
+  background: linear-gradient(180deg, var(--fs-aubergine-700), var(--fs-aubergine));
 }
 .lifebar.is-reopened span.is-done {
   background: var(--fs-danger);
@@ -133,7 +133,7 @@
   left: -50%;
   width: 100%;
   height: 3px;
-  background: var(--fs-line);
+  background: rgba(58, 15, 52, 0.12);
 }
 .lifesteps li:first-child::before {
   display: none;
@@ -159,6 +159,9 @@
 .lifesteps li.is-current .lifestep-dot {
   border-color: var(--fs-aubergine);
   background: var(--fs-marigold);
+  box-shadow:
+    0 0 0 4px rgba(234, 170, 0, 0.25),
+    0 0 14px rgba(234, 170, 0, 0.55);
 }
 .lifesteps li.is-current {
   color: var(--fs-ink);
@@ -177,9 +180,7 @@
   display: grid;
   gap: var(--sp-6);
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 @media (min-width: 600px) {
   .case {
@@ -229,9 +230,7 @@
   padding: var(--sp-4);
   border-radius: var(--r-control);
 }
-.case-done {
-  background: var(--fs-sunk);
-}
+
 .case-verified {
   background: var(--fs-good-bg);
   border: 1px solid var(--fs-good-line);
@@ -288,10 +287,13 @@
   margin-top: 4px;
   border-radius: 50%;
   background: var(--fs-aubergine);
-  box-shadow: 0 0 0 3px var(--fs-canvas);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
 }
 .timeline li:last-child .timeline-dot {
   background: var(--fs-marigold);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.85),
+    0 0 12px rgba(234, 170, 0, 0.6);
 }
 .timeline-body {
   min-width: 0;
@@ -309,7 +311,5 @@
   margin: var(--sp-2) 0 0;
   padding: var(--sp-2) var(--sp-3);
   border-radius: 10px;
-  background: var(--fs-paper);
-  box-shadow: var(--e-record);
   font-size: var(--fs-text-sm);
 }

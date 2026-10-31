@@ -17,9 +17,7 @@
   gap: var(--sp-3);
   min-height: 56px;
   padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-record);
-  background: var(--fs-paper);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
   color: var(--fs-aubergine);
   font-family: var(--fs-font-display);
   font-size: var(--fs-text-lg);
@@ -51,11 +49,10 @@
   margin-bottom: var(--sp-4);
 }
 
+/* The statement is paper glass: almost opaque, because every figure on it must read cleanly */
 .statement {
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 @media (min-width: 600px) {
   .statement {
@@ -146,8 +143,7 @@
 .explain {
   margin-top: var(--sp-5);
   padding: var(--sp-4) var(--sp-5);
-  border-radius: var(--r-control);
-  background: var(--fs-sunk);
+  border-radius: var(--r-record);
 }
 .explain-head {
   display: flex;
@@ -184,7 +180,8 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--fs-aubergine);
+  background: linear-gradient(180deg, var(--fs-aubergine-700), var(--fs-aubergine));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   color: #fff;
   font-family: var(--fs-font-display);
   font-size: var(--fs-text-xs);

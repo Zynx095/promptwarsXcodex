@@ -17,21 +17,22 @@
   padding: var(--sp-3) var(--sp-1) var(--sp-2);
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
   color: var(--fs-ink-2);
   text-align: center;
   cursor: pointer;
   transition:
     border-color var(--m-fast) ease,
-    background var(--m-fast) ease;
+    background var(--m-fast) ease,
+    box-shadow var(--m-base) ease,
+    transform var(--m-fast) ease;
+}
+.rating-option:active {
+  transform: scale(0.96);
 }
 .rating-option input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
-}
-.rating-option:hover {
-  border-color: var(--fs-ink-3);
 }
 .rating-option:has(input:focus-visible) {
   outline: 3px solid var(--focus-color);
@@ -39,8 +40,10 @@
 }
 .rating-option:has(input:checked) {
   border-color: var(--fs-aubergine);
-  background: var(--fs-aubergine-tint);
-  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
+  background: var(--glass-control-pressed);
+  box-shadow:
+    inset 0 0 0 1px var(--fs-aubergine),
+    var(--e-lift);
   color: var(--fs-aubergine);
 }
 .rating-face {
@@ -77,9 +80,7 @@
 .privacy-note {
   margin: 0 0 var(--sp-5);
   padding: var(--sp-4);
-  border-radius: var(--r-control);
-  background: var(--fs-sunk);
-  border: 1px solid var(--fs-line);
+  border-radius: var(--r-record);
 }
 .privacy-note h2 {
   margin: 0 0 var(--sp-3);
@@ -110,9 +111,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 .passport-entry {
   display: flex;
@@ -121,7 +120,7 @@
   padding: var(--sp-4);
 }
 .passport-entry + .passport-entry {
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .passport-body {
   min-width: 0;
@@ -175,6 +174,8 @@
 .passport-add {
   margin-top: var(--sp-8);
   max-width: 640px;
+  padding: var(--sp-5);
+  border-radius: var(--r-slab);
 }
 .rating-clear.btn-link {
   padding-inline: 0;

@@ -32,6 +32,7 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
   const otH = h(model.overtimePayMinor);
   const dedH = Math.min(h(model.totalDeductionsMinor), baseH + otH);
   const agreedY = FILL_BOTTOM - h(agreed.expectedBasePayMinor);
+  const surfaceY = FILL_BOTTOM - baseH - otH;
   const difference = model.grossPayMinor - agreed.expectedBasePayMinor;
   const issued = slip.status === 'issued';
 
@@ -71,18 +72,38 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
               <clipPath id={`${uid}-clip`}>
                 <path d={BODY} />
               </clipPath>
+              {/* Glass: brighter at the left where the light falls, tinted silver at the right edge. */}
+              <linearGradient id={`${uid}-glass`} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
+                <stop offset="0.45" stopColor="#ffffff" stopOpacity="0.35" />
+                <stop offset="1" stopColor="#dde3e8" stopOpacity="0.75" />
+              </linearGradient>
+              <linearGradient id={`${uid}-pay`} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor="#5b2452" />
+                <stop offset="1" stopColor="#24081f" />
+              </linearGradient>
+              <linearGradient id={`${uid}-ot`} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor="#f4c02a" />
+                <stop offset="1" stopColor="#eaaa00" />
+              </linearGradient>
+              <linearGradient id={`${uid}-lid`} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor="#5b2452" />
+                <stop offset="1" stopColor="#3a0f34" />
+              </linearGradient>
               {/* Deductions are a see-through hatch, so the pay layers underneath stay visible. */}
               <pattern id={`${uid}-hatch`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                 <rect width="4" height="8" fill="#ffffff" fillOpacity="0.78" />
               </pattern>
             </defs>
-            <rect x="52" y="14" width="96" height="26" rx="7" className="jar-lid" />
-            <rect x="60" y="36" width="80" height="16" rx="3" className="jar-neck" />
-            <path d={BODY} className="jar-glass" />
+            <rect x="52" y="14" width="96" height="26" rx="7" fill={`url(#${uid}-lid)`} />
+            <rect x="56" y="16" width="88" height="3" rx="1.5" className="jar-rim" />
+            <rect x="60" y="36" width="80" height="16" rx="3" fill="#5b2452" />
+            <path d={BODY} fill={`url(#${uid}-glass)`} />
             <g clipPath={`url(#${uid}-clip)`}>
               <g className="jar-fill">
-                <rect x="0" y={FILL_BOTTOM - baseH} width="200" height={baseH} className="jar-base" />
-                <rect x="0" y={FILL_BOTTOM - baseH - otH} width="200" height={otH} className="jar-overtime" />
+                <rect x="0" y={FILL_BOTTOM - baseH} width="200" height={baseH} fill={`url(#${uid}-pay)`} />
+                <rect x="0" y={surfaceY} width="200" height={otH} fill={`url(#${uid}-ot)`} />
+                {baseH + otH > 0 ? <line x1="0" x2="200" y1={surfaceY + 1} y2={surfaceY + 1} className="jar-meniscus" /> : null}
                 {dedH > 0 ? (
                   <>
                     <rect x="0" y={FILL_BOTTOM - baseH - otH} width="200" height={dedH} fill={`url(#${uid}-hatch)`} />
@@ -99,6 +120,8 @@ export function MoneyJar({ slip }: { slip: PayslipDTO }) {
             </g>
             <path d={BODY} className="jar-outline" />
             <path d="M40 104 v96" className="jar-shine" />
+            <path d="M50 214 v18" className="jar-shine-thin" />
+            <path d="M162 112 c3 12 3 30 2 44" className="jar-shine-thin" />
           </svg>
         </figure>
 

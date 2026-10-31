@@ -1,11 +1,10 @@
-/* The Money Jar */
+/* The Money Jar: a glass jar on a glass panel (material in glass.css). The liquid is what the
+   recorded work earned; nothing in it stands for money paid, which FairShift does not record. */
 
 .jar {
   margin-bottom: var(--sp-6);
   padding: var(--sp-5);
-  background: var(--fs-paper);
   border-radius: var(--r-slab);
-  box-shadow: var(--e-record);
 }
 @media (min-width: 600px) {
   .jar {
@@ -46,40 +45,58 @@
   }
 }
 .jar-figure {
+  position: relative;
   margin: 0;
+}
+/* The jar casts a soft pool of shadow on the panel */
+.jar-figure::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -6px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(36, 8, 31, 0.28), transparent);
+  z-index: -1;
 }
 .jar-svg {
   display: block;
   width: 100%;
   height: auto;
-}
-.jar-lid {
-  fill: var(--fs-aubergine);
-}
-.jar-neck {
-  fill: var(--fs-aubergine-700);
-}
-.jar-glass {
-  fill: var(--fs-sunk);
+  overflow: visible;
 }
 .jar-outline {
   fill: none;
   stroke: var(--fs-aubergine);
-  stroke-width: 3;
+  stroke-width: 2.5;
   stroke-linejoin: round;
+  stroke-opacity: 0.75;
+}
+.jar-rim {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
 }
 .jar-shine {
   fill: none;
   stroke: #fff;
-  stroke-width: 6;
+  stroke-width: 7;
   stroke-linecap: round;
-  opacity: 0.6;
+  opacity: 0.75;
 }
-.jar-base {
-  fill: var(--fs-aubergine);
+.jar-shine-thin {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.55;
 }
-.jar-overtime {
-  fill: var(--fs-marigold);
+.jar-meniscus {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-opacity: 0.45;
 }
 .jar-cut {
   stroke: #fff;
@@ -118,7 +135,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: var(--sp-3);
   padding: var(--sp-3) 0;
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .jar-row:first-child {
   border-top: 0;
@@ -149,6 +166,21 @@
 }
 .jar-row-total dt {
   font-size: var(--fs-text-lg);
+}
+/* Take-home pay sits in a lit well: the number a worker looks for first */
+.jar-row-total {
+  margin: var(--sp-1) calc(-1 * var(--sp-3));
+  padding: var(--sp-3);
+  border-top: 0;
+  border-radius: var(--r-control);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 236, 242, 0.85));
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 0 0 1px var(--glass-well-edge),
+    var(--e-lift);
+}
+.jar-row-total + .jar-row {
+  border-top: 0;
 }
 .jar-row-total dd.figure {
   font-size: var(--fs-text-2xl);
@@ -186,12 +218,14 @@
 }
 .swatch-worked {
   background: linear-gradient(to top, var(--fs-aubergine) 0 60%, var(--fs-marigold) 60% 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 .swatch-deduction {
   background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.78) 0 3px, transparent 3px 6px), var(--fs-aubergine);
 }
 .swatch-net {
-  background: var(--fs-aubergine);
+  background: linear-gradient(180deg, var(--fs-aubergine-700), var(--fs-aubergine-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .jar-empty {
@@ -206,7 +240,7 @@
   gap: var(--sp-2);
   margin-top: var(--sp-5);
   padding-top: var(--sp-3);
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .jar-glossary {
   flex: 1 1 260px;

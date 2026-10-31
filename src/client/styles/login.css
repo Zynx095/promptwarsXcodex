@@ -4,7 +4,6 @@
 .login-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--fs-canvas);
 }
 .login-bar {
   display: flex;
@@ -41,12 +40,11 @@
   padding: 0 var(--gutter) var(--sp-8);
 }
 
+/* Smoked glass (glass.css) */
 .login-story {
   grid-area: story;
   padding: var(--sp-6) var(--sp-5);
   border-radius: var(--r-slab);
-  background: var(--fs-aubergine);
-  color: var(--fs-on-dark);
 }
 .login-story h1 {
   margin: 0;
@@ -70,9 +68,7 @@
 }
 .login-panel {
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 .login-title {
   margin: 0 0 var(--sp-4);
@@ -109,14 +105,10 @@
   padding: 0 var(--sp-4);
   border: 1px solid var(--fs-line-input);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
   color: var(--fs-ink);
   font: 650 var(--fs-text-md) / 1.2 var(--fs-font-text);
   text-decoration: none;
   cursor: pointer;
-}
-.btn-oauth:hover:not(:disabled) {
-  border-color: var(--fs-aubergine);
 }
 .btn-oauth:disabled {
   opacity: 0.55;
@@ -158,19 +150,21 @@
   padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
   color: var(--fs-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-.demo-account:hover {
-  border-color: var(--fs-ink-3);
+  transition:
+    background-color var(--m-fast) ease,
+    border-color var(--m-fast) ease,
+    box-shadow var(--m-base) ease;
 }
 .demo-account[aria-pressed='true'] {
   border-color: var(--fs-aubergine);
-  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
-  background: var(--fs-aubergine-tint);
+  box-shadow:
+    inset 0 0 0 1px var(--fs-aubergine),
+    var(--e-lift);
+  background: var(--glass-control-pressed);
 }
 .demo-account-name {
   font-weight: 700;
@@ -233,23 +227,38 @@
     gap: 0 var(--sp-8);
     padding-top: var(--sp-2);
   }
-  .login-story {
+  /* Story and "what FairShift does" read as one pane: a vertical fill that ends on the tone the
+     lower half continues, and no shadow between them */
+  .login .login-story {
     border-radius: var(--r-slab) var(--r-slab) 0 0;
     padding: var(--sp-9) var(--sp-8) var(--sp-7);
+    background: var(--glass-dark-glint), linear-gradient(180deg, rgba(66, 20, 58, 0.93) 0%, rgba(30, 6, 26, 0.95) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 1px 0 0 var(--glass-dark-edge),
+      inset -1px 0 0 var(--glass-dark-edge);
   }
   .login-story h1 {
     font-size: var(--fs-text-4xl);
     line-height: 1.08;
   }
+  /* The lower half of the same pane of smoked glass: it continues the story's darkest tone */
   .login-about {
+    --focus-color: var(--fs-marigold);
     padding: 0 var(--sp-8) var(--sp-8);
     border-radius: 0 0 var(--r-slab) var(--r-slab);
-    background: var(--fs-aubergine);
+    background: rgba(30, 6, 26, 0.95);
+    box-shadow:
+      inset 1px 0 0 var(--glass-dark-edge),
+      inset -1px 0 0 var(--glass-dark-edge),
+      0 28px 48px -26px rgba(36, 8, 31, 0.75);
     color: var(--fs-on-dark);
+    -webkit-backdrop-filter: var(--glass-dark-filter);
+    backdrop-filter: var(--glass-dark-filter);
   }
   .login-points {
     padding-top: var(--sp-6);
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-top: 1px solid var(--glass-on-dark-edge);
   }
   .login-points svg {
     color: var(--fs-marigold);
@@ -287,7 +296,6 @@
   gap: var(--sp-2);
   padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
   border-radius: var(--r-control);
-  background: var(--fs-sunk);
 }
 .qr-url code {
   min-width: 0;

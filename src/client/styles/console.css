@@ -1,9 +1,9 @@
-/* Employer console: aubergine sidebar from 1024 px, a top bar with a menu sheet below that */
+/* Employer console: a floating smoked-glass sidebar from 1024 px, a glass top bar with a menu sheet
+   below that. Materials come from glass.css; tables and documents use paper glass for density. */
 
 .admin-shell {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--fs-canvas);
 }
 .as-sidebar {
   display: none;
@@ -21,8 +21,6 @@
   gap: var(--sp-3);
   min-height: var(--topbar-h);
   padding: var(--sp-2) var(--gutter);
-  background: var(--fs-paper);
-  border-bottom: 1px solid var(--fs-line);
 }
 .as-menu {
   flex: none;
@@ -33,12 +31,8 @@
   height: 44px;
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
   color: var(--fs-aubergine);
   cursor: pointer;
-}
-.as-menu:hover {
-  border-color: var(--fs-ink-3);
 }
 .as-topbar-org {
   display: none;
@@ -92,15 +86,15 @@
   }
   .as-sidebar {
     position: sticky;
-    top: 0;
+    top: var(--sp-3);
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - 2 * var(--sp-3));
+    height: calc(100dvh - 2 * var(--sp-3));
+    margin: var(--sp-3) 0 var(--sp-3) var(--sp-3);
     overflow-y: auto;
     padding: var(--sp-5) var(--sp-3) var(--sp-4);
-    background: var(--fs-aubergine-deep);
-    color: var(--fs-on-dark);
+    border-radius: var(--r-slab);
   }
   .as-menu,
   .as-topbar-brand {
@@ -138,44 +132,14 @@
   display: grid;
   gap: 2px;
 }
+/* Link styles are shared with the worker rail (shell.css) */
 .as-nav a {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-height: 44px;
-  padding: 0 var(--sp-3);
-  border-radius: 10px;
-  color: var(--fs-on-dark-2);
   font-size: var(--fs-text-sm);
-  font-weight: 600;
-  text-decoration: none;
-}
-.as-nav a:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-.as-nav a[aria-current='page'] {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-.as-nav a[aria-current='page']::before {
-  content: '';
-  position: absolute;
-  top: 9px;
-  bottom: 9px;
-  left: calc(-1 * var(--sp-3));
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: var(--fs-marigold);
-}
-.as-nav a[aria-current='page'] svg {
-  color: var(--fs-marigold);
 }
 .as-foot {
   margin-top: auto;
   padding: var(--sp-4) var(--sp-2) 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--glass-on-dark-edge);
 }
 .as-user {
   margin: 0 0 var(--sp-3);
@@ -187,15 +151,6 @@
 }
 .as-user span {
   color: var(--fs-on-dark-3);
-}
-.as-signout {
-  width: 100%;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-}
-.as-signout:hover {
-  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Dashboard: what needs action, then the period ledger, then trends */
@@ -224,12 +179,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
+  overflow: hidden;
 }
 .action-list li + li {
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .action-row {
   display: flex;
@@ -240,8 +194,14 @@
   color: var(--fs-ink);
   text-decoration: none;
 }
+.action-row {
+  transition: background-color var(--m-fast) ease;
+}
 .action-row:hover {
-  background: #fafbfc;
+  background: rgba(255, 255, 255, 0.55);
+}
+.action-row .row-icon {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .action-row .chevron {
   flex: none;
@@ -269,7 +229,8 @@
 .action-clear {
   margin: 0;
   padding: var(--sp-4);
-  border-radius: var(--r-record);
+  border-radius: var(--r-slab);
+  border: 1px solid var(--fs-good-line);
   background: var(--fs-good-bg);
   color: var(--fs-good);
   font-weight: 650;
@@ -281,23 +242,22 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
   margin-top: var(--sp-7);
 }
-.ledger {
+/* Dashboard ledgers (scoped: .ledger alone is also the pay statement table) */
+.ledgers > .ledger {
   padding: var(--sp-4) var(--sp-5) var(--sp-2);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
-.ledger h2 {
+.ledgers > .ledger h2 {
   margin: 0 0 var(--sp-2);
   font-size: var(--fs-text-lg);
 }
-.ledger ul {
+.ledgers > .ledger ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.ledger li + li {
-  border-top: 1px solid var(--fs-line);
+.ledgers > .ledger li + li {
+  border-top: 1px solid var(--glass-well-edge);
 }
 .ledger-row {
   display: grid;
@@ -351,7 +311,7 @@ a.ledger-row:hover .ledger-label {
   padding: var(--sp-2) 0;
 }
 .activity li + li {
-  border-top: 1px solid var(--fs-line);
+  border-top: 1px solid var(--glass-well-edge);
 }
 .activity time {
   display: block;
@@ -383,11 +343,12 @@ a.ledger-row:hover .ledger-label {
 }
 .chart-bar {
   min-height: 1px;
-  border-radius: 3px 3px 0 0;
-  background: var(--fs-aubergine);
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--fs-aubergine-700) 0%, var(--fs-aubergine) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 .chart-bar.extra {
-  background: var(--fs-marigold);
+  background: linear-gradient(180deg, var(--fs-marigold-lit) 0%, var(--fs-marigold) 100%);
 }
 .chart-bar.extra + .chart-bar {
   border-radius: 0;
@@ -403,8 +364,9 @@ a.ledger-row:hover .ledger-label {
   position: absolute;
   right: 0;
   bottom: 3px;
-  padding: 0 4px;
-  background: var(--fs-paper);
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
   font-size: var(--fs-text-xs);
   font-weight: 600;
   color: var(--fs-ink-2);
@@ -458,7 +420,7 @@ a.ledger-row:hover .ledger-label {
 .deduction-row {
   padding-bottom: var(--sp-2);
   margin-bottom: var(--sp-3);
-  border-bottom: 1px solid var(--fs-line);
+  border-bottom: 1px solid var(--glass-well-edge);
 }
 
 /* Inline hourly-rate editor in the workforce table */
@@ -481,8 +443,6 @@ a.ledger-row:hover .ledger-label {
   margin: 0 0 var(--sp-6);
   padding: var(--sp-5);
   border-radius: var(--r-slab);
-  background: var(--fs-aubergine-deep);
-  color: var(--fs-on-dark);
 }
 .gate-code h2 {
   margin: 0;
@@ -503,6 +463,7 @@ a.ledger-row:hover .ledger-label {
   letter-spacing: 0.14em;
   line-height: 1;
   color: var(--fs-marigold);
+  text-shadow: 0 0 28px rgba(234, 170, 0, 0.35);
 }
 .gate-code-meta {
   display: flex;
@@ -515,6 +476,7 @@ a.ledger-row:hover .ledger-label {
 }
 .gate-code-rule {
   padding: 2px 10px;
+  background: var(--glass-on-dark);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--r-chip);
   color: #fff;
@@ -548,17 +510,14 @@ a.ledger-row:hover .ledger-label {
   font-size: var(--fs-text-sm);
 }
 .card .table-wrap {
-  box-shadow: none;
-  border-radius: 0;
+  border-radius: var(--r-control);
 }
 
 /* Safe Signal: repeated hazards across reports */
 .signal {
   margin: 0 0 var(--sp-6);
   padding: var(--sp-5);
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
 }
 .signal-head {
   display: flex;
@@ -589,7 +548,6 @@ a.ledger-row:hover .ledger-label {
   margin: 0;
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-control);
-  background: var(--fs-sunk);
   font-size: var(--fs-text-sm);
 }
 .signal-list {
@@ -602,6 +560,7 @@ a.ledger-row:hover .ledger-label {
 }
 .signal-card {
   padding: var(--sp-4);
+  background: rgba(255, 255, 255, 0.6);
   border: 1px solid var(--fs-caution-line);
   border-left: 5px solid var(--fs-marigold);
   border-radius: var(--r-control);
