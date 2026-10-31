@@ -103,7 +103,7 @@ export function AdminFeedback() {
                       <div className="row">
                         <span>
                           <strong>{topics.find((c) => c.key === f.category)?.label ?? f.category}</strong>
-                          {f.rating !== null ? <span> · {f.rating} / 5</span> : null}
+                          {f.rating !== null ? <span className="muted">, rated {f.rating} of 5</span> : null}
                         </span>
                         <Badge tone={f.status === 'new' ? 'warn' : f.status === 'hidden' ? 'neutral' : 'good'}>{STATUS_LABEL[f.status]}</Badge>
                       </div>
@@ -111,7 +111,7 @@ export function AdminFeedback() {
                       <div className="row">
                         <span className="muted small">
                           {formatDate(f.submittedOn)}
-                          {f.synthetic ? ' · synthetic' : ''}
+                          {f.synthetic ? ', synthetic' : ''}
                         </span>
                         <label className="small">
                           <span className="visually-hidden">Moderation status</span>

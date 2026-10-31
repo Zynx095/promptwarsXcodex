@@ -60,7 +60,7 @@ export function AdminPayslips() {
       actions={
         <a href="/api/admin/payslips/export.csv" download="fairshift_payroll.csv" className="btn btn-secondary">
           <Download className="icon-sm" aria-hidden="true" />
-          <span>Export Payroll CSV</span>
+          <span>Export payroll CSV</span>
         </a>
       }
     >
