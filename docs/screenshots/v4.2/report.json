@@ -1,0 +1,229 @@
+[
+  {
+    "name": "01-signin-phone-360",
+    "viewport": "360x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "failedRequests": ["401 http://localhost:8099/api/auth/me", "401 http://localhost:8099/api/auth/me"]
+  },
+  {
+    "name": "02-signin-desktop-1440",
+    "viewport": "1440x900",
+    "horizontalOverflow": false,
+    "consoleErrors": ["Failed to load resource: the server responded with a status of 401 (Unauthorized)"],
+    "failedRequests": ["401 http://localhost:8099/api/auth/me"]
+  },
+  {
+    "name": "03-home-phone-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": ["Failed to load resource: the server responded with a status of 401 (Unauthorized)"],
+    "failedRequests": ["401 http://localhost:8099/api/auth/me"]
+  },
+  {
+    "name": "04-home-week-and-attention-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "05-check-out-confirmation-375",
+    "viewport": "375x812",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "06-home-tamil-412",
+    "viewport": "412x915",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "07-home-tablet-768",
+    "viewport": "768x1024",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "08-home-desktop-rail-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "09-shifts-history-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "10-receipt-seal-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "11-pay-money-jar-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "12-payslip-statement-768",
+    "viewport": "768x1024",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "13-dispute-notice-preview-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "14-heat-check-extreme-360",
+    "viewport": "360x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "15-report-form-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "16-report-form-errors-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": ["Failed to load resource: the server responded with a status of 400 (Bad Request)"],
+    "failedRequests": ["400 http://localhost:8099/api/reports"]
+  },
+  {
+    "name": "17-notifications-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "18-language-sheet-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "19-more-sheet-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "20-feedback-face-scale-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "21-skill-passport-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "22-report-case-lifecycle-412",
+    "viewport": "412x915",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "23-console-dashboard-1440",
+    "viewport": "1440x900",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "24-console-dashboard-phone-375",
+    "viewport": "375x812",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "25-console-menu-sheet-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "26-workforce-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "27-deactivate-confirmation-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "28-add-worker-sheet-390",
+    "viewport": "390x844",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "29-sites-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "30-shifts-gate-code-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "31-report-queue-safe-signal-1280",
+    "viewport": "1280x800",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "name": "32-report-case-admin-1440",
+    "viewport": "1440x900",
+    "horizontalOverflow": false,
+    "consoleErrors": [],
+    "failedRequests": []
+  }
+]
