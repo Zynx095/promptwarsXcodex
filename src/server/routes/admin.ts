@@ -41,6 +41,7 @@ import { getPayslip, issuePayslip, listPayslips, previewPayslip } from '../servi
 import { buildPayrollCsv, type PayrollCsvRow } from '../services/payrollCsv';
 import { getAccountabilityMetrics, getReport, listInspections, listOrgReports, transitionReport } from '../services/reports';
 import { reviewEvidence } from '../services/evidence';
+import { revokePasskey } from '../services/passkeys';
 import { feedbackSummary, listFeedback, setFeedbackStatus } from '../services/feedback';
 import { acknowledgeAlert, listAlerts } from '../services/fatigue';
 import { addSkill, listSkills, setSkillVerification, skillWorkerId } from '../services/skills';
@@ -385,6 +386,15 @@ export function adminRoutes(ctx: AppContext): Router {
     if (!report) throw notFound('Report');
     const { decision, note } = parse(evidenceReviewSchema, req.body);
     res.json(reviewEvidence(ctx, user, report.id, param(req, 'evidenceId'), decision, note));
+  });
+
+  // A worker who lost or replaced their phone: remove their passkeys so they can check in with
+  // their sign-in again and register the new phone. Recorded in the audit log.
+  r.post('/workers/:id/passkeys/revoke', (req, res) => {
+    const { user, org } = session(req);
+    const worker = getWorker(ctx.db, org.id, param(req, 'id'));
+    if (!worker) throw notFound('Worker');
+    res.json({ revoked: revokePasskey(ctx, user.id, org.id, worker.id, null) });
   });
 
   // Reports that came with photos, for the inspection view

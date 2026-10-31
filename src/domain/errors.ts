@@ -22,7 +22,9 @@ export type DomainErrorCode =
   | 'DUPLICATE_SITE_CODE'
   | 'INVALID_DISPUTE_INPUT'
   | 'REMEDIATION_PHOTO_REQUIRED'
-  | 'AWAITING_REPORTER';
+  | 'AWAITING_REPORTER'
+  | 'PASSKEY_REQUIRED'
+  | 'PASSKEY_FAILED';
 
 /** A business-rule violation with a stable code and a user-safe message. */
 export class DomainError extends Error {

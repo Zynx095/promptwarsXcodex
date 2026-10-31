@@ -54,8 +54,32 @@ export interface ShiftDTO {
   localDate: string;
   source: ShiftSource;
   checkInMethod: CheckInMethod;
+  /** How the worker proved it was them at check-in and check-out. */
+  checkInAuth?: AttendanceAuth;
+  checkOutAuth?: AttendanceAuth | null;
   corrected: boolean;
   synthetic: boolean;
+}
+
+/** "passkey": a passkey assertion with user verification, checked by the server. "session": the signed-in session only. */
+export type AttendanceAuth = 'session' | 'passkey';
+
+export interface PasskeyDTO {
+  id: string;
+  label: string;
+  /** "multiDevice" passkeys sync between a person's devices; "singleDevice" ones stay on one device. */
+  deviceType: 'singleDevice' | 'multiDevice';
+  backedUp: boolean;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface PasskeysResponse {
+  /** False when this server has no WebAuthn relying party configured. */
+  available: boolean;
+  /** When true, check-in and check-out need a passkey (the worker has at least one). */
+  required: boolean;
+  items: PasskeyDTO[];
 }
 
 export interface DaySummary {

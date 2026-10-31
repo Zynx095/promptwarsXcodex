@@ -26,6 +26,8 @@
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.3",
     "express": "^5.3.0",
     "lucide-react": "^1.62.0",
     "react": "^19.3.1",

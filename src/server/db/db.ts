@@ -80,6 +80,10 @@ function migrate(raw: DatabaseSync): void {
   if (!cols.some((c) => c.name === 'check_in_method')) {
     raw.exec(`ALTER TABLE shifts ADD COLUMN check_in_method TEXT NOT NULL DEFAULT 'app' CHECK (check_in_method IN ('app', 'site_code'))`);
   }
+  if (!cols.some((c) => c.name === 'check_in_auth')) {
+    raw.exec(`ALTER TABLE shifts ADD COLUMN check_in_auth TEXT NOT NULL DEFAULT 'session' CHECK (check_in_auth IN ('session', 'passkey'))`);
+    raw.exec(`ALTER TABLE shifts ADD COLUMN check_out_auth TEXT CHECK (check_out_auth IN ('session', 'passkey'))`);
+  }
   const reportCols = raw.prepare(`SELECT name FROM pragma_table_info('safety_reports')`).all() as { name: string }[];
   if (!reportCols.some((c) => c.name === 'action_taken')) {
     raw.exec(`ALTER TABLE safety_reports ADD COLUMN action_taken TEXT`);

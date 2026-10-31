@@ -132,12 +132,59 @@ const deductionSchema = z
     path: ['value'],
   });
 
+/** A WebAuthn assertion as the browser returns it (all binary fields base64url). Verified on the server. */
+const b64url = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]*$/)
+  .max(4096);
+export const passkeyAssertionSchema = z.object({
+  id: b64url.min(1),
+  rawId: b64url.min(1),
+  type: z.literal('public-key'),
+  response: z.object({
+    clientDataJSON: b64url.min(1),
+    authenticatorData: b64url.min(1),
+    signature: b64url.min(1),
+    userHandle: b64url.optional(),
+  }),
+  clientExtensionResults: z.record(z.string(), z.unknown()).default({}),
+  authenticatorAttachment: z.enum(['platform', 'cross-platform']).optional(),
+});
+
+export const passkeyRegistrationSchema = z.object({
+  label: z.string().trim().max(60).default(''),
+  response: z.object({
+    id: b64url.min(1),
+    rawId: b64url.min(1),
+    type: z.literal('public-key'),
+    response: z.object({
+      clientDataJSON: b64url.min(1),
+      attestationObject: z
+        .string()
+        .regex(/^[A-Za-z0-9_-]*$/)
+        .max(16384)
+        .min(1),
+      transports: z.array(z.string().max(20)).max(10).optional(),
+      authenticatorData: b64url.optional(),
+      publicKey: b64url.optional(),
+      publicKeyAlgorithm: z.number().int().optional(),
+    }),
+    clientExtensionResults: z.record(z.string(), z.unknown()).default({}),
+    authenticatorAttachment: z.enum(['platform', 'cross-platform']).optional(),
+  }),
+});
+
 export const checkInSchema = z.object({
   siteCode: z
     .string()
     .trim()
     .regex(/^\d{6}$/, 'Enter the 6-digit site code')
     .optional(),
+  passkey: passkeyAssertionSchema.optional(),
+});
+
+export const checkOutSchema = z.object({
+  passkey: passkeyAssertionSchema.optional(),
 });
 
 export const orgSettingsSchema = z.object({
@@ -247,6 +294,7 @@ export type PhoneOtpRequestInput = z.infer<typeof phoneOtpRequestSchema>;
 export type PhoneOtpVerifyInput = z.infer<typeof phoneOtpVerifySchema>;
 export type ShiftCorrectionInput = z.infer<typeof shiftCorrectionSchema>;
 export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
+export type PasskeyAssertion = z.infer<typeof passkeyAssertionSchema>;
 export type ReportTransitionInput = z.infer<typeof reportTransitionSchema>;
 export type FeedbackCreateInput = z.infer<typeof feedbackCreateSchema>;
 export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;

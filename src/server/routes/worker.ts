@@ -2,6 +2,9 @@
 import { Router, type Request } from 'express';
 import {
   checkInSchema,
+  checkOutSchema,
+  passkeyRegistrationSchema,
+  type PasskeyAssertion,
   dateRangeSchema,
   evidenceUploadSchema,
   feedbackCreateSchema,
@@ -16,7 +19,20 @@ import { notFound, param, parse } from '../http';
 import { requireRole, requireUser } from '../auth/session';
 import { requireOrg } from '../repositories/orgs';
 import { listWorkerShifts, toShiftDTO } from '../repositories/shifts';
-import { attendanceStatus, checkIn, checkOut, defaultRange } from '../services/attendance';
+import { attendanceStatus, checkIn, checkOut, defaultRange, type AttendanceProof } from '../services/attendance';
+import {
+  attendanceOptions,
+  listPasskeys,
+  passkeyRequired,
+  registerPasskey,
+  registrationOptions,
+  revokePasskey,
+  verifyAttendancePasskey,
+} from '../services/passkeys';
+import type { AuthenticationResponseJSON, RegistrationResponseJSON } from '@simplewebauthn/server';
+import type { SessionUserRow } from '../repositories/users';
+import { DomainError } from '../../domain/errors';
+import { z } from 'zod';
 import { getPayslip, listPayslips, previewPayslip } from '../services/payslips';
 import { createReport, getReport, listMyReports, respondToFix } from '../services/reports';
 import { addEvidence, getEvidenceImage, verifyEvidence } from '../services/evidence';
@@ -44,15 +60,60 @@ export function workerRoutes(ctx: AppContext): Router {
     res.json(attendanceStatus(ctx, org, user.id));
   });
 
-  r.post('/attendance/check-in', worker, (req, res) => {
-    const { user, org } = session(req);
-    const { siteCode } = parse(checkInSchema, req.body ?? {});
-    res.status(201).json(checkIn(ctx, org, user.id, siteCode));
+  // A worker with a registered passkey must prove it is them with a fresh passkey check for every
+  // check-in and check-out; the server verifies it before anything is recorded.
+  const passkeyAttempts = new RateLimiter(20, 15 * 60_000, 'Too many passkey attempts. Wait 15 minutes and try again.');
+  async function attendanceProof(user: SessionUserRow, purpose: 'check-in' | 'check-out', assertion: PasskeyAssertion | undefined): Promise<AttendanceProof> {
+    if (!passkeyRequired(ctx, user.id)) return { auth: 'session' };
+    if (!assertion) throw new DomainError('PASSKEY_REQUIRED', 'Confirm it is you with your passkey to continue.');
+    passkeyAttempts.take(user.id, ctx.now().getTime());
+    const { label } = await verifyAttendancePasskey(ctx, user, purpose, assertion as AuthenticationResponseJSON);
+    return { auth: 'passkey', credentialLabel: label };
+  }
+
+  r.post('/attendance/passkey-options', worker, async (req, res) => {
+    const { user } = session(req);
+    const { action } = parse(z.object({ action: z.enum(['check-in', 'check-out']) }), req.body);
+    passkeyAttempts.take(user.id, ctx.now().getTime());
+    res.json(await attendanceOptions(ctx, user, action));
   });
 
-  r.post('/attendance/check-out', worker, (req, res) => {
+  r.post('/attendance/check-in', worker, async (req, res) => {
     const { user, org } = session(req);
-    res.json(checkOut(ctx, org, user.id));
+    const { siteCode, passkey } = parse(checkInSchema, req.body ?? {});
+    const proof = await attendanceProof(user, 'check-in', passkey);
+    res.status(201).json(checkIn(ctx, org, user.id, siteCode, proof));
+  });
+
+  r.post('/attendance/check-out', worker, async (req, res) => {
+    const { user, org } = session(req);
+    const { passkey } = parse(checkOutSchema, req.body ?? {});
+    const proof = await attendanceProof(user, 'check-out', passkey);
+    res.json(checkOut(ctx, org, user.id, proof));
+  });
+
+  // ---- Passkeys: register, list and remove this worker's own ----
+  r.get('/passkeys', worker, (req, res) => {
+    const { user } = session(req);
+    res.json(listPasskeys(ctx, user.id));
+  });
+
+  r.post('/passkeys/register-options', worker, async (req, res) => {
+    const { user } = session(req);
+    passkeyAttempts.take(user.id, ctx.now().getTime());
+    res.json(await registrationOptions(ctx, user));
+  });
+
+  r.post('/passkeys/register', worker, async (req, res) => {
+    const { user } = session(req);
+    const { response, label } = parse(passkeyRegistrationSchema, req.body);
+    res.status(201).json(await registerPasskey(ctx, user, response as RegistrationResponseJSON, label));
+  });
+
+  r.post('/passkeys/:id/revoke', worker, (req, res) => {
+    const { user } = session(req);
+    if (revokePasskey(ctx, user.id, user.orgId, user.id, param(req, 'id')) === 0) throw notFound('Passkey');
+    res.json(listPasskeys(ctx, user.id));
   });
 
   r.get('/attendance/shifts', worker, (req, res) => {

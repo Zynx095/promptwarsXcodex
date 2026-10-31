@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS shifts (
   check_out_at TEXT,
   source TEXT NOT NULL CHECK (source IN ('app', 'seed', 'correction')),
   check_in_method TEXT NOT NULL DEFAULT 'app' CHECK (check_in_method IN ('app', 'site_code')),
+  -- How the worker proved it was them: the signed-in session alone, or a passkey checked by the server
+  check_in_auth TEXT NOT NULL DEFAULT 'session' CHECK (check_in_auth IN ('session', 'passkey')),
+  check_out_auth TEXT CHECK (check_out_auth IN ('session', 'passkey')),
   corrected INTEGER NOT NULL DEFAULT 0,
   is_synthetic INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
@@ -308,6 +311,37 @@ CREATE INDEX IF NOT EXISTS idx_evidence_report ON report_evidence(report_id, sta
 CREATE INDEX IF NOT EXISTS idx_evidence_org ON report_evidence(org_id, created_at);
 CREATE TRIGGER IF NOT EXISTS report_evidence_immutable BEFORE UPDATE OF org_id, report_id, stage, mime, bytes, size_bytes, sha256, seal, seal_key_id, created_at, uploader_role, uploader_id ON report_evidence
 BEGIN SELECT RAISE(ABORT, 'report_evidence photos are immutable'); END;
+
+-- Passkeys (WebAuthn). Only the public key and its metadata are stored; the device keeps the
+-- private key, and any fingerprint or face check happens on the device and never reaches us.
+CREATE TABLE IF NOT EXISTS passkeys (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES organizations(id),
+  user_id TEXT NOT NULL REFERENCES users(id),
+  credential_id TEXT NOT NULL UNIQUE,
+  public_key TEXT NOT NULL,
+  sign_count INTEGER NOT NULL DEFAULT 0,
+  transports TEXT NOT NULL DEFAULT '[]',
+  device_type TEXT NOT NULL,
+  backed_up INTEGER NOT NULL DEFAULT 0,
+  label TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  last_used_at TEXT,
+  revoked_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_passkeys_user ON passkeys(user_id, revoked_at);
+
+-- One-time WebAuthn challenges: bound to a user and a purpose, expire after five minutes and are
+-- deleted when used, so an assertion can never be replayed.
+CREATE TABLE IF NOT EXISTS webauthn_challenges (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  purpose TEXT NOT NULL CHECK (purpose IN ('register', 'check-in', 'check-out')),
+  challenge TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_webauthn_challenges_user ON webauthn_challenges(user_id, purpose);
 
 -- Append-only history: audit events, report status events and proof checkpoints can be added but
 -- never edited or deleted through the application (or any other SQL run against this database).

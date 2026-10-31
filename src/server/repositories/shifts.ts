@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/db';
 import { shiftDurationMinutes } from '../../domain/attendance';
 import { localDate } from '../../shared/time';
-import type { CheckInMethod, ShiftDTO, ShiftSource } from '../../shared/types';
+import type { AttendanceAuth, CheckInMethod, ShiftDTO, ShiftSource } from '../../shared/types';
 
 export interface ShiftRow {
   id: string;
@@ -13,12 +13,14 @@ export interface ShiftRow {
   checkOutAt: string | null;
   source: ShiftSource;
   checkInMethod: CheckInMethod;
+  checkInAuth?: AttendanceAuth;
+  checkOutAuth?: AttendanceAuth | null;
   corrected: number;
   synthetic: number;
 }
 
 const COLS = `s.id, s.org_id AS orgId, s.worker_id AS workerId, s.check_in_at AS checkInAt, s.check_out_at AS checkOutAt,
-  s.source, s.check_in_method AS checkInMethod, s.corrected, s.is_synthetic AS synthetic`;
+  s.source, s.check_in_method AS checkInMethod, s.check_in_auth AS checkInAuth, s.check_out_auth AS checkOutAuth, s.corrected, s.is_synthetic AS synthetic`;
 
 export function toShiftDTO(row: ShiftRow, timeZone: string): ShiftDTO {
   return {
@@ -32,6 +34,8 @@ export function toShiftDTO(row: ShiftRow, timeZone: string): ShiftDTO {
     localDate: localDate(row.checkInAt, timeZone),
     source: row.source,
     checkInMethod: row.checkInMethod,
+    checkInAuth: row.checkInAuth ?? 'session',
+    checkOutAuth: row.checkOutAuth ?? null,
     corrected: Boolean(row.corrected),
     synthetic: Boolean(row.synthetic),
   };
@@ -57,22 +61,30 @@ export function insertShift(
     checkOutAt?: string | null;
     source: ShiftSource;
     method?: CheckInMethod;
+    auth?: AttendanceAuth;
     synthetic?: boolean;
     at: string;
   },
 ): string {
   const id = randomUUID();
   db.run(
-    `INSERT INTO shifts (id, org_id, worker_id, check_in_at, check_out_at, source, check_in_method, is_synthetic, created_at, updated_at)
-     VALUES (@id, @orgId, @workerId, @checkInAt, @checkOutAt, @source, @method, @synthetic, @at, @at)`,
-    { id, ...s, checkOutAt: s.checkOutAt ?? null, method: s.method ?? 'app', synthetic: s.synthetic ?? false },
+    `INSERT INTO shifts (id, org_id, worker_id, check_in_at, check_out_at, source, check_in_method, check_in_auth, is_synthetic, created_at, updated_at)
+     VALUES (@id, @orgId, @workerId, @checkInAt, @checkOutAt, @source, @method, @auth, @synthetic, @at, @at)`,
+    { id, ...s, checkOutAt: s.checkOutAt ?? null, method: s.method ?? 'app', auth: s.auth ?? 'session', synthetic: s.synthetic ?? false },
   );
   return id;
 }
 
 /** Closes an open shift. Returns false if it was already closed (e.g. a concurrent request). */
-export function closeShift(db: Db, id: string, checkOutAt: string, at: string): boolean {
-  return db.run(`UPDATE shifts SET check_out_at = @checkOutAt, updated_at = @at WHERE id = @id AND check_out_at IS NULL`, { id, checkOutAt, at }) === 1;
+export function closeShift(db: Db, id: string, checkOutAt: string, at: string, auth: AttendanceAuth = 'session'): boolean {
+  return (
+    db.run(`UPDATE shifts SET check_out_at = @checkOutAt, check_out_auth = @auth, updated_at = @at WHERE id = @id AND check_out_at IS NULL`, {
+      id,
+      checkOutAt,
+      at,
+      auth,
+    }) === 1
+  );
 }
 
 export function updateShiftTimes(db: Db, orgId: string, id: string, checkInAt: string, checkOutAt: string | null, at: string): void {

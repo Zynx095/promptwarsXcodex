@@ -2,7 +2,7 @@
 import { DomainError } from '../../domain/errors';
 import { assertCanCheckIn, assertCanCheckOut, attendanceState, dailyBreakdown, validateCorrection } from '../../domain/attendance';
 import { addDays, localDate, localRangeToUtc } from '../../shared/time';
-import type { AttendanceStatusDTO, CheckInMethod, ShiftDTO } from '../../shared/types';
+import type { AttendanceAuth, AttendanceStatusDTO, CheckInMethod, ShiftDTO } from '../../shared/types';
 import { verifySiteCode } from '../auth/siteCode';
 import type { ShiftCorrectionInput } from '../../shared/schemas';
 import { nowIso, type AppContext } from '../context';
@@ -53,7 +53,13 @@ function checkInMethod(ctx: AppContext, org: OrgRow, siteCode: string | undefine
   return 'app';
 }
 
-export function checkIn(ctx: AppContext, org: OrgRow, workerId: string, siteCode?: string): ShiftDTO {
+/** How the worker proved it was them: `credentialLabel` is set when a passkey assertion was verified. */
+export interface AttendanceProof {
+  auth: AttendanceAuth;
+  credentialLabel?: string;
+}
+
+export function checkIn(ctx: AppContext, org: OrgRow, workerId: string, siteCode?: string, proof: AttendanceProof = { auth: 'session' }): ShiftDTO {
   const at = nowIso(ctx);
   const worker = getWorker(ctx.db, org.id, workerId);
   if (worker && !worker.active) {
@@ -64,8 +70,16 @@ export function checkIn(ctx: AppContext, org: OrgRow, workerId: string, siteCode
     return ctx.db.tx(() => {
       assertCanCheckIn(shifts.getOpenShift(ctx.db, workerId) ?? null);
 
-      const id = shifts.insertShift(ctx.db, { orgId: org.id, workerId, checkInAt: at, source: 'app', method, at });
-      recordAudit(ctx.db, { orgId: org.id, actorId: workerId, entityType: 'shift', entityId: id, action: 'check_in', after: { checkInAt: at, method }, at });
+      const id = shifts.insertShift(ctx.db, { orgId: org.id, workerId, checkInAt: at, source: 'app', method, auth: proof.auth, at });
+      recordAudit(ctx.db, {
+        orgId: org.id,
+        actorId: workerId,
+        entityType: 'shift',
+        entityId: id,
+        action: 'check_in',
+        after: { checkInAt: at, method, auth: proof.auth, ...(proof.credentialLabel ? { passkey: proof.credentialLabel } : {}) },
+        at,
+      });
       return shifts.toShiftDTO(shifts.getShift(ctx.db, org.id, id)!, org.timezone);
     });
   } catch (err) {
@@ -75,12 +89,12 @@ export function checkIn(ctx: AppContext, org: OrgRow, workerId: string, siteCode
   }
 }
 
-export function checkOut(ctx: AppContext, org: OrgRow, workerId: string): ShiftDTO {
+export function checkOut(ctx: AppContext, org: OrgRow, workerId: string, proof: AttendanceProof = { auth: 'session' }): ShiftDTO {
   const at = nowIso(ctx);
   const shift = ctx.db.tx(() => {
     const open = shifts.getOpenShift(ctx.db, workerId) ?? null;
     assertCanCheckOut(open, at);
-    if (!shifts.closeShift(ctx.db, open.id!, at, at)) {
+    if (!shifts.closeShift(ctx.db, open.id!, at, at, proof.auth)) {
       throw new DomainError('NOT_ON_SHIFT', 'This shift was already checked out.');
     }
     recordAudit(ctx.db, {
@@ -89,7 +103,7 @@ export function checkOut(ctx: AppContext, org: OrgRow, workerId: string): ShiftD
       entityType: 'shift',
       entityId: open.id!,
       action: 'check_out',
-      after: { checkOutAt: at },
+      after: { checkOutAt: at, auth: proof.auth, ...(proof.credentialLabel ? { passkey: proof.credentialLabel } : {}) },
       at,
     });
     evaluateWorkerFatigue(ctx, org, workerId);

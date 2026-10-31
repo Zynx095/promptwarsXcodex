@@ -44,6 +44,8 @@ const DOMAIN_STATUS: Partial<Record<DomainErrorCode, number>> = {
   INVALID_TRANSITION: 409,
   OVERLAPPING_SHIFT: 409,
   CONFLICT: 409,
+  PASSKEY_REQUIRED: 403,
+  PASSKEY_FAILED: 403,
 };
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
