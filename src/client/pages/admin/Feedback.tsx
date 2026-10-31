@@ -67,7 +67,7 @@ export function AdminFeedback() {
           )}
         </Async>
       </Card>
-      <div className="card form-row">
+      <div className="filter-form">
         <Field label="Status">
           <select value={status} onChange={(e) => go({ status: e.target.value, offset: undefined })}>
             <option value="">Any</option>

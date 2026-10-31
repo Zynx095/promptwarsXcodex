@@ -3,20 +3,16 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 // Styles are split by concern: tokens, base, primitives, shells, then one file per feature.
-// The remaining legacy sheet (styles.css) is included wherever a rule must hold everywhere.
 describe('FairShift design tokens and styling', () => {
   const stylesDir = resolve(import.meta.dirname, '../../src/client/styles');
   const read = (file: string) => readFileSync(resolve(stylesDir, file), 'utf-8');
   const tokens = read('tokens.css');
   const base = read('base.css');
   const primitives = read('primitives.css');
-  const legacy = readFileSync(resolve(import.meta.dirname, '../../src/client/styles.css'), 'utf-8');
-  const all = [
-    legacy,
-    ...readdirSync(stylesDir)
-      .filter((f) => f.endsWith('.css'))
-      .map(read),
-  ].join('\n');
+  const all = readdirSync(stylesDir)
+    .filter((f) => f.endsWith('.css'))
+    .map(read)
+    .join('\n');
 
   function hex(token: string): string {
     const m = tokens.match(new RegExp(`--${token}:\\s*(#[0-9a-f]{6})\\b`, 'i'));

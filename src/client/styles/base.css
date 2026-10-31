@@ -441,3 +441,33 @@ svg.icon[data-size='lg'] {
 .text-marigold {
   color: var(--fs-marigold-ink);
 }
+
+/* Print: records on white paper, without controls */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .btn,
+  .btn-group,
+  .skip-link,
+  .demo-banner,
+  .chip-filter,
+  .table-tools {
+    display: none !important;
+  }
+  .card {
+    background: #fff !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+  table {
+    border-collapse: collapse !important;
+  }
+  th,
+  td {
+    border-bottom: 1px solid #ddd !important;
+    color: #000 !important;
+  }
+}

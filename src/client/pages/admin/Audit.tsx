@@ -30,7 +30,7 @@ export function AdminAudit() {
         Every check-in, check-out, correction, report status change, payslip issue and rule change is recorded here with who did it and when. Confidential
         report submissions are recorded without the reporter.
       </p>
-      <div className="card form-row">
+      <div className="filter-form">
         <Field label="Record type">
           <select value={entityType} onChange={(e) => navigate(`/admin/audit${qs({ entityType: e.target.value })}`)}>
             <option value="">All</option>

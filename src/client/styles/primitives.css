@@ -569,71 +569,16 @@ fieldset.has-error .check {
   }
 }
 
-/* ---------- Figures (admin ledger tiles) ---------- */
-.stats {
-  display: grid;
-  gap: var(--sp-3);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
-  margin-bottom: var(--sp-4);
-}
-.stat {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
-  padding: var(--sp-4);
-  text-decoration: none;
-  color: inherit;
-  min-width: 0;
-}
-a.stat:hover {
-  box-shadow: 0 0 0 2px var(--fs-aubergine);
-  color: inherit;
-}
-.stat-label {
-  color: var(--fs-ink-2);
-  font-size: var(--fs-text-sm);
-  font-weight: 600;
-  padding-right: 36px;
-}
-.stat-value {
-  color: var(--fs-aubergine);
-  font-family: var(--fs-font-display);
-  font-size: var(--fs-text-2xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-}
-.stat-hint {
-  font-size: var(--fs-text-xs);
-  color: var(--fs-ink-3);
-}
-.stat-icon {
-  position: absolute;
-  top: var(--sp-3);
-  right: var(--sp-3);
-  display: inline-flex;
-  color: var(--fs-ink-3);
-}
-.stat-warn .stat-value {
-  color: var(--fs-caution);
-}
-.stat-warn .stat-icon {
-  color: var(--fs-caution);
-}
-.stat-bad .stat-value {
-  color: var(--fs-danger);
-}
-.stat-bad .stat-icon {
-  color: var(--fs-danger);
-}
-
 /* ---------- Tables and lists ---------- */
 .table-wrap {
+  position: relative;
   overflow-x: auto;
+  background:
+    linear-gradient(to right, var(--fs-paper) 30%, rgba(255, 255, 255, 0)) left center / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--fs-paper) 30%, rgba(255, 255, 255, 0)) right center / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(36, 8, 31, 0.16), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(36, 8, 31, 0.16), transparent) right center / 12px 100% no-repeat scroll,
+    var(--fs-paper);
   border-radius: var(--r-record);
   background: var(--fs-paper);
   box-shadow: var(--e-record);
@@ -903,5 +848,125 @@ td.num {
     justify-content: center;
     gap: var(--sp-2);
     font-size: var(--fs-text-sm);
+  }
+}
+
+@media (max-width: 759px) {
+  .table-wrap table:has(thead th:nth-child(4)) {
+    min-width: 640px;
+  }
+  .table-wrap table:has(thead th:nth-child(6)) {
+    min-width: 760px;
+  }
+}
+
+/* Voice controls under a text field */
+.voice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin: calc(-1 * var(--sp-2)) 0 var(--sp-4);
+}
+
+/* Toggle chips that filter a list (aria-pressed shows the current one) */
+.chip-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+}
+.chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--fs-line-strong);
+  border-radius: var(--r-chip);
+  background: var(--fs-paper);
+  color: var(--fs-ink-2);
+  font: 650 var(--fs-text-sm) / 1 var(--fs-font-text);
+  cursor: pointer;
+}
+.chip-toggle .figure {
+  color: var(--fs-ink-3);
+  font-weight: 600;
+}
+.chip-toggle:hover {
+  border-color: var(--fs-ink-3);
+}
+.chip-toggle[aria-pressed='true'] {
+  border-color: var(--fs-aubergine);
+  background: var(--fs-aubergine);
+  color: #fff;
+}
+.chip-toggle[aria-pressed='true'] .figure {
+  color: var(--fs-on-dark-2);
+}
+
+/* Search and filters above a table */
+.table-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0 var(--sp-5);
+  margin-bottom: var(--sp-2);
+}
+.table-tools .field {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+.table-tools .chip-filter {
+  margin-bottom: var(--sp-5);
+}
+
+/* Table cell helpers */
+.cell-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.cell-action {
+  display: block;
+  margin-top: var(--sp-1);
+  padding: 0;
+  min-height: 32px;
+}
+td.num .cell-action {
+  margin-left: auto;
+}
+.cell-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--sp-3);
+  font-size: var(--fs-text-sm);
+}
+.cell-end {
+  text-align: right;
+  white-space: nowrap;
+}
+.code-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--fs-sunk);
+  border: 1px solid var(--fs-line);
+  font: 650 var(--fs-text-sm) / 1.4 var(--fs-font-code);
+  color: var(--fs-aubergine);
+}
+
+/* Actions in a sheet footer: cancel on the left of the main action, full width on phones */
+.sheet-actions {
+  justify-content: flex-end;
+}
+@media (max-width: 599px) {
+  .sheet-actions .btn {
+    flex: 1 1 auto;
   }
 }

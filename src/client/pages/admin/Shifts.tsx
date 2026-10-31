@@ -32,7 +32,7 @@ export function AdminShifts() {
     <Page title="Shift and attendance records" description="Every recorded shift. Corrections need a reason and go to the audit log.">
       <SiteCodeCard />
       <form
-        className="card form-row"
+        className="filter-form"
         aria-label="Filter shifts"
         onSubmit={(e) => {
           e.preventDefault();
@@ -62,7 +62,7 @@ export function AdminShifts() {
         <Field label="To">
           <input type="date" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} />
         </Field>
-        <div className="field">
+        <div className="filter-submit">
           <Button type="submit" variant="secondary">
             Filter
           </Button>

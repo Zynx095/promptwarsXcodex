@@ -6,11 +6,13 @@ import { useMe } from '../../lib/session';
 import { formatDateTime } from '../../lib/format';
 import { getIndustry } from '../../../shared/industries';
 import { REPORT_STATUSES, SEVERITIES, type Paged, type SafetyReportDTO } from '../../../shared/types';
-import { Async, Badge, Button, Card, Empty, Field, Page, Pager, ReportStatusBadge, SeverityBadge } from '../../components/ui';
+import { Async, Badge, Button, Empty, Field, Page, Pager, ReportStatusBadge, SeverityBadge } from '../../components/ui';
+import { LifecycleBar } from '../../components/Lifecycle';
 import { ReportDetail } from '../../components/ReportDetail';
 import { SafeSignalView } from '../../components/SafeSignalView';
 
 const LIMIT = 25;
+const SEVERITY_LABEL: Record<string, string> = { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' };
 const STATUS_LABEL: Record<string, string> = {
   unresolved: 'All unresolved',
   submitted: 'Submitted (not reviewed)',
@@ -39,11 +41,10 @@ export function AdminReports() {
   const go = (f: typeof filters) => navigate(`/admin/reports${qs({ ...f, offset: f.offset || undefined })}`);
 
   return (
-    <Page title="Safety report queue">
-      <p className="muted">
-        Industry: {industry.label}. Reports are hazards raised by workers; they are not verified incidents. A report is resolved only when an administrator
-        records the fix.
-      </p>
+    <Page
+      title="Safety report queue"
+      description={`${industry.label}. Reports are hazards raised by workers; they are not verified incidents. A report is resolved only when an administrator records the fix.`}
+    >
       <SafeSignalView
         onSelectCategory={(cat) => {
           setDraft((prev) => ({ ...prev, category: cat, offset: 0 }));
@@ -51,7 +52,7 @@ export function AdminReports() {
         }}
       />
       <form
-        className="card form-row"
+        className="filter-form"
         aria-label="Filter reports"
         onSubmit={(e) => {
           e.preventDefault();
@@ -73,7 +74,7 @@ export function AdminReports() {
             <option value="">Any</option>
             {SEVERITIES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {SEVERITY_LABEL[s] ?? s}
               </option>
             ))}
           </select>
@@ -94,13 +95,13 @@ export function AdminReports() {
         <Field label="Reported to">
           <input type="date" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} />
         </Field>
-        <div className="field">
+        <div className="filter-submit">
           <Button type="submit" variant="secondary">
             Filter
           </Button>
         </div>
       </form>
-      <Card>
+      <section aria-label="Reports">
         <Async state={reports}>
           {(d) =>
             d.items.length === 0 ? (
@@ -123,32 +124,27 @@ export function AdminReports() {
                         <tr key={r.id}>
                           <td>
                             <Link to={`/admin/reports/${r.id}`}>{r.title}</Link>
-                            <br />
-                            <span className="muted small">
-                              {industry.hazardCategories.find((c) => c.key === r.category)?.label ?? r.category} · {r.location}
+                            <span className="cell-sub">
+                              {industry.hazardCategories.find((c) => c.key === r.category)?.label ?? r.category}, {r.location}
                             </span>
-                            {r.confidential ? (
-                              <>
-                                {' '}
-                                <Badge tone="info">Confidential</Badge>
-                              </>
-                            ) : null}
+                            {r.confidential ? <Badge tone="info">Confidential</Badge> : null}
                           </td>
                           <td>
                             <SeverityBadge severity={r.severity} />
                           </td>
                           <td>
                             <ReportStatusBadge status={r.status} />
+                            <span className="cell-life">
+                              <LifecycleBar status={r.status} />
+                            </span>
                             {r.followUpDate && r.status === 'follow_up_pending' && r.followUpDate < new Date().toISOString().slice(0, 10) ? (
-                              <div className="mt-1">
-                                <Badge tone="warn">Overdue Follow-up</Badge>
-                              </div>
+                              <Badge tone="warn">Follow-up overdue</Badge>
                             ) : null}
-                            {r.verifiedBy ? <div className="muted small mt-1">Verified: {r.verifiedBy}</div> : null}
+                            {r.verifiedBy ? <span className="cell-sub">Checked by {r.verifiedBy}</span> : null}
                           </td>
 
                           <td>{r.assignee ?? <span className="muted">—</span>}</td>
-                          <td className="small">{formatDateTime(r.createdAt, me.org.timezone)}</td>
+                          <td className="cell-time">{formatDateTime(r.createdAt, me.org.timezone)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -159,7 +155,7 @@ export function AdminReports() {
             )
           }
         </Async>
-      </Card>
+      </section>
     </Page>
   );
 }

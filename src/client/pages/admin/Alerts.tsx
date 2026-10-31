@@ -32,7 +32,7 @@ export function AdminAlerts() {
         Scheduling warnings generated from recorded shifts using your organisation&apos;s thresholds (see Pay &amp; hours rules). They indicate possible fatigue
         risk; they are not medical assessments. Workers can see alerts about their own hours.
       </p>
-      <div className="card form-row">
+      <div className="filter-form">
         <Field label="Status">
           <select value={status} onChange={(e) => navigate(`/admin/alerts${qs({ status: e.target.value, workerId })}`)}>
             <option value="">All</option>
@@ -41,7 +41,7 @@ export function AdminAlerts() {
           </select>
         </Field>
         {workerId ? (
-          <div className="field">
+          <div className="filter-submit">
             <Button variant="secondary" onClick={() => navigate(`/admin/alerts${qs({ status })}`)}>
               Show all workers
             </Button>

@@ -1,12 +1,11 @@
 // Shows the rotating site check-in code for display at the workplace (tablet at the gate,
 // or read out at the morning briefing). Refreshes every 30 seconds.
 import { useEffect } from 'react';
-import { KeyRound } from 'lucide-react';
 import { useApi } from '../lib/useApi';
 import { useMe } from '../lib/session';
 import { formatTime } from '../lib/format';
 import type { SiteCodeDTO } from '../../shared/types';
-import { Async, Badge, Card } from './ui';
+import { Async } from './ui';
 
 export function SiteCodeCard() {
   const me = useMe();
@@ -18,21 +17,22 @@ export function SiteCodeCard() {
   }, [reload]);
 
   return (
-    <Card title="Site check-in code" subtitle="Show this at the workplace. Workers can type it when they check in.">
+    <section className="gate-code on-dark" aria-labelledby="gate-code-title">
+      <h2 id="gate-code-title">Site check-in code</h2>
+      <p className="gate-code-hint">Show this at the workplace. Workers type it when they check in.</p>
       <Async state={code}>
         {(c) => (
-          <div className="row">
-            <div>
-              <p className="site-code" aria-label={`Site code ${c.code.split('').join(' ')}`}>
-                <KeyRound className="icon" aria-hidden="true" data-size="lg" />
-                {c.code}
-              </p>
-              <p className="muted small m-0">Accepted until {formatTime(c.validUntil, me.org.timezone)}. A new code appears every 5 minutes.</p>
-            </div>
-            <Badge tone={c.requireSiteCode ? 'info' : 'neutral'}>{c.requireSiteCode ? 'Required for check-in' : 'Optional'}</Badge>
-          </div>
+          <>
+            <p className="gate-code-digits" aria-label={`Site code ${c.code.split('').join(' ')}`}>
+              {c.code}
+            </p>
+            <p className="gate-code-meta">
+              <span className="gate-code-rule">{c.requireSiteCode ? 'Required for check-in' : 'Optional at check-in'}</span>
+              <span>Accepted until {formatTime(c.validUntil, me.org.timezone)}. A new code appears every 5 minutes.</span>
+            </p>
+          </>
         )}
       </Async>
-    </Card>
+    </section>
   );
 }

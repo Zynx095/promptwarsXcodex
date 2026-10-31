@@ -7,9 +7,12 @@ import { useI18n } from '../../lib/i18n';
 import { parseMajorToMinor, minorToMajorString } from '../../../shared/money';
 import { getIndustry } from '../../../shared/industries';
 import type { SkillDTO, WorkerDTO } from '../../../shared/types';
-import { Async, Badge, Button, Card, Empty, ErrorBox, Money, Notice, Page } from '../../components/ui';
+import { Async, Badge, Button, ConfirmDialog, Empty, ErrorBox, Field, Money, Notice, Page } from '../../components/ui';
+import { Sheet } from '../../components/Sheet';
 import { SkillForm, SkillList } from '../../components/SkillList';
-import { UserPlus, X } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
+
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 export function AdminWorkers() {
   const me = useMe();
@@ -19,9 +22,11 @@ export function AdminWorkers() {
   const [rate, setRate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [toggling, setToggling] = useState<WorkerDTO | null>(null);
+  const [toggleBusy, setToggleBusy] = useState(false);
 
-  // Add Worker Modal State
+  // Add-worker sheet
   const [showAddModal, setShowAddModal] = useState(false);
   const [addName, setAddName] = useState('');
   const [addPhone, setAddPhone] = useState('');
@@ -33,6 +38,8 @@ export function AdminWorkers() {
   const [adding, setAdding] = useState(false);
 
   const industry = getIndustry(me.org.industry);
+  const all = workers.data?.items ?? [];
+  const counts: Record<StatusFilter, number> = { all: all.length, active: all.filter((w) => w.active).length, inactive: all.filter((w) => !w.active).length };
 
   async function handleAddWorker(e: FormEvent) {
     e.preventDefault();
@@ -56,7 +63,7 @@ export function AdminWorkers() {
         },
       });
 
-      setSaved(`Worker "${addName.trim()}" successfully provisioned.`);
+      setSaved(`${addName.trim()} was added. They can sign in with their phone number and PIN.`);
       setShowAddModal(false);
       setAddName('');
       setAddPhone('');
@@ -73,12 +80,16 @@ export function AdminWorkers() {
   }
 
   async function toggleWorkerActive(w: WorkerDTO) {
+    setToggleBusy(true);
     try {
       await api(`/admin/workers/${w.id}`, { method: 'PATCH', body: { active: !w.active } });
       setSaved(`Account for ${w.name} ${w.active ? 'deactivated' : 'reactivated'}.`);
       workers.reload();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Could not update status.');
+    } finally {
+      setToggleBusy(false);
+      setToggling(null);
     }
   }
 
@@ -103,250 +114,204 @@ export function AdminWorkers() {
     <Page
       title="Workforce"
       actions={
-        <Button variant="primary" onClick={() => setShowAddModal(true)}>
+        <Button variant="primary" onClick={() => setShowAddModal(true)} aria-haspopup="dialog">
           <UserPlus className="icon-sm" aria-hidden="true" />
-          <span>Add Worker</span>
+          <span>Add worker</span>
         </Button>
       }
     >
-      {saved ? <Notice kind="success">{saved}</Notice> : null}
-      {error ? <Notice kind="warning">{error}</Notice> : null}
+      <div aria-live="polite">{saved ? <Notice kind="success">{saved}</Notice> : null}</div>
+      {error && !editing ? <Notice kind="warning">{error}</Notice> : null}
 
-      <div className="filter-pill-group mb-3">
-        <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter('all')}>
-          All ({(workers.data?.items ?? []).length})
-        </button>
-        <button type="button" className={`filter-pill ${statusFilter === 'active' ? 'active' : ''}`} onClick={() => setStatusFilter('active')}>
-          Active ({(workers.data?.items ?? []).filter((w) => w.active).length})
-        </button>
-        <button type="button" className={`filter-pill ${statusFilter === 'inactive' ? 'active' : ''}`} onClick={() => setStatusFilter('inactive')}>
-          Inactive ({(workers.data?.items ?? []).filter((w) => !w.active).length})
-        </button>
+      <div className="chip-filter" role="group" aria-label="Show workers">
+        {(['all', 'active', 'inactive'] as const).map((f) => (
+          <button key={f} type="button" className="chip-toggle" aria-pressed={statusFilter === f} onClick={() => setStatusFilter(f)}>
+            {f === 'all' ? 'All' : f === 'active' ? 'Active' : 'Inactive'} <span className="figure">{counts[f]}</span>
+          </button>
+        ))}
       </div>
 
-      <Card>
-        <Async state={workers}>
-          {(d) => {
-            const list = d.items.filter((w) => {
-              if (statusFilter === 'active') return w.active;
-              if (statusFilter === 'inactive') return !w.active;
-              return true;
-            });
+      <Async state={workers}>
+        {(d) => {
+          const list = d.items.filter((w) => {
+            if (statusFilter === 'active') return w.active;
+            if (statusFilter === 'inactive') return !w.active;
+            return true;
+          });
 
-            return list.length === 0 ? (
-              <Empty>No matching workers found.</Empty>
-            ) : (
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th scope="col">Name</th>
-                      <th scope="col">{industry.teamLabel}</th>
-                      <th scope="col">Today</th>
-                      <th scope="col" className="num">
-                        Hourly rate
-                      </th>
-                      <th scope="col">Status</th>
-                      <th scope="col">Records</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {list.map((w) => (
-                      <tr key={w.id}>
-                        <td>
-                          <strong>{w.name}</strong>
-                          <br />
-                          <span className="muted small">
-                            {w.jobTitle} · {w.phone}
-                          </span>
-                        </td>
-                        <td>{w.team}</td>
-                        <td>
-                          <Badge tone={w.attendanceState === 'on_shift' ? 'good' : w.attendanceState === 'completed' ? 'info' : 'neutral'}>
-                            {t(`state.${w.attendanceState}`)}
-                          </Badge>
-                        </td>
-                        <td className="num">
-                          {editing === w.id ? (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                void saveRate(w);
+          return list.length === 0 ? (
+            <Empty>No matching workers found.</Empty>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">{industry.teamLabel}</th>
+                    <th scope="col">Today</th>
+                    <th scope="col" className="num">
+                      Hourly rate
+                    </th>
+                    <th scope="col">Account</th>
+                    <th scope="col">Records</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map((w) => (
+                    <tr key={w.id}>
+                      <td>
+                        <strong>{w.name}</strong>
+                        <span className="cell-sub">
+                          {w.jobTitle}, {w.phone}
+                        </span>
+                      </td>
+                      <td>{w.team}</td>
+                      <td>
+                        <Badge tone={w.attendanceState === 'on_shift' ? 'good' : w.attendanceState === 'completed' ? 'info' : 'neutral'}>
+                          {t(`state.${w.attendanceState}`)}
+                        </Badge>
+                      </td>
+                      <td className="num">
+                        {editing === w.id ? (
+                          <form
+                            className="rate-edit"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              void saveRate(w);
+                            }}
+                          >
+                            <label className="visually-hidden" htmlFor={`rate-${w.id}`}>
+                              Hourly rate in rupees for {w.name}
+                            </label>
+                            <input
+                              id={`rate-${w.id}`}
+                              inputMode="decimal"
+                              value={rate}
+                              onChange={(e) => setRate(e.target.value)}
+                              className="rate-input"
+                              aria-invalid={error ? true : undefined}
+                              aria-describedby={error ? `rate-${w.id}-error` : undefined}
+                            />
+                            <span className="rate-edit-actions">
+                              <Button type="submit" className="btn btn-primary btn-sm">
+                                Save
+                              </Button>
+                              <Button variant="quiet" className="btn btn-quiet btn-sm" onClick={() => setEditing(null)}>
+                                Cancel
+                              </Button>
+                            </span>
+                            {error ? (
+                              <p className="field-error" id={`rate-${w.id}-error`}>
+                                {error}
+                              </p>
+                            ) : null}
+                          </form>
+                        ) : (
+                          <>
+                            <Money minor={w.hourlyRateMinor} />
+                            <Button
+                              variant="link"
+                              className="btn btn-link btn-sm cell-action"
+                              onClick={() => {
+                                setEditing(w.id);
+                                setRate(minorToMajorString(w.hourlyRateMinor));
+                                setError(null);
                               }}
                             >
-                              <label className="visually-hidden" htmlFor={`rate-${w.id}`}>
-                                Hourly rate in rupees for {w.name}
-                              </label>
-                              <input id={`rate-${w.id}`} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} className="rate-input" />
-                              <div className="form-actions form-actions-end">
-                                <Button type="submit">Save</Button>
-                                <Button variant="secondary" onClick={() => setEditing(null)}>
-                                  Cancel
-                                </Button>
-                              </div>
-                              {error ? <p className="field-error">{error}</p> : null}
-                            </form>
-                          ) : (
-                            <>
-                              <Money minor={w.hourlyRateMinor} />
-                              <br />
-                              <Button
-                                variant="link"
-                                onClick={() => {
-                                  setEditing(w.id);
-                                  setRate(minorToMajorString(w.hourlyRateMinor));
-                                  setError(null);
-                                }}
-                              >
-                                Edit rate
-                              </Button>
-                            </>
-                          )}
-                        </td>
-                        <td>
-                          <div className="status-toggle-cell">
-                            {w.active ? <Badge tone="good">Active</Badge> : <Badge tone="neutral">Inactive</Badge>}
-                            <br />
-                            <Button variant="link" onClick={() => toggleWorkerActive(w)} className="small">
-                              {w.active ? 'Deactivate' : 'Reactivate'}
+                              Edit rate<span className="visually-hidden"> for {w.name}</span>
                             </Button>
-                          </div>
-                        </td>
-                        <td className="small">
-                          <Link to={`/admin/shifts?workerId=${w.id}`}>Shifts</Link>
-                          <br />
-                          <Link to={`/admin/payslips?workerId=${w.id}`}>Payslips</Link>
-                          <br />
-                          <Link to={`/admin/workers/${w.id}/skills`}>Skills</Link>
-                          <br />
-                          <Link to={`/admin/alerts?workerId=${w.id}`}>Alerts</Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          }}
-        </Async>
-      </Card>
-
-      {showAddModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-worker-title">
-          <div className="modal-dialog card-glass">
-            <div className="modal-header">
-              <h2 id="add-worker-title" className="h2">
-                Add Frontline Worker
-              </h2>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAddModal(false)} aria-label="Close">
-                <X className="icon-sm" aria-hidden="true" />
-              </button>
+                          </>
+                        )}
+                      </td>
+                      <td>
+                        {w.active ? <Badge tone="good">Active</Badge> : <Badge tone="neutral">Inactive</Badge>}
+                        <Button variant="link" className="btn btn-link btn-sm cell-action" onClick={() => setToggling(w)} aria-haspopup="dialog">
+                          {w.active ? 'Deactivate' : 'Reactivate'}
+                          <span className="visually-hidden"> {w.name}</span>
+                        </Button>
+                      </td>
+                      <td>
+                        <ul className="cell-links">
+                          <li>
+                            <Link to={`/admin/shifts?workerId=${w.id}`}>Shifts</Link>
+                          </li>
+                          <li>
+                            <Link to={`/admin/payslips?workerId=${w.id}`}>Payslips</Link>
+                          </li>
+                          <li>
+                            <Link to={`/admin/workers/${w.id}/skills`}>Skills</Link>
+                          </li>
+                          <li>
+                            <Link to={`/admin/alerts?workerId=${w.id}`}>Alerts</Link>
+                          </li>
+                        </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <form onSubmit={handleAddWorker}>
-              <div className="modal-body">
-                {addError && <div className="banner banner-danger mb-3">{addError}</div>}
-                <div className="field">
-                  <label htmlFor="worker-name" className="label">
-                    Full Name *
-                  </label>
-                  <input
-                    id="worker-name"
-                    type="text"
-                    className="input"
-                    required
-                    placeholder="e.g. Ramesh Gowda"
-                    value={addName}
-                    onChange={(e) => setAddName(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="worker-phone" className="label">
-                    Phone Number (10 digits) *
-                  </label>
-                  <input
-                    id="worker-phone"
-                    type="tel"
-                    className="input"
-                    required
-                    pattern="\d{10}"
-                    placeholder="e.g. 9876543210"
-                    value={addPhone}
-                    onChange={(e) => setAddPhone(e.target.value)}
-                  />
-                  <small className="help-text">Used by the worker to sign in via phone OTP or PIN.</small>
-                </div>
-                <div className="form-grid-2">
-                  <div className="field">
-                    <label htmlFor="worker-job" className="label">
-                      Role / Job Title
-                    </label>
-                    <input
-                      id="worker-job"
-                      type="text"
-                      className="input"
-                      placeholder="e.g. Heavy Equipment Operator"
-                      value={addJobTitle}
-                      onChange={(e) => setAddJobTitle(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="worker-team" className="label">
-                      {industry.teamLabel}
-                    </label>
-                    <input
-                      id="worker-team"
-                      type="text"
-                      className="input"
-                      placeholder="e.g. Crew A"
-                      value={addTeam}
-                      onChange={(e) => setAddTeam(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="form-grid-2">
-                  <div className="field">
-                    <label htmlFor="worker-rate" className="label">
-                      Hourly Rate (₹) *
-                    </label>
-                    <input
-                      id="worker-rate"
-                      type="text"
-                      inputMode="decimal"
-                      className="input"
-                      required
-                      placeholder="75.00"
-                      value={addRate}
-                      onChange={(e) => setAddRate(e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="worker-pin" className="label">
-                      Initial PIN (4-6 digits)
-                    </label>
-                    <input
-                      id="worker-pin"
-                      type="password"
-                      maxLength={6}
-                      className="input"
-                      placeholder="1234"
-                      value={addPin}
-                      onChange={(e) => setAddPin(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={adding || !addName.trim() || !addPhone.trim()}>
-                  {adding ? 'Provisioning...' : 'Provision Worker'}
-                </Button>
-              </div>
-            </form>
+          );
+        }}
+      </Async>
+
+      <ConfirmDialog
+        isOpen={toggling !== null}
+        title={toggling?.active ? `Deactivate ${toggling.name}?` : `Reactivate ${toggling?.name ?? ''}?`}
+        message={
+          toggling?.active
+            ? 'They will be signed out and will not be able to sign in. Their shifts, payslips and reports stay on record, and you can reactivate the account later.'
+            : 'They will be able to sign in and check in again.'
+        }
+        confirmLabel={toggling?.active ? 'Deactivate' : 'Reactivate'}
+        variant={toggling?.active ? 'danger' : 'primary'}
+        busy={toggleBusy}
+        onConfirm={() => toggling && void toggleWorkerActive(toggling)}
+        onCancel={() => setToggling(null)}
+      />
+
+      <Sheet
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add a worker"
+        dismissible={!adding}
+        footer={
+          <div className="form-actions sheet-actions">
+            <Button variant="quiet" onClick={() => setShowAddModal(false)} disabled={adding}>
+              Cancel
+            </Button>
+            <Button type="submit" form="add-worker" busy={adding} disabled={adding || !addName.trim() || !addPhone.trim()}>
+              Add worker
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="add-worker" onSubmit={handleAddWorker} noValidate>
+          {addError ? <Notice kind="warning">{addError}</Notice> : null}
+          <Field label="Full name">
+            <input type="text" autoComplete="off" value={addName} onChange={(e) => setAddName(e.target.value)} maxLength={100} />
+          </Field>
+          <Field label="Phone number" hint="10 digits. The worker signs in with this number.">
+            <input type="tel" inputMode="numeric" autoComplete="off" value={addPhone} onChange={(e) => setAddPhone(e.target.value.trim())} maxLength={10} />
+          </Field>
+          <div className="form-row">
+            <Field label="Job title" optional>
+              <input type="text" value={addJobTitle} onChange={(e) => setAddJobTitle(e.target.value)} maxLength={100} />
+            </Field>
+            <Field label={industry.teamLabel} optional>
+              <input type="text" value={addTeam} onChange={(e) => setAddTeam(e.target.value)} maxLength={100} />
+            </Field>
+          </div>
+          <div className="form-row">
+            <Field label="Hourly rate (₹)" hint="For example 75 or 85.50">
+              <input type="text" inputMode="decimal" value={addRate} onChange={(e) => setAddRate(e.target.value)} />
+            </Field>
+            <Field label="First PIN" hint="4 to 6 digits. Give it to the worker in person.">
+              <input type="password" inputMode="numeric" autoComplete="new-password" maxLength={6} value={addPin} onChange={(e) => setAddPin(e.target.value)} />
+            </Field>
+          </div>
+        </form>
+      </Sheet>
     </Page>
   );
 }
@@ -377,19 +342,22 @@ export function AdminWorkerSkills({ id }: { id: string }) {
       }
     >
       {error ? <ErrorBox error={error} /> : null}
-      <Card>
+      <section aria-label="Skill passport entries">
         <Async state={skills}>{(d) => <SkillList skills={d.items} onVerify={verify} />}</Async>
-        <p className="muted small">
+        <p className="passport-note">
           Mark an entry as checked only after you have seen evidence (for example the original certificate). FairShift does not contact issuing bodies.
         </p>
-      </Card>
-      <Card title="Add an employer-checked entry">
+      </section>
+      <section className="passport-add" aria-labelledby="skill-add">
+        <h2 id="skill-add" className="section-title">
+          Add an employer-checked entry
+        </h2>
         <SkillForm
           endpoint={`/admin/workers/${encodeURIComponent(id)}/skills`}
           onAdded={skills.reload}
           successText="Entry added and marked as checked by employer."
         />
-      </Card>
+      </section>
     </Page>
   );
 }
