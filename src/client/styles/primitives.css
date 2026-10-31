@@ -192,10 +192,12 @@ input[type='date'],
 input[type='datetime-local'] {
   min-width: 0;
 }
-.has-error input,
+.has-error input:not([type='radio'], [type='checkbox']),
 .has-error select,
 .has-error textarea,
-[aria-invalid='true'] {
+input[aria-invalid='true'],
+select[aria-invalid='true'],
+textarea[aria-invalid='true'] {
   border-color: var(--fs-danger);
   box-shadow: 0 0 0 1px var(--fs-danger);
 }
