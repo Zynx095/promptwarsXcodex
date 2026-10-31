@@ -594,3 +594,92 @@ a.ledger-row:hover .ledger-label {
   font-size: var(--fs-text-sm);
   color: var(--fs-ink-2);
 }
+
+/* Photo inspections: before/after thumbnails beside the report and its closure state */
+.inspection-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-4);
+}
+.inspection {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr) auto;
+  gap: var(--sp-4);
+  align-items: start;
+  padding: var(--sp-4);
+  border-radius: var(--r-slab);
+}
+@media (max-width: 759px) {
+  .inspection {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .inspection-photos {
+    grid-column: 1 / -1;
+  }
+}
+.inspection-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+.inspection-photos figure {
+  margin: 0;
+}
+.inspection-photos img,
+.inspection-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-control);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+  color: var(--fs-ink-3);
+}
+.inspection-photos figcaption {
+  margin-top: 4px;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-2);
+}
+.inspection-title {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-text-lg);
+}
+.inspection-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+}
+.inspection-meta {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.inspection-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0;
+  font-size: var(--fs-text-sm);
+}
+.inspection-facts dt {
+  color: var(--fs-ink-2);
+}
+.inspection-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.inspection-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--fs-ink-3);
+}

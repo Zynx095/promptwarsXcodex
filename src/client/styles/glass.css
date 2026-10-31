@@ -24,6 +24,7 @@
 .action-list,
 .ledgers > .ledger,
 .signal,
+.inspection,
 .range-picker form,
 .pay-calculation > details > summary {
   background: var(--glass-1-fill);

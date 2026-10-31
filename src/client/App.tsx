@@ -19,6 +19,7 @@ import { AdminSites } from './pages/admin/Sites';
 import { AdminShifts } from './pages/admin/Shifts';
 
 import { AdminReports, AdminReportView } from './pages/admin/Reports';
+import { AdminInspections } from './pages/admin/Inspections';
 import { AdminAlerts } from './pages/admin/Alerts';
 import { AdminPayslips, AdminPayslipView } from './pages/admin/Payslips';
 import { AdminPayRules } from './pages/admin/PayRules';
@@ -48,6 +49,7 @@ const ROUTES: Route[] = [
   { path: '/admin/shifts', role: 'admin', render: () => <AdminShifts /> },
 
   { path: '/admin/reports', role: 'admin', render: () => <AdminReports /> },
+  { path: '/admin/inspections', role: 'admin', render: () => <AdminInspections /> },
   { path: '/admin/reports/:id', role: 'admin', render: (p) => <AdminReportView id={p.id!} /> },
   { path: '/admin/alerts', role: 'admin', render: () => <AdminAlerts /> },
   { path: '/admin/payslips', role: 'admin', render: () => <AdminPayslips /> },

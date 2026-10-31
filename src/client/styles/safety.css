@@ -313,3 +313,215 @@
   border-radius: 10px;
   font-size: var(--fs-text-sm);
 }
+
+/* ---------- Safety photos ---------- */
+.photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.photo-actions .btn {
+  flex: 1 1 180px;
+}
+.photo-status {
+  min-height: 1.5em;
+  margin: var(--sp-2) 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.photo-grid {
+  list-style: none;
+  margin: 0 0 var(--sp-3);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--sp-3);
+}
+.photo-tile {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  border-radius: var(--r-record);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+}
+.photo-tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-control);
+  background: var(--fs-sunk);
+}
+.photo-caption input {
+  min-height: 44px;
+  font-size: var(--fs-text-sm);
+}
+.photo-tile-actions {
+  display: flex;
+  justify-content: space-between;
+}
+.photo-note {
+  margin: 0;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-ink-2);
+}
+.inspect-tile {
+  margin: 0;
+  align-items: center;
+  font-weight: 600;
+}
+.case-checks {
+  list-style: none;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+/* Before and after, side by side where there is room */
+.evidence-columns {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+.evidence-col h4 {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-4);
+}
+.evidence-item {
+  display: grid;
+  gap: var(--sp-1);
+}
+.evidence-frame {
+  display: block;
+  border-radius: var(--r-record);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px var(--glass-well-edge),
+    var(--e-lift);
+}
+.evidence-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: cover;
+  background: var(--fs-sunk);
+}
+.evidence-caption {
+  margin: var(--sp-1) 0 0;
+  font-weight: 600;
+}
+.evidence-meta,
+.evidence-empty {
+  margin: 0;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.evidence-empty {
+  padding: var(--sp-4);
+  border: 1px dashed var(--fs-line-strong);
+  border-radius: var(--r-record);
+}
+.evidence-seal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-2);
+  font-size: var(--fs-text-sm);
+}
+.evidence-seal .btn-link {
+  min-height: 44px;
+  padding-inline: 0;
+}
+.seal-ok {
+  color: var(--fs-good);
+  font-weight: 600;
+}
+.seal-bad {
+  color: var(--fs-danger);
+  font-weight: 700;
+}
+.evidence-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--fs-ink-2);
+}
+
+/* Advisory analysis: clearly secondary to a person's review */
+.advisory {
+  margin-top: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-control);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+  font-size: var(--fs-text-sm);
+}
+.advisory-off {
+  color: var(--fs-ink-2);
+}
+.advisory-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+}
+.advisory-note {
+  margin: 0 0 var(--sp-2);
+  color: var(--fs-ink-2);
+}
+.advisory-findings {
+  margin: 0 0 var(--sp-2);
+  padding-left: 1.2em;
+}
+.advisory-signals {
+  color: var(--fs-ink-2);
+}
+.advisory-labels summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--fs-aubergine);
+  font-weight: 650;
+  cursor: pointer;
+}
+.advisory-review .field {
+  margin-bottom: var(--sp-2);
+}
+.advisory-reviewed {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin: 0;
+  font-weight: 600;
+  color: var(--fs-good);
+}
+.fix-upload {
+  margin-top: var(--sp-5);
+}
+
+/* The reporter's answer to a fix */
+.fix-response {
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-record);
+  border: 1px solid var(--fs-caution-line);
+  background: var(--fs-caution-bg);
+}
+.fix-response h3 {
+  margin: 0 0 var(--sp-2);
+}
+.fix-response .hint {
+  margin: var(--sp-3) 0 0;
+}

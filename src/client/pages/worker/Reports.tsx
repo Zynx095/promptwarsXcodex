@@ -18,7 +18,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { useI18n } from '../../lib/i18n';
+import { useI18n, type MessageKey } from '../../lib/i18n';
 import { useMe } from '../../lib/session';
 import { useApi } from '../../lib/useApi';
 import { api, ApiError } from '../../lib/api';
@@ -31,6 +31,7 @@ import { DictateButton } from '../../components/Voice';
 import { ReportDetail } from '../../components/ReportDetail';
 import { HeatSafetyWidget } from '../../components/HeatSafetyWidget';
 import { LifecycleBar } from '../../components/Lifecycle';
+import { PhotoCapture, uploadPhotos, type DraftPhoto } from '../../components/PhotoCapture';
 
 const HAZARD_ICONS: Record<string, LucideIcon> = {
   fall: ArrowDownToLine,
@@ -111,6 +112,11 @@ export function WorkerReportNew() {
   const industry = getIndustry(me.org.industry);
   const [form, setForm] = useState({ category: '', severity: '' as Severity | '', title: '', location: '', description: '' });
   const [identity, setIdentity] = useState<Identity>('named');
+  const [photos, setPhotos] = useState<DraftPhoto[]>([]);
+  const [checks, setChecks] = useState<string[]>([]);
+  const [siteId, setSiteId] = useState('');
+  const sites = useApi<{ items: { id: string; name: string }[] }>('/sites');
+  const [uploaded, setUploaded] = useState<number | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
@@ -121,8 +127,16 @@ export function WorkerReportNew() {
     setBusy(true);
     setError(null);
     try {
-      const created = await api<SafetyReportDTO>('/reports', { method: 'POST', body: { ...form, confidential: identity === 'confidential' } });
-      navigate(`/worker/reports/${created.id}?created=1`);
+      const created = await api<SafetyReportDTO>('/reports', {
+        method: 'POST',
+        body: { ...form, confidential: identity === 'confidential', inspectionChecks: checks, siteId: siteId || null },
+      });
+      let failed = 0;
+      if (photos.length) {
+        setUploaded(0);
+        failed = await uploadPhotos(created.id, 'hazard', photos, setUploaded);
+      }
+      navigate(`/worker/reports/${created.id}?created=1${failed ? `&photosFailed=${failed}` : ''}`);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, 'ERROR', t('common.error')));
       requestAnimationFrame(() => errorRef.current?.focus());
@@ -188,10 +202,44 @@ export function WorkerReportNew() {
           ) : null}
         </fieldset>
 
+        <PhotoCapture photos={photos} onChange={setPhotos} legend={t('photo.legend')} />
+
+        <fieldset className="form-step">
+          <legend id="checks-legend">
+            {t('insp.legend')} <span className="optional">{t('common.optional')}</span>
+          </legend>
+          <div className="choice-grid inspect-grid" role="group" aria-labelledby="checks-legend">
+            {industry.inspectionChecks.map((c) => (
+              <label key={c} className="check inspect-tile">
+                <input
+                  type="checkbox"
+                  name="inspectionChecks"
+                  value={c}
+                  checked={checks.includes(c)}
+                  onChange={(e) => setChecks(e.target.checked ? [...checks, c] : checks.filter((x) => x !== c))}
+                />
+                <span>{t(`insp.${c}` as MessageKey)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="form-step">
           <Field label={t('rep.titleField')} hint={t('rep.titleHint')} error={f['title']}>
             <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} maxLength={120} />
           </Field>
+          {sites.data && sites.data.items.length ? (
+            <Field label={t('insp.site')} optional error={f['siteId']}>
+              <select value={siteId} onChange={(e) => setSiteId(e.target.value)}>
+                <option value="">{t('insp.noSite')}</option>
+                {sites.data.items.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : null}
           <Field label={t('rep.location')} error={f['location']}>
             <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} maxLength={120} />
           </Field>
@@ -223,7 +271,7 @@ export function WorkerReportNew() {
 
         <div className="form-actions step-actions">
           <Button type="submit" busy={busy} className="btn btn-primary btn-big">
-            {t('rep.send')}
+            {uploaded !== null ? t('photo.uploading', { done: uploaded, total: photos.length }) : t('rep.send')}
           </Button>
           <Link to="/worker/reports" className="btn btn-quiet">
             {t('action.cancel')}
@@ -238,6 +286,7 @@ export function WorkerReportView({ id }: { id: string }) {
   const { t } = useI18n();
   const { search } = useRouter();
   const report = useApi<SafetyReportDTO>(`/reports/${encodeURIComponent(id)}`);
+  const [updated, setUpdated] = useState<SafetyReportDTO | null>(null);
   return (
     <Page
       title={t('rep.title')}
@@ -248,7 +297,8 @@ export function WorkerReportView({ id }: { id: string }) {
       }
     >
       {search.get('created') ? <Notice kind="success">{t('rep.submitted')}</Notice> : null}
-      <Async state={report}>{(r) => <ReportDetail report={r} />}</Async>
+      {search.get('photosFailed') ? <Notice kind="warning">{t('photo.someFailed', { n: Number(search.get('photosFailed')) })}</Notice> : null}
+      <Async state={report}>{(r) => <ReportDetail report={updated?.id === r.id ? updated : r} onUpdated={setUpdated} />}</Async>
     </Page>
   );
 }

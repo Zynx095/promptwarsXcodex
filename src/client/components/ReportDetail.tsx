@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { CalendarCheck, ClipboardCheck, EyeOff, Wrench } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
-import { useI18n } from '../lib/i18n';
+import { useI18n, type MessageKey } from '../lib/i18n';
 import { useMe } from '../lib/session';
 import { formatDate, formatDateTime } from '../lib/format';
 import { allowedTransitions } from '../../domain/safety';
@@ -11,6 +11,7 @@ import { getIndustry } from '../../shared/industries';
 import type { ReportStatus, SafetyReportDTO } from '../../shared/types';
 import { Button, Card, ErrorBox, Field, Notice, ReportStatusBadge, SeverityBadge } from './ui';
 import { LifecycleSteps } from './Lifecycle';
+import { EvidenceGallery, FixResponse } from './Evidence';
 
 export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; onUpdated?: (r: SafetyReportDTO) => void }) {
   const { t, locale, category } = useI18n();
@@ -40,8 +41,18 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
           <p className="case-meta">
             {t('rep.reportedOn', { date: formatDateTime(report.createdAt, tz, locale) })}
             <br />
-            {category('hazard', report.category, cat?.label ?? report.category)}, {report.location}
+            {category('hazard', report.category, cat?.label ?? report.category)}, {report.siteName ? `${report.siteName}, ` : ''}
+            {report.location}
           </p>
+          {report.inspectionChecks?.length ? (
+            <ul className="case-checks" aria-label={t('insp.pointedOut')}>
+              {report.inspectionChecks.map((c) => (
+                <li key={c} className="badge badge-warn">
+                  {t(`insp.${c}` as MessageKey)}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </header>
 
         <LifecycleSteps status={report.status} followUpDate={report.followUpDate ? formatDate(report.followUpDate, locale) : null} />
@@ -60,6 +71,14 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
             </div>
           </dl>
         </section>
+
+        <EvidenceGallery report={report} onUpdated={onUpdated} />
+
+        {me.user.role === 'admin' && report.closure?.policy === 'two_key' && (report.status === 'resolved' || report.status === 'follow_up_pending') ? (
+          <ClosureStatus report={report} />
+        ) : null}
+
+        {me.user.role !== 'admin' && onUpdated ? <FixResponse report={report} onUpdated={onUpdated} /> : null}
 
         {report.actionTaken ? (
           <section className="case-section case-done" aria-labelledby="case-action">
@@ -117,6 +136,24 @@ export function ReportDetail({ report, onUpdated }: { report: SafetyReportDTO; o
 
       {me.user.role === 'admin' && onUpdated ? <TransitionForm report={report} onUpdated={onUpdated} /> : null}
     </>
+  );
+}
+
+/** Where a two-key closure stands, for administrators. */
+function ClosureStatus({ report }: { report: SafetyReportDTO }) {
+  const { locale } = useI18n();
+  const me = useMe();
+  const c = report.closure!;
+  const at = c.escalationAt ? formatDateTime(c.escalationAt, me.org.timezone, locale) : null;
+  const passed = c.escalationOpen;
+  return (
+    <Notice kind={c.workerResponse === 'confirmed' ? 'success' : 'info'}>
+      {c.workerResponse === 'confirmed'
+        ? 'The reporter confirmed the fix. The outcome can now be verified.'
+        : passed
+          ? `The reporter has not answered since ${at}. An administrator other than the one who resolved the report can now verify the outcome; it will be recorded as escalated.`
+          : `Waiting for the reporter to confirm or dispute the fix. If they do not answer by ${at}, an administrator other than the one who resolved it can verify the outcome.`}
+    </Notice>
   );
 }
 

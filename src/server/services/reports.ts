@@ -67,12 +67,14 @@ function closureFor(
   row: Pick<ReportRow, 'id' | 'orgId' | 'severity' | 'resolvedAt' | 'workerResponse' | 'workerResponseNote' | 'workerResponseAt'>,
 ): ClosureDTO {
   const twoKey = countEvidence(ctx, row.orgId, row.id, 'hazard') > 0;
+  const escalationAt = row.resolvedAt ? new Date(new Date(row.resolvedAt).getTime() + CONFIRMATION_WINDOW_HOURS[row.severity] * 3_600_000) : null;
   return {
     policy: twoKey ? 'two_key' : 'standard',
     workerResponse: row.workerResponse,
     workerResponseNote: row.workerResponseNote,
     workerResponseAt: row.workerResponseAt,
-    escalationAt: row.resolvedAt ? new Date(new Date(row.resolvedAt).getTime() + CONFIRMATION_WINDOW_HOURS[row.severity] * 3_600_000).toISOString() : null,
+    escalationAt: escalationAt?.toISOString() ?? null,
+    escalationOpen: escalationAt !== null && ctx.now().getTime() >= escalationAt.getTime(),
     remediationPhotos: countEvidence(ctx, row.orgId, row.id, 'remediation'),
   };
 }

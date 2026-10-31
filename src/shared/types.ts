@@ -293,6 +293,8 @@ export interface ClosureDTO {
   workerResponseAt: string | null;
   /** When an independent administrator may verify without the reporter's answer (UTC ISO). */
   escalationAt: string | null;
+  /** True once that time has passed (by the server's clock). */
+  escalationOpen: boolean;
   remediationPhotos: number;
 }
 
