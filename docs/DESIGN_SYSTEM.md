@@ -36,7 +36,7 @@ Contrast (WCAG 2.2 AA): ink on canvas > 12:1, tertiary text on canvas 5.0:1, aub
 - **Indic scripts** use the platform fonts (Nirmala UI on Windows, Noto Sans on Android). Kannada, Hindi, Tamil, Telugu and Bengali get a taller line height.
 - Code-like values (receipt digests) use the system monospace face, and only inside expandable technical details.
 
-Scale (16 px base): 13 · 14 · 16 · 18 · 21 · 26 · 34 · 44 · 56. Headings are tracked slightly tight; Indic headings are not.
+Scale (16 px base): 13, 14, 16, 18, 21, 26, 34, 44 and 56 px. Headings are tracked slightly tight; Indic headings are not.
 
 ## Space, shape and elevation
 
@@ -103,3 +103,33 @@ The first plan was checked against what a template would produce for the same br
 - **Hazard stripes as a safety theme** → limited to critical severity and dangerous heat, where they carry meaning.
 - **Ice Silver as the full-page background** → too flat at large sizes; a lighter step is used for the canvas and the brand silver for lines and wells.
 - **All-caps eyebrow labels, middle-dot meta strings, arrow-suffixed links** → not used.
+
+## Components and patterns
+
+| Pattern                 | Where                                                                                          | Notes                                                                                                                                              |
+| :---------------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Time card               | Worker home                                                                                    | Aubergine slab: status, hours so far, a ruler with the scheduled day and overtime, check in or out (with confirmation)                             |
+| Money jar               | Pay, payslip                                                                                   | Agreed, earned, deductions and take-home; "Paid to you" is shown as not recorded, never as an amount                                               |
+| Statement               | Payslip                                                                                        | Ruled ledger grouped as hours, earnings, deductions, with the calculation spelled out                                                              |
+| Receipt and seal        | Shifts                                                                                         | The seal names what was checked (server key, checkpoint) and that it does not prove the times were right; versions show who corrected what and why |
+| Case file and lifecycle | Safety reports                                                                                 | Five steps (reported, seen, being fixed, fixed, checked) plus a timeline of every recorded step                                                    |
+| Stepped form            | Hazard report, feedback                                                                        | One question per fieldset with a display-face legend; choice tiles instead of dropdowns; errors on the field and focus moved to them               |
+| Sheet                   | Language, notifications, More, receipts, dispute notice, confirmations, console menu and forms | Bottom sheet on phones, dialog from 600 px; focus trap, Escape and backdrop close, focus returns to the opener                                     |
+| Gate code               | Console shifts                                                                                 | The rotating site check-in code as a large marigold display                                                                                        |
+| Action list and ledgers | Console dashboard                                                                              | What needs action first (only non-zero items), then the period's figures as ruled ledgers that link to their records                               |
+| Toggle chips            | Console lists                                                                                  | Filters with counts; `aria-pressed` marks the current one                                                                                          |
+| Tables                  | Console                                                                                        | Ruled, numbers right-aligned; on phones they keep a minimum width and scroll inside their frame with an edge shadow                                |
+
+Stylesheets live in `src/client/styles/`: `tokens.css`, `fonts.css`, `base.css`, `primitives.css` and `shell.css`, then one file per feature (`timecard`, `records`, `home`, `jar`, `statement`, `attendance`, `receipt`, `safety`, `heat`, `notifications`, `login`, `voice`, `dispute`, `console`). The earlier single stylesheet has been removed.
+
+## Language and script
+
+- Every worker-facing string is in all six dictionaries. A unit test fails if Kannada, Tamil, Telugu or Bengali text contains Devanagari letters, or if less than 95% of a language's strings are in its own script.
+- Language names are always written in their own script (ಕನ್ನಡ, हिन्दी, தமிழ், తెలుగు, বাংলা).
+- Still English: the employer console, server-generated notification text and alert details, and the dispute notice document itself (the screen before it says so).
+
+## Verification
+
+- Viewports checked in a real browser (headless Microsoft Edge): 360×800, 375×812, 390×844, 412×915, 768×1024, 1280×800 and 1440×900, for 24 worker and console screens: no horizontal scrolling, no console errors other than the expected 401 before sign-in and the 400 from submitting an empty form on purpose.
+- axe-core 4.14 (WCAG 2.0, 2.1 and 2.2 A and AA rules) on 18 worker and console screens at 390 px, and on 12 states with sheets, dialogs, form errors or Tamil text showing: no violations after two fixes (link target size in the workforce table, keyboard access to the scrolling audit table).
+- Screenshots of 32 main states were captured to `docs/screenshots/v4.2/`. They are kept out of version control because the repository is already over its 10 MB submission limit.
