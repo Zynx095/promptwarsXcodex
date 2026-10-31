@@ -65,9 +65,7 @@
 
 /* ---------- Records ---------- */
 .card {
-  background: var(--fs-paper);
-  border-radius: var(--r-record);
-  box-shadow: var(--e-record);
+  border-radius: var(--r-slab);
   padding: var(--sp-5);
   margin-bottom: var(--sp-4);
   min-width: 0;
@@ -132,11 +130,18 @@ textarea {
   padding: 10px 14px;
   border: 1px solid var(--fs-line-input);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
+  background: var(--glass-field);
+  box-shadow: inset 0 1px 2px rgba(58, 15, 52, 0.06);
   color: var(--fs-ink);
   transition:
     border-color var(--m-fast) ease,
-    box-shadow var(--m-fast) ease;
+    box-shadow var(--m-fast) ease,
+    background-color var(--m-fast) ease;
+}
+input:hover:not(:disabled, :focus-visible),
+select:hover:not(:disabled, :focus-visible),
+textarea:hover:not(:disabled, :focus-visible) {
+  border-color: var(--fs-ink-2);
 }
 input::placeholder,
 textarea::placeholder {
@@ -147,12 +152,15 @@ select:focus-visible,
 textarea:focus-visible {
   outline: none;
   border-color: var(--fs-aubergine);
-  box-shadow: 0 0 0 3px rgba(234, 170, 0, 0.55);
+  background: var(--fs-paper);
+  box-shadow:
+    0 0 0 3px rgba(234, 170, 0, 0.55),
+    0 6px 18px -10px rgba(58, 15, 52, 0.4);
 }
 input:disabled,
 select:disabled,
 textarea:disabled {
-  background: var(--fs-sunk);
+  background: var(--glass-well);
   color: var(--fs-ink-3);
 }
 select {
@@ -186,6 +194,8 @@ input[type='range'] {
   min-height: 0;
   padding: 0;
   border: 0;
+  background: transparent;
+  box-shadow: none;
   accent-color: var(--fs-aubergine);
 }
 input[type='date'],
@@ -211,21 +221,23 @@ textarea[aria-invalid='true'] {
   min-height: 56px;
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-control);
-  background: var(--fs-paper);
   cursor: pointer;
   margin-bottom: var(--sp-2);
   transition:
     border-color var(--m-fast) ease,
     background var(--m-fast) ease,
-    box-shadow var(--m-fast) ease;
+    box-shadow var(--m-fast) ease,
+    transform var(--m-fast) ease;
 }
-.check:hover {
-  border-color: var(--fs-ink-3);
+.check:active {
+  transform: scale(0.985);
 }
 .check:has(input:checked) {
   border-color: var(--fs-aubergine);
-  background: var(--fs-aubergine-tint);
-  box-shadow: inset 0 0 0 1px var(--fs-aubergine);
+  background: var(--glass-control-pressed);
+  box-shadow:
+    inset 0 0 0 1px var(--fs-aubergine),
+    var(--e-lift);
 }
 
 fieldset {
@@ -330,30 +342,38 @@ fieldset.has-error .check {
     background-color var(--m-fast) ease,
     border-color var(--m-fast) ease,
     color var(--m-fast) ease,
+    box-shadow var(--m-base) ease,
     transform var(--m-fast) ease;
 }
 .btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.99);
 }
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* Lit marigold: the one action that matters, catching light from above */
 .btn-primary {
-  background: var(--fs-marigold);
+  background: linear-gradient(180deg, var(--fs-marigold-lit) 0%, var(--fs-marigold) 100%);
+  background-color: var(--fs-marigold);
   color: var(--fs-aubergine-deep);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(122, 80, 0, 0.25),
+    var(--e-marigold);
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--fs-marigold-hover);
+  background: linear-gradient(180deg, var(--fs-marigold) 0%, var(--fs-marigold-hover) 100%);
   color: var(--fs-aubergine-deep);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(122, 80, 0, 0.3),
+    0 10px 24px -10px rgba(186, 128, 0, 0.85);
 }
 .btn-secondary {
-  background: var(--fs-paper);
   color: var(--fs-aubergine);
-  border-color: var(--fs-line-strong);
 }
 .btn-secondary:hover:not(:disabled) {
-  border-color: var(--fs-ink-3);
   color: var(--fs-aubergine);
 }
 .btn-quiet,
@@ -363,12 +383,15 @@ fieldset.has-error .check {
 }
 .btn-quiet:hover:not(:disabled),
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(58, 15, 52, 0.06);
+  background: var(--glass-well);
   color: var(--fs-aubergine);
 }
 .btn-danger {
   background: var(--fs-danger);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 8px 20px -12px rgba(163, 18, 47, 0.8);
 }
 .btn-danger:hover:not(:disabled) {
   background: #8c0f28;
@@ -410,7 +433,7 @@ fieldset.has-error .check {
   animation: spin 0.8s linear infinite;
 }
 .btn[aria-pressed='true'] {
-  background: var(--fs-aubergine-tint);
+  background: var(--glass-control-pressed);
   border-color: var(--fs-aubergine);
   color: var(--fs-aubergine);
 }
@@ -542,7 +565,6 @@ fieldset.has-error .check {
   padding: var(--sp-6) var(--sp-5);
   border: 1px dashed var(--fs-line-strong);
   border-radius: var(--r-record);
-  background: transparent;
   color: var(--fs-ink-2);
 }
 .skeleton-grid {
@@ -553,10 +575,10 @@ fieldset.has-error .check {
 }
 .skeleton-shimmer {
   display: block;
-  background: linear-gradient(90deg, var(--fs-silver) 0%, #e9edf1 50%, var(--fs-silver) 100%);
+  background: linear-gradient(90deg, rgba(58, 15, 52, 0.07) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(58, 15, 52, 0.07) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite ease-in-out;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-control);
   max-width: 100%;
 }
 .skeleton-grid .stats {
@@ -572,18 +594,27 @@ fieldset.has-error .check {
 }
 
 /* ---------- Tables and lists ---------- */
+/* Material from glass.css (paper). The edge shadows show only while a wide table can scroll that way:
+   the covers move with the content, the shadows stay at the edges. */
 .table-wrap {
   position: relative;
   overflow-x: auto;
-  background:
-    linear-gradient(to right, var(--fs-paper) 30%, rgba(255, 255, 255, 0)) left center / 32px 100% no-repeat local,
-    linear-gradient(to left, var(--fs-paper) 30%, rgba(255, 255, 255, 0)) right center / 32px 100% no-repeat local,
-    radial-gradient(farthest-side at 0 50%, rgba(36, 8, 31, 0.16), transparent) left center / 12px 100% no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, rgba(36, 8, 31, 0.16), transparent) right center / 12px 100% no-repeat scroll,
-    var(--fs-paper);
+  background-image:
+    linear-gradient(to right, var(--fs-paper) 30%, rgba(255, 255, 255, 0)), linear-gradient(to left, var(--fs-paper) 30%, rgba(255, 255, 255, 0)),
+    radial-gradient(farthest-side at 0 50%, rgba(36, 8, 31, 0.18), transparent), radial-gradient(farthest-side at 100% 50%, rgba(36, 8, 31, 0.18), transparent);
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center;
+  background-size:
+    32px 100%,
+    32px 100%,
+    12px 100%,
+    12px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
   border-radius: var(--r-record);
-  background: var(--fs-paper);
-  box-shadow: var(--e-record);
 }
 .card .table-wrap {
   box-shadow: 0 0 0 1px var(--fs-line);
@@ -602,7 +633,7 @@ td {
   vertical-align: top;
 }
 th {
-  background: var(--fs-sunk);
+  background: var(--glass-well);
   font-size: var(--fs-text-xs);
   color: var(--fs-ink-2);
   font-weight: 650;
@@ -611,8 +642,11 @@ th {
 tbody tr:last-child > * {
   border-bottom: 0;
 }
+tbody tr {
+  transition: background-color var(--m-fast) ease;
+}
 tbody tr:hover {
-  background: #fafbfc;
+  background: rgba(58, 15, 52, 0.035);
 }
 td.num,
 th.num {
@@ -674,7 +708,7 @@ td.num {
   align-items: center;
   justify-content: center;
   padding: var(--sp-4);
-  background: rgba(36, 8, 31, 0.5);
+  background: radial-gradient(120% 90% at 50% 100%, rgba(36, 8, 31, 0.62), rgba(36, 8, 31, 0.44));
   animation: fadeIn var(--m-base) ease-out;
 }
 .dialog-card,
@@ -689,11 +723,9 @@ td.num {
   overscroll-behavior: contain;
   /* Keep a focused field clear of the sticky footer when the sheet scrolls to it */
   scroll-padding-bottom: 136px;
-  background: var(--fs-paper);
-  border-radius: var(--r-slab);
-  box-shadow: var(--e-float);
+  border-radius: var(--r-sheet);
   padding: var(--sp-6);
-  animation: dialogIn var(--m-base) var(--ease-out);
+  animation: dialogIn 260ms var(--ease-glide);
 }
 .dialog-title,
 .sheet-title {
@@ -736,7 +768,7 @@ td.num {
   cursor: pointer;
 }
 .sheet-close:hover {
-  background: var(--fs-sunk);
+  background: var(--glass-well);
   color: var(--fs-aubergine);
 }
 .sheet-footer {
@@ -744,8 +776,8 @@ td.num {
   bottom: calc(-1 * var(--sp-6));
   margin: var(--sp-5) calc(-1 * var(--sp-6)) calc(-1 * var(--sp-6));
   padding: var(--sp-4) var(--sp-6) calc(var(--sp-4) + env(safe-area-inset-bottom));
-  background: var(--fs-paper);
-  border-top: 1px solid var(--fs-line);
+  background: rgba(252, 251, 253, 0.96);
+  border-top: 1px solid var(--glass-well-edge);
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2);
@@ -754,7 +786,7 @@ td.num {
 @keyframes dialogIn {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
+    transform: translateY(12px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -781,7 +813,13 @@ td.num {
     max-height: 92dvh;
     border-radius: var(--r-sheet) var(--r-sheet) 0 0;
     padding: var(--sp-6) var(--gutter) calc(var(--sp-6) + env(safe-area-inset-bottom));
-    animation: sheetUp 260ms var(--ease-out);
+    animation: sheetUp 320ms var(--ease-glide);
+  }
+  /* A sheet rising from the bottom casts its shadow upwards (beats the floating material) */
+  .sheet-backdrop > :is(.dialog-card, .sheet) {
+    box-shadow:
+      var(--e-sheet),
+      inset 0 1px 0 rgba(255, 255, 255, 1);
   }
   .dialog-card::before,
   .sheet::before {
@@ -813,8 +851,6 @@ td.num {
   gap: var(--sp-1);
   padding: var(--sp-1);
   border-radius: var(--r-control);
-  background: var(--fs-sunk);
-  border: 1px solid var(--fs-line);
 }
 .segmented-option {
   flex: 1 1 0;
@@ -833,16 +869,22 @@ td.num {
   font: 650 var(--fs-text-xs) / 1.25 var(--fs-font-text);
   text-align: center;
   cursor: pointer;
+  transition:
+    background-color var(--m-base) var(--ease-out),
+    color var(--m-fast) ease,
+    box-shadow var(--m-base) var(--ease-out);
 }
 .segmented-option:hover {
   color: var(--fs-ink);
 }
 .segmented-option[aria-selected='true'] {
-  background: var(--fs-paper);
+  background: var(--glass-control-fill);
+  background-color: var(--fs-paper);
   color: var(--fs-aubergine);
   box-shadow:
-    0 1px 2px rgba(36, 8, 31, 0.12),
-    0 0 0 1px rgba(36, 8, 31, 0.08);
+    inset 0 1px 0 #fff,
+    0 0 0 1px rgba(36, 8, 31, 0.08),
+    var(--e-lift);
 }
 @media (min-width: 600px) {
   .segmented-option {
@@ -886,22 +928,25 @@ td.num {
   padding: 0 14px;
   border: 1px solid var(--fs-line-strong);
   border-radius: var(--r-chip);
-  background: var(--fs-paper);
   color: var(--fs-ink-2);
   font: 650 var(--fs-text-sm) / 1 var(--fs-font-text);
   cursor: pointer;
+  transition:
+    background-color var(--m-fast) ease,
+    border-color var(--m-fast) ease,
+    color var(--m-fast) ease;
 }
 .chip-toggle .figure {
   color: var(--fs-ink-3);
   font-weight: 600;
 }
-.chip-toggle:hover {
-  border-color: var(--fs-ink-3);
-}
 .chip-toggle[aria-pressed='true'] {
   border-color: var(--fs-aubergine);
-  background: var(--fs-aubergine);
+  background: linear-gradient(180deg, var(--fs-aubergine-700) 0%, var(--fs-aubergine) 100%);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    var(--e-lift);
 }
 .chip-toggle[aria-pressed='true'] .figure {
   color: var(--fs-on-dark-2);
@@ -963,8 +1008,8 @@ td.num .cell-action {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  background: var(--fs-sunk);
-  border: 1px solid var(--fs-line);
+  background: var(--glass-well);
+  border: 1px solid var(--glass-well-edge);
   font: 650 var(--fs-text-sm) / 1.4 var(--fs-font-code);
   color: var(--fs-aubergine);
 }

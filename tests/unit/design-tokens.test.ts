@@ -179,7 +179,8 @@ describe('FairShift design system: Glassmorphism V2', () => {
 
   it('ensures high-contrast Deep Aubergine text on the lit Marigold action', () => {
     const primary = primitives.match(/\.btn-primary \{([^}]*)\}/)?.[1] ?? '';
-    expect(primary).toMatch(/background(-color)?: var\(--fs-marigold\)/);
+    expect(primary).toMatch(/linear-gradient\(180deg, var\(--fs-marigold-lit\) 0%, var\(--fs-marigold\) 100%\)/);
+    expect(primary).toMatch(/background-color: var\(--fs-marigold\)/);
     expect(primary).toMatch(/color: var\(--fs-aubergine-deep\)/);
     for (const stop of ['fs-marigold', 'fs-marigold-lit', 'fs-marigold-hover']) {
       expect(contrast(hex('fs-aubergine-deep'), hex(stop)), stop).toBeGreaterThanOrEqual(7);
