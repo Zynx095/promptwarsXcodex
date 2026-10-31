@@ -180,3 +180,81 @@
 .rating-clear.btn-link {
   padding-inline: 0;
 }
+
+/* Read aloud: a ghost button that names the language it will read in; while reading, a small
+   glass panel with progress, start again, speed and (where the device has several) voice. */
+.speak {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.speak-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+.speak .btn {
+  min-height: 44px;
+}
+.speak-lang {
+  margin-left: var(--sp-1);
+  padding: 1px 8px;
+  border: 1px solid var(--glass-well-edge);
+  border-radius: var(--r-chip);
+  background: var(--glass-well);
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+  color: var(--fs-ink-2);
+}
+.speak-panel {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-control);
+  background: var(--glass-well);
+  box-shadow: inset 0 0 0 1px var(--glass-well-edge);
+  animation: panelIn var(--m-base) var(--ease-out);
+}
+.speak-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(58, 15, 52, 0.12);
+  overflow: hidden;
+}
+.speak-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--fs-aubergine-700), var(--fs-aubergine));
+  transform-origin: left center;
+  transition: transform var(--m-base) linear;
+}
+.speak-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+}
+.speak-voice select {
+  min-height: 40px;
+  max-width: 15rem;
+  padding: 6px 36px 6px 10px;
+  font-size: var(--fs-text-sm);
+}
+.speak-engine {
+  font-size: var(--fs-text-xs);
+  font-weight: 650;
+  color: var(--fs-ink-2);
+}
+.speak-status {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--fs-text-sm);
+  color: var(--fs-ink-2);
+}
+.speak-status:empty {
+  display: none;
+}
+.speak-status.is-error {
+  color: var(--fs-danger);
+  font-weight: 600;
+}

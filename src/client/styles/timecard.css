@@ -309,15 +309,36 @@
   font-size: var(--fs-text-xs);
   color: var(--fs-on-dark-3);
 }
-.timecard .timecard-voice {
+/* Read-aloud on smoked glass */
+.timecard .timecard-voice .btn {
   color: var(--fs-on-dark-2);
 }
-.timecard .timecard-voice:hover:not(:disabled) {
+.timecard .timecard-voice .btn:hover:not(:disabled) {
   background: var(--glass-on-dark);
   color: #fff;
 }
-.timecard .timecard-voice[aria-pressed='true'] {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: transparent;
-  color: #fff;
+.timecard .timecard-voice .speak-lang {
+  border-color: var(--glass-on-dark-edge);
+  background: var(--glass-on-dark);
+  color: var(--fs-on-dark-2);
+}
+.timecard .timecard-voice .speak-panel {
+  background: var(--glass-on-dark);
+  box-shadow: inset 0 0 0 1px var(--glass-on-dark-edge);
+}
+.timecard .timecard-voice .speak-progress {
+  background: rgba(0, 0, 0, 0.3);
+}
+.timecard .timecard-voice .speak-progress span {
+  background: var(--fs-marigold);
+}
+.timecard .timecard-voice .speak-status,
+.timecard .timecard-voice .speak-engine {
+  color: var(--fs-on-dark-2);
+}
+.timecard .timecard-voice .speak-status.is-error {
+  color: #ffd0da;
+}
+.timecard .timecard-voice select {
+  color: var(--fs-ink);
 }

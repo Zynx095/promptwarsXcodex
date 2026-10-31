@@ -408,5 +408,21 @@
   "dispute.example.rate_mismatch": "The hourly rate on this payslip is lower than the rate I was promised.",
   "dispute.example.incorrect_hours": "The recorded check-in and check-out times differ from the hours I worked.",
   "dispute.example.other": "Something on this payslip does not match what I was told.",
-  "dispute.englishNote": "The notice is written in English. Check every figure before you share it."
+  "dispute.englishNote": "The notice is written in English. Check every figure before you share it.",
+  "voice.loading": "Getting the voice ready…",
+  "voice.playing": "Reading in {language}",
+  "voice.paused": "Paused",
+  "voice.pause": "Pause",
+  "voice.resume": "Resume",
+  "voice.replay": "Start again",
+  "voice.tryAgain": "Try again",
+  "voice.progress": "Read so far",
+  "voice.speedLabel": "Reading speed {speed}. Change speed",
+  "voice.voice": "Voice",
+  "voice.serverVoice": "FairShift server voice",
+  "voice.err.noVoice": "This device has no {language} voice, so nothing was read. Add {language} in your phone's text-to-speech settings, or read the text on screen.",
+  "voice.err.notSupported": "This browser cannot read aloud. Please read the text on screen.",
+  "voice.err.didNotStart": "The voice did not start, so nothing was read. Try again.",
+  "voice.err.failed": "Reading stopped because of an error. Try again.",
+  "voice.err.server": "The server voice is not available right now, so nothing was read. Try again later."
 }
