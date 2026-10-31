@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/bricolage-grotesque/wght.css';
-import './styles.css';
 import './styles/tokens.css';
 import './styles/fonts.css';
 import './styles/base.css';
@@ -20,6 +19,7 @@ import './styles/notifications.css';
 import './styles/login.css';
 import './styles/voice.css';
 import './styles/dispute.css';
+import './styles/console.css';
 import { App } from './App';
 import { RouterProvider } from './lib/router';
 import { I18nProvider } from './lib/i18n';

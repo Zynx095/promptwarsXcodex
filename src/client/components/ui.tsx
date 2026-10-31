@@ -238,23 +238,6 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
   return <Badge tone={SEVERITY_TONE[severity]}>{t(`sev.${severity}`).split(' – ')[0]}</Badge>;
 }
 
-export type StatTone = 'default' | 'warn' | 'bad';
-
-export function Stat({ label, value, hint, icon, tone = 'default' }: { label: string; value: ReactNode; hint?: ReactNode; icon?: ReactNode; tone?: StatTone }) {
-  return (
-    <div className={`stat stat-${tone}`}>
-      {icon ? (
-        <span className="stat-icon" aria-hidden="true">
-          {icon}
-        </span>
-      ) : null}
-      <span className="stat-label">{label}</span>
-      <span className="stat-value">{value}</span>
-      {hint ? <span className="stat-hint">{hint}</span> : null}
-    </div>
-  );
-}
-
 export function Pager({ total, limit, offset, onChange }: { total: number; limit: number; offset: number; onChange: (offset: number) => void }) {
   if (total <= limit) return null;
   return (
@@ -295,11 +278,17 @@ export function BarChart({
   extraLabel?: string;
   format?: (n: number) => string;
 }) {
-  const max = Math.max(1, ...data.map((d) => d.value + (d.extra ?? 0))) * 1.1;
+  const peak = Math.max(0, ...data.map((d) => d.value + (d.extra ?? 0)));
+  const max = Math.max(1, peak) * 1.1;
   const pct = (n: number) => `${(n / max) * 100}%`;
   return (
     <figure className="chart">
       <div className="chart-bars" aria-hidden="true">
+        {peak > 0 ? (
+          <div className="chart-peak" style={{ bottom: pct(peak) }}>
+            <span>{format(peak)}</span>
+          </div>
+        ) : null}
         {data.map((d) => (
           <div key={d.title} className="chart-col" title={`${d.title}: ${format(d.value)}${extraLabel ? `, ${extraLabel}: ${format(d.extra ?? 0)}` : ''}`}>
             {d.extra ? <div className="chart-bar extra" style={{ height: pct(d.extra) }} /> : null}

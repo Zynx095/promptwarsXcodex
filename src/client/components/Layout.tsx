@@ -7,12 +7,12 @@ import {
   ClipboardList,
   Clock,
   Ellipsis,
-  FileText,
   Home,
   IndianRupee,
   LayoutDashboard,
   LogOut,
   MapPin,
+  Menu,
   MessageSquare,
   ShieldAlert,
   SlidersHorizontal,
@@ -237,77 +237,109 @@ function WorkerShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** Employer shell: navy sidebar on desktop, horizontal tabs on smaller screens. */
+function isAdminActive(path: string, to: string): boolean {
+  return to === '/admin' ? path === '/admin' : path === to || path.startsWith(to + '/');
+}
+
+/**
+ * Employer console. From 1024 px an aubergine sidebar holds the navigation and the account;
+ * below that a top bar opens the same navigation in a sheet.
+ */
 function AdminShell({ children }: { children: ReactNode }) {
   const { me } = useSession();
   const { t } = useI18n();
+  const { path } = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
   if (!me) return null;
   const industry = getIndustry(me.org.industry);
-  const links = (
-    <ul>
-      {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
-        <li key={to}>
-          <Link to={to}>
-            <Icon className="icon" aria-hidden="true" />
-            {label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  const demo = me.org.synthetic || me.demoMode;
+  const role = [me.user.jobTitle, t('role.admin')].filter(Boolean).join(', ');
+
   return (
-    <div className="area-admin admin-shell">
+    <div className="admin-shell">
       <a className="skip-link" href="#main">
         {t('nav.skip')}
       </a>
-      <aside className="sidebar">
-        <div className="brand">
-          <BrandMark />
-          <div className="brand-text">
-            FairShift
-            <small>Employer console</small>
-          </div>
-        </div>
-        <div className="sidebar-org">
-          <strong>{me.org.name}</strong>
+
+      <aside className="as-sidebar on-dark">
+        <Wordmark />
+        <p className="as-org">
+          {me.org.name}
           <span>{industry.label}</span>
-        </div>
-        <nav className="sidenav" aria-label="Employer navigation">
-          {links}
-        </nav>
-        <p className="sidebar-foot">
-          <FileText className="icon" aria-hidden="true" data-size="sm" /> Rules and records are scoped to your organisation.
         </p>
+        <nav className="as-nav" aria-label="Employer navigation">
+          <ul>
+            {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
+              <li key={to}>
+                <Link to={to} aria-current={isAdminActive(path, to) ? 'page' : undefined}>
+                  <Icon className="icon" aria-hidden="true" />
+                  <span>{label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="as-foot">
+          <p className="as-user">
+            <strong>{me.user.name}</strong>
+            <span>{role}</span>
+          </p>
+          <SignOut className="btn btn-sm as-signout" compact={false} />
+        </div>
       </aside>
-      <div className="admin-body">
-        <header className="topbar">
-          <div className="brand">
-            <span className="hide-desktop-brand">
-              <BrandMark />
+
+      <div className="as-body">
+        <header className="as-topbar">
+          <button type="button" className="as-menu" aria-haspopup="dialog" aria-expanded={menuOpen} aria-label="Open menu" onClick={() => setMenuOpen(true)}>
+            <Menu className="icon" aria-hidden="true" />
+          </button>
+          <span className="as-topbar-brand">
+            <Wordmark />
+          </span>
+          <span className="as-topbar-org">
+            {me.org.name}
+            <span>Employer console</span>
+          </span>
+          {demo ? (
+            <span className="demo-chip">
+              <span aria-hidden="true">{t('demo.chip')}</span>
+              <span className="visually-hidden">{t('demo.banner')}</span>
             </span>
-            <div className="brand-text">
-              {me.org.name} <span className="role-pill">{t('role.admin')}</span>
-              <small>{industry.label}</small>
-            </div>
-          </div>
-          <div className="topbar-tools">
-            <div className="topbar-user hide-sm">
-              <strong>{me.user.name}</strong>
-              <span>{me.user.jobTitle}</span>
-            </div>
-            <NotificationBell />
+          ) : null}
+          <div className="as-topbar-tools">
             <LanguagePicker />
-            <SignOut />
+            <NotificationBell />
           </div>
         </header>
-        {me.org.synthetic || me.demoMode ? <DemoBanner /> : null}
-        <nav className="mainnav" aria-label="Employer navigation (compact)">
-          {links}
-        </nav>
         <main id="main" tabIndex={-1}>
           {children}
         </main>
       </div>
+
+      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="Employer console">
+        <ul className="sheet-links">
+          {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
+            <li key={to}>
+              <Link to={to} onClick={() => setMenuOpen(false)} aria-current={isAdminActive(path, to) ? 'page' : undefined}>
+                <Icon className="icon" aria-hidden="true" />
+                <span>{label}</span>
+                <ChevronRight className="icon chevron" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="sheet-account">
+          <p className="m-0">
+            <strong>{me.user.name}</strong>
+          </p>
+          <p className="muted small m-0">{role}</p>
+          <p className="muted small">
+            {me.org.name}, {industry.label}
+          </p>
+          {demo ? <p className="demo-note">{t('demo.banner')}</p> : null}
+          <SignOut className="btn btn-secondary sheet-signout" compact={false} onDone={() => setMenuOpen(false)} />
+        </div>
+      </Sheet>
     </div>
   );
 }

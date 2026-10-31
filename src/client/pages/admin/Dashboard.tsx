@@ -1,41 +1,40 @@
-import { useState, type ReactNode } from 'react';
-import { AlertTriangle, CalendarCheck, CheckCircle2, Clock, ShieldAlert, ShieldCheck, Timer, UserCheck, Users } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, CalendarClock, ChevronRight, ShieldAlert, Siren, type LucideIcon } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { qs } from '../../lib/api';
 import { Link } from '../../lib/router';
 import { useMe } from '../../lib/session';
 import { formatDate, formatDateTime, formatMinutes } from '../../lib/format';
 import type { AccountabilityMetricsDTO, DashboardDTO } from '../../../shared/types';
-import { Async, BarChart, Button, Card, Empty, Field, Notice, Page, type StatTone } from '../../components/ui';
+import { Async, BarChart, Button, Card, Empty, Field, Notice, Page } from '../../components/ui';
 
-function StatLink({
-  to,
-  label,
-  value,
-  hint,
-  icon,
-  tone = 'default',
-}: {
+type Tone = 'default' | 'warn' | 'bad';
+
+interface Action {
   to: string;
+  icon: LucideIcon;
+  tone: 'tone-danger' | 'tone-caution';
   label: string;
-  value: string | number;
-  hint?: string;
-  icon: ReactNode;
-  tone?: StatTone;
-}) {
-  return (
-    <Link to={to} className={`stat stat-${tone}`}>
-      <span className="stat-icon" aria-hidden="true">
-        {icon}
-      </span>
-      <span className="stat-label">{label}</span>
-      <span className="stat-value">{value}</span>
-      {hint ? <span className="stat-hint">{hint}</span> : null}
-    </Link>
-  );
+  note: string;
+  count: number;
 }
 
-const ICON = { className: 'icon' } as const;
+function minutesLabel(m: number | null | undefined): string {
+  if (m == null) return '—';
+  return m < 60 ? `${m}m` : `${Math.round((m / 60) * 10) / 10}h`;
+}
+
+function LedgerRow({ to, label, value, note, tone = 'default' }: { to: string; label: string; value: string | number; note?: string; tone?: Tone }) {
+  return (
+    <li>
+      <Link to={to} className="ledger-row">
+        <span className="ledger-label">{label}</span>
+        <span className={`ledger-value${tone === 'default' ? '' : ` tone-${tone}`}`}>{value}</span>
+        {note ? <span className="ledger-note">{note}</span> : null}
+      </Link>
+    </li>
+  );
+}
 
 export function AdminDashboard() {
   const me = useMe();
@@ -47,7 +46,7 @@ export function AdminDashboard() {
   return (
     <Page title="Workforce dashboard" description="Every figure is calculated from recorded shifts, hazard reports and alerts for the selected dates.">
       <form
-        className="form-row card"
+        className="range-bar"
         onSubmit={(e) => {
           e.preventDefault();
           setRange({ from: draft.from || undefined, to: draft.to || undefined });
@@ -60,109 +59,160 @@ export function AdminDashboard() {
         <Field label="To">
           <input type="date" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} />
         </Field>
-        <div className="field">
-          <Button type="submit" variant="secondary">
-            Update
-          </Button>
-        </div>
+        <Button type="submit" variant="secondary">
+          Update
+        </Button>
       </form>
 
       <Async state={dash}>
         {(d) => {
+          const acc = accountability.data;
           const r = `from=${d.range.from}&to=${d.range.to}`;
           const trend = d.trend.map((p) => ({ label: p.date.slice(8), title: formatDate(p.date), value: p.present }));
           const overtime = d.trend.map((p) => ({ label: p.date.slice(8), title: formatDate(p.date), value: p.overtimeMinutes / 60 }));
+          const actions: Action[] = [];
+          if (d.criticalUnresolved > 0)
+            actions.push({
+              to: '/admin/reports?status=unresolved&severity=critical',
+              icon: Siren,
+              tone: 'tone-danger',
+              label: 'Critical hazard reports not yet fixed',
+              note: 'Record what is being done on each one.',
+              count: d.criticalUnresolved,
+            });
+          if (d.openReports > 0)
+            actions.push({
+              to: '/admin/reports?status=unresolved',
+              icon: ShieldAlert,
+              tone: 'tone-caution',
+              label: 'Hazard reports waiting for action',
+              note: 'Acknowledge, assign and record the fix.',
+              count: d.openReports,
+            });
+          if (acc && acc.overdueFollowUps > 0)
+            actions.push({
+              to: '/admin/reports?status=follow_up_pending',
+              icon: CalendarClock,
+              tone: 'tone-caution',
+              label: 'Follow-up checks overdue',
+              note: 'The date set to check a fix has passed.',
+              count: acc.overdueFollowUps,
+            });
+          if (d.openAlerts > 0)
+            actions.push({
+              to: '/admin/alerts?status=open',
+              icon: AlertTriangle,
+              tone: 'tone-caution',
+              label: 'Open hours alerts',
+              note: 'Long days, short rests and missing check-outs.',
+              count: d.openAlerts,
+            });
+
           return (
             <>
-              <p className="muted">
+              <p className="range-note">
                 Showing {formatDate(d.range.from)} – {formatDate(d.range.to)}.
               </p>
               {d.synthetic ? (
                 <Notice kind="warning">These figures come from synthetic demonstration records. They are not real organisational statistics.</Notice>
               ) : null}
-              <h2 className="section-title">Attendance</h2>
-              <div className="stats">
-                <StatLink to="/admin/workers" label="Active workers" value={d.totalWorkers} icon={<Users {...ICON} />} />
-                <StatLink to="/admin/shifts?status=open" label="On shift now" value={d.onShiftNow} icon={<UserCheck {...ICON} />} />
-                <StatLink to={`/admin/shifts?status=completed&${r}`} label="Completed shifts" value={d.completedShifts} icon={<CalendarCheck {...ICON} />} />
-                <StatLink to={`/admin/shifts?${r}`} label="Hours worked" value={formatMinutes(d.workedMinutes)} icon={<Clock {...ICON} />} />
-                <StatLink
-                  to={`/admin/shifts?${r}`}
-                  label="Overtime recorded"
-                  value={formatMinutes(d.overtimeMinutes)}
-                  hint={`${d.workersWithOvertime} worker(s) with overtime`}
-                  icon={<Timer {...ICON} />}
-                  tone={d.overtimeMinutes ? 'warn' : 'default'}
-                />
-                <StatLink
-                  to="/admin/alerts?status=open"
-                  label="Open hours alerts"
-                  value={d.openAlerts}
-                  hint="Scheduling warnings"
-                  icon={<AlertTriangle {...ICON} />}
-                  tone={d.openAlerts ? 'warn' : 'default'}
-                />
-              </div>
-              <h2 className="section-title">Safety & Accountability Loop</h2>
-              <div className="stats">
-                <StatLink
-                  to="/admin/reports?status=unresolved"
-                  label="Unresolved hazard reports"
-                  value={d.openReports}
-                  icon={<ShieldAlert {...ICON} />}
-                  tone={d.openReports ? 'warn' : 'default'}
-                />
-                <StatLink
-                  to="/admin/reports?status=unresolved&severity=critical"
-                  label="Critical, unresolved"
-                  value={d.criticalUnresolved}
-                  icon={<ShieldAlert {...ICON} />}
-                  tone={d.criticalUnresolved ? 'bad' : 'default'}
-                />
-                <StatLink
-                  to="/admin/reports?status=outcome_verified"
-                  label="Verified outcomes"
-                  value={accountability.data?.verifiedCount ?? '—'}
-                  hint={accountability.data ? `${accountability.data.verificationRatePercent}% verification rate` : undefined}
-                  icon={<ShieldCheck {...ICON} />}
-                />
-                <StatLink
-                  to="/admin/reports?status=follow_up_pending"
-                  label="Follow-ups pending"
-                  value={accountability.data?.followUpPendingCount ?? '—'}
-                  hint={accountability.data?.overdueFollowUps ? `${accountability.data.overdueFollowUps} overdue` : undefined}
-                  icon={<CalendarCheck {...ICON} />}
-                  tone={accountability.data?.overdueFollowUps ? 'warn' : 'default'}
-                />
-                <StatLink
-                  to="/admin/reports"
-                  label="Mean Time to Acknowledge"
-                  value={
-                    accountability.data?.meanTimeToAcknowledgeMinutes != null
-                      ? accountability.data.meanTimeToAcknowledgeMinutes < 60
-                        ? `${accountability.data.meanTimeToAcknowledgeMinutes}m`
-                        : `${Math.round((accountability.data.meanTimeToAcknowledgeMinutes / 60) * 10) / 10}h`
-                      : '—'
-                  }
-                  hint="Initial review speed"
-                  icon={<Clock {...ICON} />}
-                />
-                <StatLink
-                  to="/admin/reports"
-                  label="Mean Time to Resolve"
-                  value={
-                    accountability.data?.meanTimeToResolveMinutes != null
-                      ? accountability.data.meanTimeToResolveMinutes < 60
-                        ? `${accountability.data.meanTimeToResolveMinutes}m`
-                        : `${Math.round((accountability.data.meanTimeToResolveMinutes / 60) * 10) / 10}h`
-                      : '—'
-                  }
-                  hint={accountability.data ? `${accountability.data.reopenRatePercent}% reopen rate` : undefined}
-                  icon={<CheckCircle2 {...ICON} />}
-                />
+
+              <section aria-labelledby="needs-action">
+                <h2 id="needs-action" className="section-title">
+                  Needs action
+                </h2>
+                {actions.length === 0 ? (
+                  <p className="action-clear">Nothing needs action right now.</p>
+                ) : (
+                  <ul className="action-list">
+                    {actions.map((a) => (
+                      <li key={a.to}>
+                        <Link to={a.to} className="action-row">
+                          <span className={`row-icon ${a.tone}`} aria-hidden="true">
+                            <a.icon className="icon" />
+                          </span>
+                          <span className="action-text">
+                            <strong>{a.label}</strong>
+                            <span>{a.note}</span>
+                          </span>
+                          <span className="action-count">{a.count}</span>
+                          <ChevronRight className="icon chevron" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <div className="ledgers">
+                <section className="ledger" aria-labelledby="ledger-attendance">
+                  <h2 id="ledger-attendance">Attendance</h2>
+                  <ul>
+                    <LedgerRow to="/admin/workers" label="Active workers" value={d.totalWorkers} />
+                    <LedgerRow to="/admin/shifts?status=open" label="On shift now" value={d.onShiftNow} />
+                    <LedgerRow to={`/admin/shifts?status=completed&${r}`} label="Completed shifts" value={d.completedShifts} />
+                    <LedgerRow to={`/admin/shifts?${r}`} label="Hours worked" value={formatMinutes(d.workedMinutes)} />
+                    <LedgerRow
+                      to={`/admin/shifts?${r}`}
+                      label="Overtime recorded"
+                      value={formatMinutes(d.overtimeMinutes)}
+                      note={`${d.workersWithOvertime} worker(s) with overtime`}
+                      tone={d.overtimeMinutes ? 'warn' : 'default'}
+                    />
+                    <LedgerRow
+                      to="/admin/alerts?status=open"
+                      label="Open hours alerts"
+                      value={d.openAlerts}
+                      note="Scheduling warnings"
+                      tone={d.openAlerts ? 'warn' : 'default'}
+                    />
+                  </ul>
+                </section>
+                <section className="ledger" aria-labelledby="ledger-safety">
+                  <h2 id="ledger-safety">Safety and the accountability loop</h2>
+                  <ul>
+                    <LedgerRow
+                      to="/admin/reports?status=unresolved"
+                      label="Unresolved hazard reports"
+                      value={d.openReports}
+                      tone={d.openReports ? 'warn' : 'default'}
+                    />
+                    <LedgerRow
+                      to="/admin/reports?status=unresolved&severity=critical"
+                      label="Critical, unresolved"
+                      value={d.criticalUnresolved}
+                      tone={d.criticalUnresolved ? 'bad' : 'default'}
+                    />
+                    <LedgerRow
+                      to="/admin/reports?status=outcome_verified"
+                      label="Outcomes checked"
+                      value={acc?.verifiedCount ?? '—'}
+                      note={acc ? `${acc.verificationRatePercent}% verification rate` : undefined}
+                    />
+                    <LedgerRow
+                      to="/admin/reports?status=follow_up_pending"
+                      label="Follow-ups pending"
+                      value={acc?.followUpPendingCount ?? '—'}
+                      note={acc?.overdueFollowUps ? `${acc.overdueFollowUps} overdue` : undefined}
+                      tone={acc?.overdueFollowUps ? 'warn' : 'default'}
+                    />
+                    <LedgerRow
+                      to="/admin/reports"
+                      label="Average time to acknowledge"
+                      value={minutesLabel(acc?.meanTimeToAcknowledgeMinutes)}
+                      note="From report to first review"
+                    />
+                    <LedgerRow
+                      to="/admin/reports"
+                      label="Average time to resolve"
+                      value={minutesLabel(acc?.meanTimeToResolveMinutes)}
+                      note={acc ? `${acc.reopenRatePercent}% reopen rate` : undefined}
+                    />
+                  </ul>
+                </section>
               </div>
 
-              <div className="grid">
+              <div className="console-grid">
                 <Card title="Attendance trend" subtitle="Workers who checked in each day">
                   <BarChart data={trend} caption="Workers present per day" valueLabel="Workers present" />
                 </Card>
@@ -171,17 +221,16 @@ export function AdminDashboard() {
                 </Card>
               </div>
 
-              <div className="grid mt-4">
+              <div className="console-grid">
                 <Card title="Recent activity">
                   {d.recentActivity.length === 0 ? (
                     <Empty>No recent activity.</Empty>
                   ) : (
-                    <ul className="list">
+                    <ul className="activity">
                       {d.recentActivity.map((a, i) => (
                         <li key={`${a.at}-${i}`}>
                           {a.link ? <Link to={a.link}>{a.text}</Link> : a.text}
-                          <br />
-                          <span className="muted small">{formatDateTime(a.at, me.org.timezone)}</span>
+                          <time dateTime={a.at}>{formatDateTime(a.at, me.org.timezone)}</time>
                         </li>
                       ))}
                     </ul>
@@ -190,7 +239,7 @@ export function AdminDashboard() {
                 <Card title="Feedback summary">
                   <p className="muted small">
                     {d.feedback.total} response(s) since {formatDate(d.range.from)}, excluding hidden. Averages are shown only when a topic has at least 3
-                    ratings, to protect anonymity.
+                    ratings, so that one person's rating is harder to single out.
                   </p>
                   <div className="table-wrap">
                     <table>
