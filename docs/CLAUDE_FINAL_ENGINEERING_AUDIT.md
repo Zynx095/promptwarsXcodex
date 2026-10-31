@@ -137,6 +137,7 @@ The notice is built only from the worker's own payslip, profile and organisation
 ## 6. Localization coverage
 
 - Six dictionaries: English has 336 keys; Hindi, Tamil, Telugu and Bengali have all 336; Kannada lacks only `app.name` (the brand name, which falls back to English). No placeholder mismatches. Lazy-loaded per language with English fallback; choice persisted in `localStorage`; `<html lang>` updated.
+- **Correction (2026-10-31, UI phase):** the key counts above were right, but this audit did not check what script the values were in. In Tamil, Telugu and Bengali most values were Hindi (Devanagari), so those three languages largely showed Hindi. This was found during the UI redesign and fixed in commit `675c9ab`, which translates the affected strings and adds a test that fails if Kannada, Tamil, Telugu or Bengali text contains Devanagari letters or if less than 95% of a language's strings are in its own script.
 - **Not localized (English only):** the admin console (Dashboard, Workers, Pay rules and most other admin pages have few or no `t()` calls), server-generated notifications and error messages, the dispute notice document body, heat-safety advice text and symptom list, receipt explanatory text, the QR modal.
 - Currency is formatted with `en-IN` in most components regardless of language (Latin digits). Dates use `Intl` with the active locale where the component passes it.
 - Translations have **not** been validated by native speakers. The one string added in this audit (`jar.paymentNotRecorded`) was written without native review.
