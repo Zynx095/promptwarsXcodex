@@ -428,7 +428,6 @@ CI (`.github/workflows/ci.yml`) runs `npm ci`, the format check, lint, typecheck
 | Localisation                        | [docs/V41_LOCALIZATION.md](docs/V41_LOCALIZATION.md)                                                                                                                                   |
 | Design system and UI                | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md), [docs/UI_UX_REPORT_V4.2.md](docs/UI_UX_REPORT_V4.2.md), [docs/GLASSMORPHISM_V2_FINAL_REPORT.md](docs/GLASSMORPHISM_V2_FINAL_REPORT.md) |
 | Engineering audit (V4.1)            | [docs/V41_ENGINEERING_AUDIT.md](docs/V41_ENGINEERING_AUDIT.md)                                                                                                                         |
-| Competitive analysis                | [docs/benchmark product_SAFETY_CAMERA_WORKFLOW_AUDIT.md](docs/benchmark product_SAFETY_CAMERA_WORKFLOW_AUDIT.md), [docs/benchmark product_FAIRSHIFT_COMPARISON.md](docs/benchmark product_FAIRSHIFT_COMPARISON.md)                 |
 | Demo script                         | [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)                                                                                                                                             |
 | Roadmap                             | [docs/FAIRSHIFT_FEATURE_GAP_ROADMAP.md](docs/FAIRSHIFT_FEATURE_GAP_ROADMAP.md), [docs/CONTRACTOR_SUBCONTRACTOR_PROPOSAL.md](docs/CONTRACTOR_SUBCONTRACTOR_PROPOSAL.md)                 |
 

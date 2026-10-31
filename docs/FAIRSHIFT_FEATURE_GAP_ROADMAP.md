@@ -2,14 +2,14 @@
 
 **Document Reference**: `FAIRSHIFT_FEATURE_GAP_ROADMAP`  
 **Base Architecture**: FairShift V4.1  
-**Benchmark Source**: benchmark product Product Audit (`https://benchmark product-beige.vercel.app/`)  
-**Objective**: Prioritized technical roadmap translating benchmark product's strongest frontline capabilities into FairShift's hardened cryptographic and privacy-first architecture without compromising security, privacy, or legal defensibility.
+**Benchmark Source**: Product audit of a comparable frontline workforce application  
+**Objective**: Prioritized technical roadmap translating the strongest frontline capabilities seen in the benchmark into FairShift's hardened cryptographic and privacy-first architecture without compromising security, privacy, or legal defensibility.
 
 ---
 
 ## 1. Prioritization Framework & Summary
 
-Candidate capabilities discovered during the benchmark product audit have been evaluated against FairShift's core mission: **workforce transparency, wage protection, and frontline safety (SDG 8)**.
+Candidate capabilities discovered during the benchmark audit have been evaluated against FairShift's core mission: **workforce transparency, wage protection, and frontline safety (SDG 8)**.
 
 | Priority Tier       | Description                                                                      | Key Additions                                                                                                                                        | Target Phase           |
 | ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
@@ -32,7 +32,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Frontline workers frequently clock into dangerous work environments (substations, scaffoldings, biohazard wards) without wearing required protective equipment, leading to fatal workplace injuries. Paper or text check-ins provide zero physical evidence of compliance.
 2. **Who benefits?**  
    Frontline workers (preventing fatal accidents), safety officers (verifiable proof of pre-shift readiness), and principal employers (protection against fraudulent liability claims).
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    Renders a mandatory photo capture block on `/app`. The worker clicks "Click Camera Photo" (using `<input type="file" capture="user">`) or "Upload from Gallery". An image preview is rendered with a green monospace HUD overlay showing GPS coordinates and time. The "Confirm Shift Check-In" action is strictly disabled with a bouncing warning until the photo is attached.
 4. **What would a FairShift equivalent look like?**  
    Integrate an accessible camera/gallery capture card directly into `Attendance.tsx` and `ShiftCard.tsx`. Upon capture, FairShift renders an SVG HUD watermark displaying the shift's HMAC-SHA256 receipt seed, latitude, longitude, and local timestamp. The shift creation payload includes the photo hash.
@@ -62,7 +62,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Site supervisors routinely mark dangerous workplace safety hazards as "Resolved" in software systems without actually fixing them on the ground ("paper compliance").
 2. **Who benefits?**  
    Workers operating near dangerous equipment or open trenches; principal employers who face criminal liability when neglected hazards cause fatalities.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    When a hazard ticket is in review, closing the ticket requires two distinct keys:
    - _Key 1_: Supervisor must upload an "After-Remedy" photograph proving physical repair.
    - _Key 2_: The reporting worker or at least 2 peer corroborators must confirm resolution. The "I confirm, close ticket" button is disabled until both requirements are satisfied.
@@ -94,7 +94,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Individual frontline workers who report safety hazards often face intimidation or termination by site supervisors. Conversely, supervisors frequently dismiss single-worker reports as exaggerated or isolated gripes.
 2. **Who benefits?**  
    Frontline workers (strength in numbers, mutual protection), safety directors (clarity on which hazards represent recurring systemic dangers).
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    Every open hazard in `/app/safety` features a "Corroborate Hazard" button. Any logged-in worker can tap the button to add their witness statement. When `corroboratorCount >= 2`, the hazard's severity is automatically elevated to `URGENT` under collective witness rules.
 4. **What would a FairShift equivalent look like?**  
    In `WorkerReports.tsx`, open hazards in the worker's site display a "Corroborate" action. Corroborating logs a cryptographically signed witness event in the report's audit history. Reaching $\ge 2$ corroborations automatically triggers a severity elevation notification to the organization's Safety Director.
@@ -123,7 +123,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    In construction and infrastructure, principal employers hire third-party labor contractors who employ the frontline workers. FairShift currently only supports "Worker" and "Admin" roles, forcing contractors to either use full administrative privileges or share worker logins.
 2. **Who benefits?**  
    Labor contractors, site engineers, sub-contractor managers, and enterprise procurement officers.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    A dedicated `/contractor` cockpit displaying multi-site workforce rosters, required skillsets per zone, shift reassignments, and a wage dispute review queue where contractors approve or reject worker discrepancy notices.
 4. **What would a FairShift equivalent look like?**  
    Introduce a third core role: `contractor`. When authenticated, users access `/contractor` with scoped permissions: viewing only workers in their contractor pool, dispatching workers to authorized sites, reviewing wage discrepancies, and submitting attendance corrections.
@@ -153,7 +153,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Workers reporting sensitive grievances (sexual harassment, extortion, wage theft) often accidentally type their own names, phone numbers, or coworkers' identities into free-text descriptions, destroying their anonymity even when the platform suppresses user IDs.
 2. **Who benefits?**  
    Vulnerable frontline workers, whistleblowers, and corporate compliance officers.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    Calls `/api/ai/transcribe-scrub` on submission, redacting phone numbers (e.g. `[phone redacted]`) and personal names using regex and NLP heuristics before the text enters storage.
 4. **What would a FairShift equivalent look like?**  
    Integrate a deterministic PII sanitization pipeline into `feedback.ts` and `signal.ts`. When a worker submits a confidential report or SafeSignal entry, the server automatically sanitizes Indian phone numbers (`+91...`, `98765...`), Aadhaar-like 12-digit number formats, and common name prefixes before writing to the database.
@@ -181,7 +181,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    In industrial and construction accidents (falls, electrocution, collapse), first responders lose critical minutes attempting to identify an unconscious worker's blood group and emergency contact details.
 2. **Who benefits?**  
    Frontline workers (emergency survival), on-site medical paramedics, and safety officers.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    Stores blood groups, age, height, weight, and emergency telephone numbers in worker profiles; surfaces them in the Admin "People" tab and live muster roll.
 4. **What would a FairShift equivalent look like?**  
    Add an optional "Emergency Medical Baseline" card to the worker profile. In the Admin and Contractor Roster, emergency first-aid tags (Blood Group: O+, Emergency Contact: +91...) are immediately accessible upon clicking a worker's muster badge.
@@ -209,7 +209,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Safety officers inspecting hundreds of open hazard tickets across distributed infrastructure projects lack the time to physically inspect every minor repair.
 2. **Who benefits?**  
    Enterprise safety inspectors and regional compliance managers.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    In the Two-Key modal, clicking "Run Gemini advisory vision comparison" posts Before and After photos to `/api/ai/vision-compare`, which returns `suggestedResolved: true`, confidence score (e.g. 0.92), and explanatory notes. Treated strictly as an advisory check.
 4. **What would a FairShift equivalent look like?**  
    An optional "AI Advisory Inspection" button on `ReportDetail.tsx` (for admin/inspectors). FairShift submits the Before and After photo URLs to an official Gemini 2.0 Flash multimodal endpoint with an engineering prompt instructing it to identify physical changes, insulation, conduit repairs, or guardrail presence. The output renders as an advisory badge (`94% Confidence — Advisory Only`).
@@ -237,7 +237,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    Workers and site supervisors find abstract MTTA/MTTR metrics hard to track on a daily basis. Without visible countdowns, hazard remediation deadlines are routinely missed.
 2. **Who benefits?**  
    Site supervisors and frontline reporting workers.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    Every hazard ticket displays an animated countdown progress bar mapping statutory tiers (Supervisor: 0-4h, Safety Officer: 4-12h, Principal Employer: 12-24h) with explicit warnings (e.g. "Supervisor must inspect and upload photo within 2.3h").
 4. **What would a FairShift equivalent look like?**  
    Add a dynamic `SlaCountdownBar` component to `ReportDetail.tsx` and `WorkerReports.tsx`. The bar color-codes time remaining (green $\rightarrow$ amber $\rightarrow$ red) and visually displays the current escalation tier.
@@ -263,7 +263,7 @@ Below is the rigorous 10-point analysis for every capability identified as missi
    When government labor inspectors visit worksites, safety officers waste hours manually compiling muster rolls, overtime registers, and wage sheets.
 2. **Who benefits?**  
    HR managers, legal compliance teams, and field inspectors.
-3. **How does benchmark product implement or present it?**  
+3. **How does the benchmark product implement or present it?**  
    The Admin "Compliance" tab provides instant download buttons for statutory CSVs: Muster Roll CSV, Overtime Register CSV, and Wage Discrepancy CSV.
 4. **What would a FairShift equivalent look like?**  
    Add an "Inspection Pack" button in `src/client/pages/admin/Audit.tsx` and `PayRules.tsx`. One click generates a signed ZIP archive or individual CSVs containing Form A (Muster Roll), Form B (Wage Register), and Form C (Overtime Register) pre-formatted according to Indian labor rules.

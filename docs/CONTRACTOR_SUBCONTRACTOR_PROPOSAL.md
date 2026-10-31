@@ -10,7 +10,7 @@
 
 In large-scale infrastructure projects (e.g. metro rail construction, commercial high-rises, multi-facility university campuses), the frontline workforce is rarely employed directly by the principal owner. Instead, a **Principal Employer** contracts a **General Contractor (GC)**, who in turn engages multiple **Subcontractors / Labor Contractors** (e.g., rebar fabrication, formwork, electrical, masonry, cleaning).
 
-The competitive audit against benchmark product highlighted contractor-level grouping as an area for exploration. However, simply adding a naive `'contractor'` role to FairShift would violate core multi-tenant security guarantees without solving the real structural requirements of statutory compliance (e.g., BOCW Act and Contract Labour (Regulation and Abolition) Act, 1970).
+A product benchmark review highlighted contractor-level grouping as an area for exploration. However, simply adding a naive `'contractor'` role to FairShift would violate core multi-tenant security guarantees without solving the real structural requirements of statutory compliance (e.g., BOCW Act and Contract Labour (Regulation and Abolition) Act, 1970).
 
 This proposal outlines a defensible architectural path for multi-tier contractor management without compromising FairShift's database relational constraints, cryptographic receipts, or strict tenant isolation.
 
