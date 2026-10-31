@@ -50,6 +50,18 @@ describe('Session revocation', () => {
     expect((await request(app).get('/api/attendance/status').set('Cookie', worker2)).status).toBe(200);
   });
 
+  it('adopts a newer session version issued by another instance and keeps rejecting older cookies', async () => {
+    const { app, ctx } = await setup();
+    const older = await signIn(app, PHONES.ravi);
+    // A sign-in on another instance with its own database, where Ravi had already signed out once
+    const exp = ctx.now().getTime() + 60_000;
+    const payload = Buffer.from(JSON.stringify({ sub: 'usr_demo_c_ravi', sid: 'other', ver: 1, exp })).toString('base64url');
+    const newer = `fs_session=${payload}.${hmac(ctx.config.sessionSecret, payload)}`;
+
+    expect((await request(app).get('/api/auth/me').set('Cookie', newer)).status).toBe(200);
+    expect((await request(app).get('/api/auth/me').set('Cookie', older)).status).toBe(401);
+  });
+
   it('accepts cookies issued before session versioning existed as version 0', async () => {
     const { app, ctx } = await setup();
     // Legacy token shape: no "ver" claim

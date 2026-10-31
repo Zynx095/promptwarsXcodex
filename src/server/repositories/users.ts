@@ -39,6 +39,11 @@ export function bumpSessionVersion(db: Db, id: string): void {
   db.run(`UPDATE users SET session_version = session_version + 1 WHERE id = @id`, { id });
 }
 
+/** Raises the stored session version to `version` if it is lower; never lowers it. */
+export function raiseSessionVersion(db: Db, id: string, version: number): void {
+  db.run(`UPDATE users SET session_version = @version WHERE id = @id AND session_version < @version`, { id, version });
+}
+
 export function findLoginByPhone(db: Db, phone: string) {
   return db.get<{ id: string; pinHash: string; active: number }>(`SELECT id, pin_hash AS pinHash, active FROM users WHERE phone = @phone`, { phone });
 }

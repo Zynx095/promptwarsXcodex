@@ -7,7 +7,7 @@ import { hmac, safeEqual } from './crypto';
 import { HttpError } from '../http';
 import type { AppContext } from '../context';
 import type { Role } from '../../shared/types';
-import { bumpSessionVersion, findSessionUser, getSessionVersion, type SessionUserRow } from '../repositories/users';
+import { bumpSessionVersion, findSessionUser, getSessionVersion, raiseSessionVersion, type SessionUserRow } from '../repositories/users';
 
 export const SESSION_COOKIE = 'fs_session';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -81,7 +81,14 @@ export function sessionMiddleware(ctx: AppContext): RequestHandler {
       const claims = verifyTokenClaims(ctx.config.sessionSecret, token, ctx.now());
       if (claims) {
         const user = findSessionUser(ctx.db, claims.sub);
-        if (user && user.active && getSessionVersion(ctx.db, user.id) === claims.ver) req.user = user;
+        if (user && user.active) {
+          const current = getSessionVersion(ctx.db, user.id);
+          // A signed version above the stored one was issued by a server instance with its own
+          // database (separate Vercel function instances each keep one in /tmp). Adopting it keeps
+          // the user signed in there and still rejects cookies older than that sign-in.
+          if (claims.ver > current) raiseSessionVersion(ctx.db, user.id, claims.ver);
+          if (claims.ver >= current) req.user = user;
+        }
       }
     }
     next();
