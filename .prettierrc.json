@@ -1,5 +1,11 @@
 {
   "singleQuote": true,
   "printWidth": 160,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": "docs/**/*.md",
+      "options": { "embeddedLanguageFormatting": "off" }
+    }
+  ]
 }
